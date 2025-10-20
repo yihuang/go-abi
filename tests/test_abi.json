@@ -140,6 +140,7 @@
       {
         "name": "user",
         "type": "tuple",
+        "internalType": "struct User",
         "components": [
           {
             "name": "address",
@@ -171,6 +172,7 @@
       {
         "name": "users",
         "type": "tuple[]",
+        "internalType": "struct UserData[]",
         "components": [
           {
             "name": "id",
@@ -179,6 +181,7 @@
           {
             "name": "data",
             "type": "tuple",
+            "internalType": "struct UserMetadata",
             "components": [
               {
                 "name": "key",

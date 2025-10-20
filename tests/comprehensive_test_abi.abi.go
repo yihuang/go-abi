@@ -7,28 +7,133 @@ import (
 	"math/big"
 )
 
-// Tuple_1064c5d1 represents a tuple type
+// Item represents a tuple type
 
-var _ abi.Tuple = Tuple_1064c5d1{}
+var _ abi.Tuple = Item{}
 
-const Tuple_1064c5d1StaticSize = 32
+const ItemStaticSize = 96
 
-type Tuple_1064c5d1 struct {
-	Level2 Tuple_e05eda74
+type Item struct {
+	Id     uint32
+	Data   []byte
+	Active bool
 }
 
-// EncodedSize returns the total encoded size of Tuple_1064c5d1
-func (t Tuple_1064c5d1) EncodedSize() int {
+// EncodedSize returns the total encoded size of Item
+func (t Item) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += 32 + abi.Pad32(len(t.Data)) // length + padded bytes data
+
+	return ItemStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Item to ABI bytes in the provided buffer
+func (t Item) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := ItemStaticSize // Start dynamic data after static section
+
+	// Id (static)
+	binary.BigEndian.PutUint32(buf[0+28:0+32], uint32(t.Id))
+
+	// Data (offset)
+	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+
+	// Data (dynamic)
+
+	// length
+	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Data)))
+	dynamicOffset += 32
+
+	// data
+	copy(buf[dynamicOffset:], t.Data)
+	dynamicOffset += abi.Pad32(len(t.Data))
+
+	// Active (static)
+
+	if t.Active {
+		buf[64+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Item to ABI bytes
+func (t Item) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Level1 represents a tuple type
+
+var _ abi.Tuple = Level1{}
+
+const Level1StaticSize = 32
+
+type Level1 struct {
+	Level1 Level2
+}
+
+// EncodedSize returns the total encoded size of Level1
+func (t Level1) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += t.Level1.EncodedSize() // dynamic tuple
+
+	return Level1StaticSize + dynamicSize
+}
+
+// EncodeTo encodes Level1 to ABI bytes in the provided buffer
+func (t Level1) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Level1StaticSize // Start dynamic data after static section
+
+	// Level1 (offset)
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+
+	// Level1 (dynamic)
+
+	n, err := t.Level1.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Level1 to ABI bytes
+func (t Level1) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Level2 represents a tuple type
+
+var _ abi.Tuple = Level2{}
+
+const Level2StaticSize = 32
+
+type Level2 struct {
+	Level2 Level3
+}
+
+// EncodedSize returns the total encoded size of Level2
+func (t Level2) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += t.Level2.EncodedSize() // dynamic tuple
 
-	return Tuple_1064c5d1StaticSize + dynamicSize
+	return Level2StaticSize + dynamicSize
 }
 
-// EncodeTo encodes Tuple_1064c5d1 to ABI bytes in the provided buffer
-func (t Tuple_1064c5d1) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_1064c5d1StaticSize // Start dynamic data after static section
+// EncodeTo encodes Level2 to ABI bytes in the provided buffer
+func (t Level2) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Level2StaticSize // Start dynamic data after static section
 
 	// Level2 (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -44,8 +149,8 @@ func (t Tuple_1064c5d1) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Tuple_1064c5d1 to ABI bytes
-func (t Tuple_1064c5d1) Encode() ([]byte, error) {
+// Encode encodes Level2 to ABI bytes
+func (t Level2) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -53,29 +158,75 @@ func (t Tuple_1064c5d1) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Tuple_54b20b3a represents a tuple type
+// Level3 represents a tuple type
 
-var _ abi.Tuple = Tuple_54b20b3a{}
+var _ abi.Tuple = Level3{}
 
-const Tuple_54b20b3aStaticSize = 64
+const Level3StaticSize = 32
 
-type Tuple_54b20b3a struct {
+type Level3 struct {
+	Level3 Level4
+}
+
+// EncodedSize returns the total encoded size of Level3
+func (t Level3) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += t.Level3.EncodedSize() // dynamic tuple
+
+	return Level3StaticSize + dynamicSize
+}
+
+// EncodeTo encodes Level3 to ABI bytes in the provided buffer
+func (t Level3) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Level3StaticSize // Start dynamic data after static section
+
+	// Level3 (offset)
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+
+	// Level3 (dynamic)
+
+	n, err := t.Level3.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Level3 to ABI bytes
+func (t Level3) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Level4 represents a tuple type
+
+var _ abi.Tuple = Level4{}
+
+const Level4StaticSize = 64
+
+type Level4 struct {
 	Value       *big.Int
 	Description string
 }
 
-// EncodedSize returns the total encoded size of Tuple_54b20b3a
-func (t Tuple_54b20b3a) EncodedSize() int {
+// EncodedSize returns the total encoded size of Level4
+func (t Level4) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.Description)) // length + padded string data
 
-	return Tuple_54b20b3aStaticSize + dynamicSize
+	return Level4StaticSize + dynamicSize
 }
 
-// EncodeTo encodes Tuple_54b20b3a to ABI bytes in the provided buffer
-func (t Tuple_54b20b3a) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_54b20b3aStaticSize // Start dynamic data after static section
+// EncodeTo encodes Level4 to ABI bytes in the provided buffer
+func (t Level4) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Level4StaticSize // Start dynamic data after static section
 
 	// Value (static)
 
@@ -99,8 +250,8 @@ func (t Tuple_54b20b3a) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Tuple_54b20b3a to ABI bytes
-func (t Tuple_54b20b3a) Encode() ([]byte, error) {
+// Encode encodes Level4 to ABI bytes
+func (t Level4) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -108,35 +259,42 @@ func (t Tuple_54b20b3a) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Tuple_5cee9471 represents a tuple type
+// User2 represents a tuple type
 
-var _ abi.Tuple = Tuple_5cee9471{}
+var _ abi.Tuple = User2{}
 
-const Tuple_5cee9471StaticSize = 32
+const User2StaticSize = 64
 
-type Tuple_5cee9471 struct {
-	Level1 Tuple_1064c5d1
+type User2 struct {
+	Id      *big.Int
+	Profile UserProfile
 }
 
-// EncodedSize returns the total encoded size of Tuple_5cee9471
-func (t Tuple_5cee9471) EncodedSize() int {
+// EncodedSize returns the total encoded size of User2
+func (t User2) EncodedSize() int {
 	dynamicSize := 0
 
-	dynamicSize += t.Level1.EncodedSize() // dynamic tuple
+	dynamicSize += t.Profile.EncodedSize() // dynamic tuple
 
-	return Tuple_5cee9471StaticSize + dynamicSize
+	return User2StaticSize + dynamicSize
 }
 
-// EncodeTo encodes Tuple_5cee9471 to ABI bytes in the provided buffer
-func (t Tuple_5cee9471) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_5cee9471StaticSize // Start dynamic data after static section
+// EncodeTo encodes User2 to ABI bytes in the provided buffer
+func (t User2) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := User2StaticSize // Start dynamic data after static section
 
-	// Level1 (offset)
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Id (static)
 
-	// Level1 (dynamic)
+	if err := abi.EncodeBigInt(t.Id, buf[0:32], false); err != nil {
+		return 0, err
+	}
 
-	n, err := t.Level1.EncodeTo(buf[dynamicOffset:])
+	// Profile (offset)
+	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+
+	// Profile (dynamic)
+
+	n, err := t.Profile.EncodeTo(buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -145,8 +303,8 @@ func (t Tuple_5cee9471) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Tuple_5cee9471 to ABI bytes
-func (t Tuple_5cee9471) Encode() ([]byte, error) {
+// Encode encodes User2 to ABI bytes
+func (t User2) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -154,20 +312,105 @@ func (t Tuple_5cee9471) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Tuple_8a486b93 represents a tuple type
+// UserMetadata2 represents a tuple type
 
-var _ abi.Tuple = Tuple_8a486b93{}
+var _ abi.Tuple = UserMetadata2{}
 
-const Tuple_8a486b93StaticSize = 96
+const UserMetadata2StaticSize = 64
 
-type Tuple_8a486b93 struct {
-	Name     string
-	Emails   []string
-	Metadata Tuple_dc8f1c28
+type UserMetadata2 struct {
+	CreatedAt *big.Int
+	Tags      []string
 }
 
-// EncodedSize returns the total encoded size of Tuple_8a486b93
-func (t Tuple_8a486b93) EncodedSize() int {
+// EncodedSize returns the total encoded size of UserMetadata2
+func (t UserMetadata2) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += 32 + 32*len(t.Tags) // length + offset pointers for dynamic elements
+	for _, elem := range t.Tags {
+		dynamicSize += 32 + abi.Pad32(len(elem)) // length + padded string data
+	}
+
+	return UserMetadata2StaticSize + dynamicSize
+}
+
+// EncodeTo encodes UserMetadata2 to ABI bytes in the provided buffer
+func (t UserMetadata2) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := UserMetadata2StaticSize // Start dynamic data after static section
+
+	// CreatedAt (static)
+
+	if err := abi.EncodeBigInt(t.CreatedAt, buf[0:32], false); err != nil {
+		return 0, err
+	}
+
+	// Tags (offset)
+	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+
+	// Tags (dynamic)
+
+	{
+		// length
+		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Tags)))
+		dynamicOffset += 32
+
+		var written int
+
+		// data with dynamic region
+		{
+			buf := buf[dynamicOffset:]
+			dynamicOffset := len(t.Tags) * 32 // start after static region
+
+			var offset int
+			for _, item := range t.Tags {
+				// write offsets
+				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+				offset += 32
+
+				// write data (dynamic)
+
+				// length
+				binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
+				dynamicOffset += 32
+
+				// data
+				copy(buf[dynamicOffset:], []byte(item))
+				dynamicOffset += abi.Pad32(len(item))
+
+			}
+			written = dynamicOffset
+		}
+		dynamicOffset += written
+
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes UserMetadata2 to ABI bytes
+func (t UserMetadata2) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// UserProfile represents a tuple type
+
+var _ abi.Tuple = UserProfile{}
+
+const UserProfileStaticSize = 96
+
+type UserProfile struct {
+	Name     string
+	Emails   []string
+	Metadata UserMetadata2
+}
+
+// EncodedSize returns the total encoded size of UserProfile
+func (t UserProfile) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.Name)) // length + padded string data
@@ -177,12 +420,12 @@ func (t Tuple_8a486b93) EncodedSize() int {
 	}
 	dynamicSize += t.Metadata.EncodedSize() // dynamic tuple
 
-	return Tuple_8a486b93StaticSize + dynamicSize
+	return UserProfileStaticSize + dynamicSize
 }
 
-// EncodeTo encodes Tuple_8a486b93 to ABI bytes in the provided buffer
-func (t Tuple_8a486b93) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_8a486b93StaticSize // Start dynamic data after static section
+// EncodeTo encodes UserProfile to ABI bytes in the provided buffer
+func (t UserProfile) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := UserProfileStaticSize // Start dynamic data after static section
 
 	// Name (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -251,251 +494,8 @@ func (t Tuple_8a486b93) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Tuple_8a486b93 to ABI bytes
-func (t Tuple_8a486b93) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-// Tuple_dc8f1c28 represents a tuple type
-
-var _ abi.Tuple = Tuple_dc8f1c28{}
-
-const Tuple_dc8f1c28StaticSize = 64
-
-type Tuple_dc8f1c28 struct {
-	CreatedAt *big.Int
-	Tags      []string
-}
-
-// EncodedSize returns the total encoded size of Tuple_dc8f1c28
-func (t Tuple_dc8f1c28) EncodedSize() int {
-	dynamicSize := 0
-
-	dynamicSize += 32 + 32*len(t.Tags) // length + offset pointers for dynamic elements
-	for _, elem := range t.Tags {
-		dynamicSize += 32 + abi.Pad32(len(elem)) // length + padded string data
-	}
-
-	return Tuple_dc8f1c28StaticSize + dynamicSize
-}
-
-// EncodeTo encodes Tuple_dc8f1c28 to ABI bytes in the provided buffer
-func (t Tuple_dc8f1c28) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_dc8f1c28StaticSize // Start dynamic data after static section
-
-	// CreatedAt (static)
-
-	if err := abi.EncodeBigInt(t.CreatedAt, buf[0:32], false); err != nil {
-		return 0, err
-	}
-
-	// Tags (offset)
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Tags (dynamic)
-
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Tags)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Tags) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Tags {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				// length
-				binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
-				dynamicOffset += 32
-
-				// data
-				copy(buf[dynamicOffset:], []byte(item))
-				dynamicOffset += abi.Pad32(len(item))
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
-	}
-
-	return dynamicOffset, nil
-}
-
-// Encode encodes Tuple_dc8f1c28 to ABI bytes
-func (t Tuple_dc8f1c28) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-// Tuple_de3c4b6f represents a tuple type
-
-var _ abi.Tuple = Tuple_de3c4b6f{}
-
-const Tuple_de3c4b6fStaticSize = 96
-
-type Tuple_de3c4b6f struct {
-	Id     uint32
-	Data   []byte
-	Active bool
-}
-
-// EncodedSize returns the total encoded size of Tuple_de3c4b6f
-func (t Tuple_de3c4b6f) EncodedSize() int {
-	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Data)) // length + padded bytes data
-
-	return Tuple_de3c4b6fStaticSize + dynamicSize
-}
-
-// EncodeTo encodes Tuple_de3c4b6f to ABI bytes in the provided buffer
-func (t Tuple_de3c4b6f) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_de3c4b6fStaticSize // Start dynamic data after static section
-
-	// Id (static)
-	binary.BigEndian.PutUint32(buf[0+28:0+32], uint32(t.Id))
-
-	// Data (offset)
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Data (dynamic)
-
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Data)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], t.Data)
-	dynamicOffset += abi.Pad32(len(t.Data))
-
-	// Active (static)
-
-	if t.Active {
-		buf[64+31] = 1
-	}
-
-	return dynamicOffset, nil
-}
-
-// Encode encodes Tuple_de3c4b6f to ABI bytes
-func (t Tuple_de3c4b6f) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-// Tuple_e05eda74 represents a tuple type
-
-var _ abi.Tuple = Tuple_e05eda74{}
-
-const Tuple_e05eda74StaticSize = 32
-
-type Tuple_e05eda74 struct {
-	Level3 Tuple_54b20b3a
-}
-
-// EncodedSize returns the total encoded size of Tuple_e05eda74
-func (t Tuple_e05eda74) EncodedSize() int {
-	dynamicSize := 0
-
-	dynamicSize += t.Level3.EncodedSize() // dynamic tuple
-
-	return Tuple_e05eda74StaticSize + dynamicSize
-}
-
-// EncodeTo encodes Tuple_e05eda74 to ABI bytes in the provided buffer
-func (t Tuple_e05eda74) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_e05eda74StaticSize // Start dynamic data after static section
-
-	// Level3 (offset)
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Level3 (dynamic)
-
-	n, err := t.Level3.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
-	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
-}
-
-// Encode encodes Tuple_e05eda74 to ABI bytes
-func (t Tuple_e05eda74) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
-		return nil, err
-	}
-	return buf, nil
-}
-
-// Tuple_e9afb3e4 represents a tuple type
-
-var _ abi.Tuple = Tuple_e9afb3e4{}
-
-const Tuple_e9afb3e4StaticSize = 64
-
-type Tuple_e9afb3e4 struct {
-	Id      *big.Int
-	Profile Tuple_8a486b93
-}
-
-// EncodedSize returns the total encoded size of Tuple_e9afb3e4
-func (t Tuple_e9afb3e4) EncodedSize() int {
-	dynamicSize := 0
-
-	dynamicSize += t.Profile.EncodedSize() // dynamic tuple
-
-	return Tuple_e9afb3e4StaticSize + dynamicSize
-}
-
-// EncodeTo encodes Tuple_e9afb3e4 to ABI bytes in the provided buffer
-func (t Tuple_e9afb3e4) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Tuple_e9afb3e4StaticSize // Start dynamic data after static section
-
-	// Id (static)
-
-	if err := abi.EncodeBigInt(t.Id, buf[0:32], false); err != nil {
-		return 0, err
-	}
-
-	// Profile (offset)
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Profile (dynamic)
-
-	n, err := t.Profile.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
-	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
-}
-
-// Encode encodes Tuple_e9afb3e4 to ABI bytes
-func (t Tuple_e9afb3e4) Encode() ([]byte, error) {
+// Encode encodes UserProfile to ABI bytes
+func (t UserProfile) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -510,7 +510,7 @@ var _ abi.Tuple = TestComplexDynamicTuplesArgs{}
 const TestComplexDynamicTuplesArgsStaticSize = 32
 
 type TestComplexDynamicTuplesArgs struct {
-	Users []Tuple_e9afb3e4
+	Users []User2
 }
 
 // EncodedSize returns the total encoded size of TestComplexDynamicTuplesArgs
@@ -604,7 +604,7 @@ var _ abi.Tuple = TestDeeplyNestedArgs{}
 const TestDeeplyNestedArgsStaticSize = 32
 
 type TestDeeplyNestedArgs struct {
-	Data Tuple_5cee9471
+	Data Level1
 }
 
 // EncodedSize returns the total encoded size of TestDeeplyNestedArgs
@@ -763,7 +763,7 @@ type TestMixedTypesArgs struct {
 	DynamicData []byte
 	Flag        bool
 	Count       uint8
-	Items       []Tuple_de3c4b6f
+	Items       []Item
 }
 
 // EncodedSize returns the total encoded size of TestMixedTypesArgs

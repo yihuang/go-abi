@@ -124,13 +124,13 @@ func TestComprehensiveNestedDynamicArrays(t *testing.T) {
 }
 
 func TestComprehensiveComplexDynamicTuples(t *testing.T) {
-	users := []Tuple_e9afb3e4{
+	users := []User2{
 		{
 			Id: big.NewInt(1),
-			Profile: Tuple_8a486b93{
+			Profile: UserProfile{
 				Name:   "User 1",
 				Emails: []string{"user1@example.com", "user1@gmail.com"},
-				Metadata: Tuple_dc8f1c28{
+				Metadata: UserMetadata2{
 					CreatedAt: big.NewInt(1234567890),
 					Tags:      []string{"tag1", "tag2", "tag3"},
 				},
@@ -138,10 +138,10 @@ func TestComprehensiveComplexDynamicTuples(t *testing.T) {
 		},
 		{
 			Id: big.NewInt(2),
-			Profile: Tuple_8a486b93{
+			Profile: UserProfile{
 				Name:   "User 2",
 				Emails: []string{"user2@example.com"},
-				Metadata: Tuple_dc8f1c28{
+				Metadata: UserMetadata2{
 					CreatedAt: big.NewInt(9876543210),
 					Tags:      []string{"tag4"},
 				},
@@ -170,7 +170,7 @@ func TestComprehensiveMixedTypes(t *testing.T) {
 	dynamicData := []byte{0x04, 0x05, 0x06, 0x07}
 	flag := true
 	count := uint8(42)
-	items := []Tuple_de3c4b6f{
+	items := []Item{
 		{
 			Id:     uint32(1),
 			Data:   []byte{0x08, 0x09},
@@ -204,10 +204,10 @@ func TestComprehensiveMixedTypes(t *testing.T) {
 }
 
 func TestComprehensiveDeeplyNested(t *testing.T) {
-	data := Tuple_5cee9471{
-		Level1: Tuple_1064c5d1{
-			Level2: Tuple_e05eda74{
-				Level3: Tuple_54b20b3a{
+	data := Level1{
+		Level1: Level2{
+			Level2: Level3{
+				Level3: Level4{
 					Value:       big.NewInt(999),
 					Description: "Deeply nested value",
 				},

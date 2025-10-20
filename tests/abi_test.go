@@ -93,7 +93,7 @@ func TestUpdateProfileEncoding(t *testing.T) {
 }
 
 func TestProcessUserDataEncoding(t *testing.T) {
-	user := Tuple_b53c1574{
+	user := User{
 		Address: common.HexToAddress("0x1234567890123456789012345678901234567890"),
 		Name:    "Test User",
 		Age:     big.NewInt(25),
@@ -116,17 +116,17 @@ func TestProcessUserDataEncoding(t *testing.T) {
 }
 
 func TestBatchProcessEncoding(t *testing.T) {
-	users := []Tuple_1821f6d7{
+	users := []UserData{
 		{
 			Id: big.NewInt(1),
-			Data: Tuple_4a9d2179{
+			Data: UserMetadata{
 				Key:   [32]byte{0x01, 0x02, 0x03},
 				Value: "First user",
 			},
 		},
 		{
 			Id: big.NewInt(2),
-			Data: Tuple_4a9d2179{
+			Data: UserMetadata{
 				Key:   [32]byte{0x04, 0x05, 0x06},
 				Value: "Second user",
 			},
