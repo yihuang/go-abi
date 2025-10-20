@@ -118,8 +118,9 @@ func (g *Generator) genStruct(s Struct) error {
 	g.L(`
 const %sStaticSize = %d
 
+// %s represents an ABI tuple
 type %s struct {
-`, s.Name, getTupleSize(s.Types()), s.Name)
+`, s.Name, getTupleSize(s.Types()), s.Name, s.Name)
 
 	for _, f := range s.Fields {
 		goType, err := abiTypeToGoType(*f.Type)
@@ -141,8 +142,6 @@ func (g *Generator) genFunction(method abi.Method) error {
 	s := StructFromInputs(method)
 
 	// Generate struct for function arguments
-	g.L("// %s represents the arguments for %s function", s.Name, method.Name)
-
 	if err := g.genStruct(s); err != nil {
 		return err
 	}
@@ -297,8 +296,6 @@ func (g *Generator) genTuples(methods []abi.Method) error {
 	// Generate struct definitions for collected tuples
 	for _, name := range SortedMapKeys(tupleTypes) {
 		s := StructFromTuple(tupleTypes[name])
-		g.L("// %s represents a tuple type", name)
-
 		if err := g.genStruct(s); err != nil {
 			return err
 		}
@@ -375,6 +372,7 @@ func (t %s) EncodedSize() int {
 func (g *Generator) genEncodedTo(s Struct) {
 	g.L(`
 // EncodeTo encodes %s to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t %s) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := %sStaticSize // Start dynamic data after static section
 `, s.Name, s.Name, s.Name)
@@ -675,8 +673,7 @@ if _, err := %s.EncodeTo(buf[%d:]); err != nil {
 func (g *Generator) genDynamicItem(ref string, t abi.Type) {
 	switch t.T {
 	case abi.StringTy:
-		g.L(`
-// length
+		g.L(`// length
 binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
 dynamicOffset += 32
 
@@ -686,8 +683,7 @@ dynamicOffset += abi.Pad32(len(%s))
 `, ref, ref, ref)
 
 	case abi.BytesTy:
-		g.L(`
-// length
+		g.L(`// length
 binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
 dynamicOffset += 32
 
@@ -697,8 +693,7 @@ dynamicOffset += abi.Pad32(len(%s))
 `, ref, ref, ref)
 
 	case abi.TupleTy:
-		g.L(`
-n, err := %s.EncodeTo(buf[dynamicOffset:])
+		g.L(`n, err := %s.EncodeTo(buf[dynamicOffset:])
 if err != nil {
 	return 0, err
 }
@@ -706,8 +701,7 @@ dynamicOffset += n
 `, ref)
 
 	case abi.SliceTy:
-		g.L(`
-{
+		g.L(`{
 	// length
 	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
 	dynamicOffset += 32

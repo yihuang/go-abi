@@ -7,10 +7,9 @@ import (
 	"math/big"
 )
 
-// User represents a tuple type
-
 const UserStaticSize = 96
 
+// User represents an ABI tuple
 type User struct {
 	Address common.Address
 	Name    string
@@ -27,6 +26,7 @@ func (t User) EncodedSize() int {
 }
 
 // EncodeTo encodes User to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t User) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := UserStaticSize // Start dynamic data after static section
 
@@ -37,7 +37,6 @@ func (t User) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Name (dynamic)
-
 	// length
 	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Name)))
 	dynamicOffset += 32
@@ -64,10 +63,9 @@ func (t User) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// UserData represents a tuple type
-
 const UserDataStaticSize = 64
 
+// UserData represents an ABI tuple
 type UserData struct {
 	Id   *big.Int
 	Data UserMetadata
@@ -83,6 +81,7 @@ func (t UserData) EncodedSize() int {
 }
 
 // EncodeTo encodes UserData to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t UserData) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := UserDataStaticSize // Start dynamic data after static section
 
@@ -96,7 +95,6 @@ func (t UserData) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Data (dynamic)
-
 	n, err := t.Data.EncodeTo(buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
@@ -115,10 +113,9 @@ func (t UserData) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// UserMetadata represents a tuple type
-
 const UserMetadataStaticSize = 64
 
+// UserMetadata represents an ABI tuple
 type UserMetadata struct {
 	Key   [32]byte
 	Value string
@@ -134,6 +131,7 @@ func (t UserMetadata) EncodedSize() int {
 }
 
 // EncodeTo encodes UserMetadata to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t UserMetadata) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := UserMetadataStaticSize // Start dynamic data after static section
 
@@ -144,7 +142,6 @@ func (t UserMetadata) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Value (dynamic)
-
 	// length
 	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Value)))
 	dynamicOffset += 32
@@ -165,10 +162,9 @@ func (t UserMetadata) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// BalanceOfArgs represents the arguments for balanceOf function
-
 const BalanceOfArgsStaticSize = 32
 
+// BalanceOfArgs represents an ABI tuple
 type BalanceOfArgs struct {
 	Account common.Address
 }
@@ -181,6 +177,7 @@ func (t BalanceOfArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes BalanceOfArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t BalanceOfArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := BalanceOfArgsStaticSize // Start dynamic data after static section
 
@@ -217,10 +214,9 @@ func (BalanceOfArgs) Selector() [4]byte {
 	return BalanceOfArgsSelector
 }
 
-// BatchProcessArgs represents the arguments for batchProcess function
-
 const BatchProcessArgsStaticSize = 32
 
+// BatchProcessArgs represents an ABI tuple
 type BatchProcessArgs struct {
 	Users []UserData
 }
@@ -238,6 +234,7 @@ func (t BatchProcessArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes BatchProcessArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t BatchProcessArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := BatchProcessArgsStaticSize // Start dynamic data after static section
 
@@ -245,7 +242,6 @@ func (t BatchProcessArgs) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// Users (dynamic)
-
 	{
 		// length
 		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Users)))
@@ -309,10 +305,9 @@ func (BatchProcessArgs) Selector() [4]byte {
 	return BatchProcessArgsSelector
 }
 
-// GetBalancesArgs represents the arguments for getBalances function
-
 const GetBalancesArgsStaticSize = 320
 
+// GetBalancesArgs represents an ABI tuple
 type GetBalancesArgs struct {
 	Accounts [10]common.Address
 }
@@ -325,6 +320,7 @@ func (t GetBalancesArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes GetBalancesArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t GetBalancesArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := GetBalancesArgsStaticSize // Start dynamic data after static section
 
@@ -370,10 +366,9 @@ func (GetBalancesArgs) Selector() [4]byte {
 	return GetBalancesArgsSelector
 }
 
-// ProcessUserDataArgs represents the arguments for processUserData function
-
 const ProcessUserDataArgsStaticSize = 32
 
+// ProcessUserDataArgs represents an ABI tuple
 type ProcessUserDataArgs struct {
 	User User
 }
@@ -388,6 +383,7 @@ func (t ProcessUserDataArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes ProcessUserDataArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t ProcessUserDataArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := ProcessUserDataArgsStaticSize // Start dynamic data after static section
 
@@ -395,7 +391,6 @@ func (t ProcessUserDataArgs) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// User (dynamic)
-
 	n, err := t.User.EncodeTo(buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
@@ -432,10 +427,9 @@ func (ProcessUserDataArgs) Selector() [4]byte {
 	return ProcessUserDataArgsSelector
 }
 
-// SetDataArgs represents the arguments for setData function
-
 const SetDataArgsStaticSize = 64
 
+// SetDataArgs represents an ABI tuple
 type SetDataArgs struct {
 	Key   [32]byte
 	Value []byte
@@ -451,6 +445,7 @@ func (t SetDataArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes SetDataArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t SetDataArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := SetDataArgsStaticSize // Start dynamic data after static section
 
@@ -461,7 +456,6 @@ func (t SetDataArgs) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Value (dynamic)
-
 	// length
 	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Value)))
 	dynamicOffset += 32
@@ -500,10 +494,9 @@ func (SetDataArgs) Selector() [4]byte {
 	return SetDataArgsSelector
 }
 
-// SetMessageArgs represents the arguments for setMessage function
-
 const SetMessageArgsStaticSize = 32
 
+// SetMessageArgs represents an ABI tuple
 type SetMessageArgs struct {
 	Message string
 }
@@ -518,6 +511,7 @@ func (t SetMessageArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes SetMessageArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t SetMessageArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := SetMessageArgsStaticSize // Start dynamic data after static section
 
@@ -525,7 +519,6 @@ func (t SetMessageArgs) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// Message (dynamic)
-
 	// length
 	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Message)))
 	dynamicOffset += 32
@@ -564,10 +557,9 @@ func (SetMessageArgs) Selector() [4]byte {
 	return SetMessageArgsSelector
 }
 
-// SmallIntegersArgs represents the arguments for smallIntegers function
-
 const SmallIntegersArgsStaticSize = 256
 
+// SmallIntegersArgs represents an ABI tuple
 type SmallIntegersArgs struct {
 	U8  uint8
 	U16 uint16
@@ -587,6 +579,7 @@ func (t SmallIntegersArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes SmallIntegersArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t SmallIntegersArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := SmallIntegersArgsStaticSize // Start dynamic data after static section
 
@@ -664,10 +657,9 @@ func (SmallIntegersArgs) Selector() [4]byte {
 	return SmallIntegersArgsSelector
 }
 
-// TransferArgs represents the arguments for transfer function
-
 const TransferArgsStaticSize = 64
 
+// TransferArgs represents an ABI tuple
 type TransferArgs struct {
 	To     common.Address
 	Amount *big.Int
@@ -681,6 +673,7 @@ func (t TransferArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes TransferArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t TransferArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TransferArgsStaticSize // Start dynamic data after static section
 
@@ -722,10 +715,9 @@ func (TransferArgs) Selector() [4]byte {
 	return TransferArgsSelector
 }
 
-// TransferBatchArgs represents the arguments for transferBatch function
-
 const TransferBatchArgsStaticSize = 64
 
+// TransferBatchArgs represents an ABI tuple
 type TransferBatchArgs struct {
 	Recipients []common.Address
 	Amounts    []*big.Int
@@ -742,6 +734,7 @@ func (t TransferBatchArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes TransferBatchArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t TransferBatchArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TransferBatchArgsStaticSize // Start dynamic data after static section
 
@@ -749,7 +742,6 @@ func (t TransferBatchArgs) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// Recipients (dynamic)
-
 	{
 		// length
 		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Recipients)))
@@ -772,7 +764,6 @@ func (t TransferBatchArgs) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Amounts (dynamic)
-
 	{
 		// length
 		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Amounts)))
@@ -823,10 +814,9 @@ func (TransferBatchArgs) Selector() [4]byte {
 	return TransferBatchArgsSelector
 }
 
-// UpdateProfileArgs represents the arguments for updateProfile function
-
 const UpdateProfileArgsStaticSize = 96
 
+// UpdateProfileArgs represents an ABI tuple
 type UpdateProfileArgs struct {
 	User common.Address
 	Name string
@@ -843,6 +833,7 @@ func (t UpdateProfileArgs) EncodedSize() int {
 }
 
 // EncodeTo encodes UpdateProfileArgs to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
 func (t UpdateProfileArgs) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := UpdateProfileArgsStaticSize // Start dynamic data after static section
 
@@ -853,7 +844,6 @@ func (t UpdateProfileArgs) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Name (dynamic)
-
 	// length
 	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Name)))
 	dynamicOffset += 32
