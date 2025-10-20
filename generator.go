@@ -2,7 +2,6 @@ package abi
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"go/format"
 	"strings"
@@ -11,7 +10,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 var Title = cases.Title(language.English, cases.NoLower)
@@ -58,7 +56,7 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 				break
 			}
 			// Check for dynamic types that need offset/length encoding
-			if isDynamicType(input.Type) {
+			if IsDynamicType(input.Type) {
 				needsBinaryImport = true
 				break
 			}
@@ -120,7 +118,7 @@ const %sStaticSize = %d
 
 // %s represents an ABI tuple
 type %s struct {
-`, s.Name, getTupleSize(s.Types()), s.Name, s.Name)
+`, s.Name, GetTupleSize(s.Types()), s.Name, s.Name)
 
 	for _, f := range s.Fields {
 		goType, err := abiTypeToGoType(*f.Type)
@@ -231,34 +229,10 @@ func abiTypeToGoType(abiType abi.Type) (string, error) {
 		return fmt.Sprintf("[%d]%s", abiType.Size, elemType), nil
 	case abi.TupleTy:
 		// Handle tuple types - generate struct type name
-		return tupleStructName(abiType), nil
+		return TupleStructName(abiType), nil
 	default:
 		return "", fmt.Errorf("unsupported ABI type: %s", abiType.String())
 	}
-}
-
-// tupleStructName generates a unique struct name for a tuple type
-func tupleStructName(t abi.Type) string {
-	if t.TupleRawName != "" {
-		return t.TupleRawName
-	}
-
-	// Use the tuple's string representation as the basis for the struct name
-	// This creates a deterministic name based on the tuple structure
-	return genTupleIdentifier(t)
-}
-
-// genTupleIdentifier generates a unique identifier for a tuple type
-func genTupleIdentifier(t abi.Type) string {
-	// Create a signature based on tuple element types
-	types := make([]string, len(t.TupleElems))
-	for i, elem := range t.TupleElems {
-		types[i] = elem.String()
-	}
-	sig := fmt.Sprintf("(%v)", strings.Join(types, ","))
-
-	id := crypto.Keccak256([]byte(sig))
-	return "Tuple_" + hex.EncodeToString(id)[:8] // Use first 8 chars for readability
 }
 
 // genTuples generates all tuple structs needed for a function
@@ -269,7 +243,7 @@ func (g *Generator) genTuples(methods []abi.Method) error {
 	var collectTuples func(t abi.Type)
 	collectTuples = func(t abi.Type) {
 		if t.T == abi.TupleTy {
-			structName := tupleStructName(t)
+			structName := TupleStructName(t)
 			if _, exists := tupleTypes[structName]; !exists {
 				tupleTypes[structName] = t
 				// Recursively collect nested tuples
@@ -309,8 +283,8 @@ func (g *Generator) genTuples(methods []abi.Method) error {
 
 // genSize generates size calculation logic for a type
 func (g *Generator) genSize(t abi.Type, acc string, ref string) {
-	if !isDynamicType(t) {
-		g.L("%s += %d // static element %s", acc, getTypeSize(t), ref)
+	if !IsDynamicType(t) {
+		g.L("%s += %d // static element %s", acc, GetTypeSize(t), ref)
 		return
 	}
 
@@ -322,7 +296,7 @@ func (g *Generator) genSize(t abi.Type, acc string, ref string) {
 		g.L("%s += 32 + abi.Pad32(len(%s)) // length + padded bytes data", acc, ref)
 
 	case abi.SliceTy:
-		if isDynamicType(*t.Elem) {
+		if IsDynamicType(*t.Elem) {
 			// Dynamic array with dynamic elements
 			g.L("%s += 32 + 32 * len(%s) // length + offset pointers for dynamic elements", acc, ref)
 			g.L("for _, elem := range %s {", ref)
@@ -330,7 +304,7 @@ func (g *Generator) genSize(t abi.Type, acc string, ref string) {
 			g.L("}")
 		} else {
 			// Dynamic array with static elements
-			g.L("%s += 32 + %d * len(%s) // length + static elements", acc, getTypeSize(*t.Elem), ref)
+			g.L("%s += 32 + %d * len(%s) // length + static elements", acc, GetTypeSize(*t.Elem), ref)
 		}
 
 	case abi.ArrayTy:
@@ -357,7 +331,7 @@ func (t %s) EncodedSize() int {
 `, s.Name, s.Name)
 
 	for _, f := range s.Fields {
-		if !isDynamicType(*f.Type) {
+		if !IsDynamicType(*f.Type) {
 			continue
 		}
 		g.genSize(*f.Type, "dynamicSize", "t."+f.Name)
@@ -379,7 +353,7 @@ func (t %s) EncodeTo(buf []byte) (int, error) {
 
 	var offset int
 	for _, f := range s.Fields {
-		if !isDynamicType(*f.Type) {
+		if !IsDynamicType(*f.Type) {
 			g.L("// %s (static)", f.Name)
 			offset = g.genStaticItem("t."+f.Name, *f.Type, offset)
 			continue
@@ -584,7 +558,7 @@ if %s {
 
 	case abi.ArrayTy:
 		// Fixed-size array with static elements
-		elemSize := getTypeSize(*t.Elem)
+		elemSize := GetTypeSize(*t.Elem)
 		g.L(`
 // Encode fixed-size array %s
 for _, item := range %s {
@@ -649,7 +623,7 @@ if %s {
 }
 `)
 
-		offset += elemType.Size * getTypeSize(*elemType.Elem)
+		offset += elemType.Size * GetTypeSize(*elemType.Elem)
 
 	case abi.TupleTy:
 		// Nested static tuple - use the generated EncodeTo method
@@ -660,7 +634,7 @@ if _, err := %s.EncodeTo(buf[%d:]); err != nil {
 }
 `, ref, ref, offset)
 
-		offset += getTypeSize(elemType)
+		offset += GetTypeSize(elemType)
 
 	default:
 		panic("unknown static type")
@@ -707,7 +681,7 @@ dynamicOffset += n
 	dynamicOffset += 32
 `, ref)
 
-		if isDynamicType(*t.Elem) {
+		if IsDynamicType(*t.Elem) {
 			g.L(`
 	var written int
 
@@ -734,7 +708,7 @@ dynamicOffset += n
 	dynamicOffset += written
 `)
 		} else {
-			elemSize := getTypeSize(*t.Elem)
+			elemSize := GetTypeSize(*t.Elem)
 			g.L(`
 	// data without dynamic region
 	buf := buf[dynamicOffset:]

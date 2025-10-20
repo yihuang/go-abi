@@ -51,7 +51,7 @@ func StructFromTuple(t abi.Type) Struct {
 		fields = append(fields, StructFieldFromTupleElement(t, i))
 	}
 	return Struct{
-		Name:   tupleStructName(t),
+		Name:   TupleStructName(t),
 		Fields: fields,
 	}
 }
@@ -66,7 +66,7 @@ func (s Struct) Types() []*abi.Type {
 
 func (s Struct) HasDynamicField() bool {
 	for _, field := range s.Fields {
-		if isDynamicType(*field.Type) {
+		if IsDynamicType(*field.Type) {
 			return true
 		}
 	}
