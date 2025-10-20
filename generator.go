@@ -116,12 +116,10 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 
 func (g *Generator) genStruct(s Struct) error {
 	g.L(`
-var _ abi.Tuple = %s{}
-
 const %sStaticSize = %d
 
 type %s struct {
-`, s.Name, s.Name, getTupleSize(s.Types()), s.Name)
+`, s.Name, getTupleSize(s.Types()), s.Name)
 
 	for _, f := range s.Fields {
 		goType, err := abiTypeToGoType(*f.Type)

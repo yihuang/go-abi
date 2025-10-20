@@ -9,8 +9,6 @@ import (
 
 // Item represents a tuple type
 
-var _ abi.Tuple = Item{}
-
 const ItemStaticSize = 96
 
 type Item struct {
@@ -68,8 +66,6 @@ func (t Item) Encode() ([]byte, error) {
 
 // Level1 represents a tuple type
 
-var _ abi.Tuple = Level1{}
-
 const Level1StaticSize = 32
 
 type Level1 struct {
@@ -113,8 +109,6 @@ func (t Level1) Encode() ([]byte, error) {
 }
 
 // Level2 represents a tuple type
-
-var _ abi.Tuple = Level2{}
 
 const Level2StaticSize = 32
 
@@ -160,8 +154,6 @@ func (t Level2) Encode() ([]byte, error) {
 
 // Level3 represents a tuple type
 
-var _ abi.Tuple = Level3{}
-
 const Level3StaticSize = 32
 
 type Level3 struct {
@@ -205,8 +197,6 @@ func (t Level3) Encode() ([]byte, error) {
 }
 
 // Level4 represents a tuple type
-
-var _ abi.Tuple = Level4{}
 
 const Level4StaticSize = 64
 
@@ -261,8 +251,6 @@ func (t Level4) Encode() ([]byte, error) {
 
 // User2 represents a tuple type
 
-var _ abi.Tuple = User2{}
-
 const User2StaticSize = 64
 
 type User2 struct {
@@ -313,8 +301,6 @@ func (t User2) Encode() ([]byte, error) {
 }
 
 // UserMetadata2 represents a tuple type
-
-var _ abi.Tuple = UserMetadata2{}
 
 const UserMetadata2StaticSize = 64
 
@@ -398,8 +384,6 @@ func (t UserMetadata2) Encode() ([]byte, error) {
 }
 
 // UserProfile represents a tuple type
-
-var _ abi.Tuple = UserProfile{}
 
 const UserProfileStaticSize = 96
 
@@ -505,8 +489,6 @@ func (t UserProfile) Encode() ([]byte, error) {
 
 // TestComplexDynamicTuplesArgs represents the arguments for testComplexDynamicTuples function
 
-var _ abi.Tuple = TestComplexDynamicTuplesArgs{}
-
 const TestComplexDynamicTuplesArgsStaticSize = 32
 
 type TestComplexDynamicTuplesArgs struct {
@@ -599,8 +581,6 @@ func (TestComplexDynamicTuplesArgs) Selector() [4]byte {
 
 // TestDeeplyNestedArgs represents the arguments for testDeeplyNested function
 
-var _ abi.Tuple = TestDeeplyNestedArgs{}
-
 const TestDeeplyNestedArgsStaticSize = 32
 
 type TestDeeplyNestedArgs struct {
@@ -662,8 +642,6 @@ func (TestDeeplyNestedArgs) Selector() [4]byte {
 }
 
 // TestFixedArraysArgs represents the arguments for testFixedArrays function
-
-var _ abi.Tuple = TestFixedArraysArgs{}
 
 const TestFixedArraysArgsStaticSize = 320
 
@@ -753,8 +731,6 @@ func (TestFixedArraysArgs) Selector() [4]byte {
 }
 
 // TestMixedTypesArgs represents the arguments for testMixedTypes function
-
-var _ abi.Tuple = TestMixedTypesArgs{}
 
 const TestMixedTypesArgsStaticSize = 160
 
@@ -877,8 +853,6 @@ func (TestMixedTypesArgs) Selector() [4]byte {
 }
 
 // TestNestedDynamicArraysArgs represents the arguments for testNestedDynamicArrays function
-
-var _ abi.Tuple = TestNestedDynamicArraysArgs{}
 
 const TestNestedDynamicArraysArgsStaticSize = 64
 
@@ -1040,8 +1014,6 @@ func (TestNestedDynamicArraysArgs) Selector() [4]byte {
 }
 
 // TestSmallIntegersArgs represents the arguments for testSmallIntegers function
-
-var _ abi.Tuple = TestSmallIntegersArgs{}
 
 const TestSmallIntegersArgsStaticSize = 256
 

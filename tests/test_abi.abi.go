@@ -9,8 +9,6 @@ import (
 
 // User represents a tuple type
 
-var _ abi.Tuple = User{}
-
 const UserStaticSize = 96
 
 type User struct {
@@ -68,8 +66,6 @@ func (t User) Encode() ([]byte, error) {
 
 // UserData represents a tuple type
 
-var _ abi.Tuple = UserData{}
-
 const UserDataStaticSize = 64
 
 type UserData struct {
@@ -121,8 +117,6 @@ func (t UserData) Encode() ([]byte, error) {
 
 // UserMetadata represents a tuple type
 
-var _ abi.Tuple = UserMetadata{}
-
 const UserMetadataStaticSize = 64
 
 type UserMetadata struct {
@@ -172,8 +166,6 @@ func (t UserMetadata) Encode() ([]byte, error) {
 }
 
 // BalanceOfArgs represents the arguments for balanceOf function
-
-var _ abi.Tuple = BalanceOfArgs{}
 
 const BalanceOfArgsStaticSize = 32
 
@@ -226,8 +218,6 @@ func (BalanceOfArgs) Selector() [4]byte {
 }
 
 // BatchProcessArgs represents the arguments for batchProcess function
-
-var _ abi.Tuple = BatchProcessArgs{}
 
 const BatchProcessArgsStaticSize = 32
 
@@ -321,8 +311,6 @@ func (BatchProcessArgs) Selector() [4]byte {
 
 // GetBalancesArgs represents the arguments for getBalances function
 
-var _ abi.Tuple = GetBalancesArgs{}
-
 const GetBalancesArgsStaticSize = 320
 
 type GetBalancesArgs struct {
@@ -383,8 +371,6 @@ func (GetBalancesArgs) Selector() [4]byte {
 }
 
 // ProcessUserDataArgs represents the arguments for processUserData function
-
-var _ abi.Tuple = ProcessUserDataArgs{}
 
 const ProcessUserDataArgsStaticSize = 32
 
@@ -447,8 +433,6 @@ func (ProcessUserDataArgs) Selector() [4]byte {
 }
 
 // SetDataArgs represents the arguments for setData function
-
-var _ abi.Tuple = SetDataArgs{}
 
 const SetDataArgsStaticSize = 64
 
@@ -518,8 +502,6 @@ func (SetDataArgs) Selector() [4]byte {
 
 // SetMessageArgs represents the arguments for setMessage function
 
-var _ abi.Tuple = SetMessageArgs{}
-
 const SetMessageArgsStaticSize = 32
 
 type SetMessageArgs struct {
@@ -583,8 +565,6 @@ func (SetMessageArgs) Selector() [4]byte {
 }
 
 // SmallIntegersArgs represents the arguments for smallIntegers function
-
-var _ abi.Tuple = SmallIntegersArgs{}
 
 const SmallIntegersArgsStaticSize = 256
 
@@ -686,8 +666,6 @@ func (SmallIntegersArgs) Selector() [4]byte {
 
 // TransferArgs represents the arguments for transfer function
 
-var _ abi.Tuple = TransferArgs{}
-
 const TransferArgsStaticSize = 64
 
 type TransferArgs struct {
@@ -745,8 +723,6 @@ func (TransferArgs) Selector() [4]byte {
 }
 
 // TransferBatchArgs represents the arguments for transferBatch function
-
-var _ abi.Tuple = TransferBatchArgs{}
 
 const TransferBatchArgsStaticSize = 64
 
@@ -848,8 +824,6 @@ func (TransferBatchArgs) Selector() [4]byte {
 }
 
 // UpdateProfileArgs represents the arguments for updateProfile function
-
-var _ abi.Tuple = UpdateProfileArgs{}
 
 const UpdateProfileArgsStaticSize = 96
 
