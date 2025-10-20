@@ -2,6 +2,8 @@
 
 Generating statically typed Go structs and encode/decode methods from Ethereum contract ABI definitions.
 
+[ABI Specification](https://github.com/argotorg/solidity/blob/v0.8.30/docs/abi-spec.rst)
+
 ## Why
 
 - Deterministic
