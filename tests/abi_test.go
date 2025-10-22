@@ -48,6 +48,8 @@ func TestTransferEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestSetMessageEncoding(t *testing.T) {
@@ -67,6 +69,8 @@ func TestSetMessageEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestUpdateProfileEncoding(t *testing.T) {
@@ -90,6 +94,8 @@ func TestUpdateProfileEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestProcessUserDataEncoding(t *testing.T) {
@@ -113,6 +119,8 @@ func TestProcessUserDataEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestBatchProcessEncoding(t *testing.T) {
@@ -147,6 +155,8 @@ func TestBatchProcessEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestSmallIntegers(t *testing.T) {
@@ -174,4 +184,6 @@ func TestSmallIntegers(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }

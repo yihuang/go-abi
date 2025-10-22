@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"strings"
+	"text/template"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -13,6 +13,8 @@ import (
 )
 
 var Title = cases.Title(language.English, cases.NoLower)
+
+type M = map[string]interface{}
 
 // Generator handles ABI code generation
 type Generator struct {
@@ -27,6 +29,8 @@ func NewGenerator(packageName string) *Generator {
 	return &Generator{
 		PackageName: packageName,
 		Imports: []string{
+			"encoding/binary",
+			"fmt",
 			"math/big",
 			"github.com/ethereum/go-ethereum/common",
 			"github.com/yihuang/go-abi",
@@ -37,6 +41,11 @@ func NewGenerator(packageName string) *Generator {
 func (g *Generator) L(format string, args ...any) {
 	fmt.Fprintf(&g.buf, format, args...)
 	fmt.Fprint(&g.buf, "\n")
+}
+
+func (g *Generator) T(tpl string, m map[string]interface{}) {
+	t := template.Must(template.New("").Parse(tpl))
+	t.Execute(&g.buf, m)
 }
 
 // GenerateFromABI generates Go code from ABI JSON
@@ -76,11 +85,7 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	if len(imports) > 0 {
 		g.L("import (")
 		for _, imp := range imports {
-			if strings.Contains(imp, "/") {
-				g.L("\"%s\"", imp)
-			} else {
-				g.L("%s", imp)
-			}
+			g.L("\"%s\"", imp)
 		}
 		g.L(")")
 	}
@@ -121,10 +126,7 @@ type %s struct {
 `, s.Name, GetTupleSize(s.Types()), s.Name, s.Name)
 
 	for _, f := range s.Fields {
-		goType, err := abiTypeToGoType(*f.Type)
-		if err != nil {
-			return err
-		}
+		goType := abiTypeToGoType(*f.Type)
 		g.L("%s %s", f.Name, goType)
 	}
 	g.L("}")
@@ -179,59 +181,53 @@ func (%s) Selector() [4]byte {
 }
 
 // abiTypeToGoType converts ABI type to Go type
-func abiTypeToGoType(abiType abi.Type) (string, error) {
+func abiTypeToGoType(abiType abi.Type) string {
 	switch abiType.T {
 	case abi.UintTy:
 		// Use native Go types for common sizes to avoid big.Int allocations
 		switch abiType.Size {
 		case 8, 16, 32, 64:
-			return fmt.Sprintf("uint%d", abiType.Size), nil
+			return fmt.Sprintf("uint%d", abiType.Size)
 		default:
-			return "*big.Int", nil
+			return "*big.Int"
 		}
 	case abi.IntTy:
 		// Use native Go types for common sizes to avoid big.Int allocations
 		switch abiType.Size {
 		case 8, 16, 32, 64:
-			return fmt.Sprintf("int%d", abiType.Size), nil
+			return fmt.Sprintf("int%d", abiType.Size)
 		default:
-			return "*big.Int", nil
+			return "*big.Int"
 		}
 	case abi.AddressTy:
-		return "common.Address", nil
+		return "common.Address"
 	case abi.BoolTy:
-		return "bool", nil
+		return "bool"
 	case abi.StringTy:
-		return "string", nil
+		return "string"
 	case abi.BytesTy:
-		return "[]byte", nil
+		return "[]byte"
 	case abi.FixedBytesTy:
-		return fmt.Sprintf("[%d]byte", abiType.Size), nil
+		return fmt.Sprintf("[%d]byte", abiType.Size)
 	case abi.SliceTy:
 		// Dynamic arrays like uint256[]
 		if abiType.Elem == nil {
-			return "", fmt.Errorf("invalid slice type: nil element")
+			panic("invalid slice type: nil element")
 		}
-		elemType, err := abiTypeToGoType(*abiType.Elem)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("[]%s", elemType), nil
+		elemType := abiTypeToGoType(*abiType.Elem)
+		return fmt.Sprintf("[]%s", elemType)
 	case abi.ArrayTy:
 		// Fixed-size arrays like uint256[10]
 		if abiType.Elem == nil {
-			return "", fmt.Errorf("invalid array type: nil element")
+			panic("invalid array type: nil element")
 		}
-		elemType, err := abiTypeToGoType(*abiType.Elem)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("[%d]%s", abiType.Size, elemType), nil
+		elemType := abiTypeToGoType(*abiType.Elem)
+		return fmt.Sprintf("[%d]%s", abiType.Size, elemType)
 	case abi.TupleTy:
 		// Handle tuple types - generate struct type name
-		return TupleStructName(abiType), nil
+		return TupleStructName(abiType)
 	default:
-		return "", fmt.Errorf("unsupported ABI type: %s", abiType.String())
+		panic(fmt.Sprintf("unsupported ABI type: %s", abiType.String()))
 	}
 }
 
@@ -391,6 +387,9 @@ func (t %s) Encode() ([]byte, error) {
 	return buf, nil
 }
 `, s.Name, s.Name)
+
+	g.genDecodeFrom(s)
+	g.genDecode(s)
 }
 
 func (g *Generator) genIntOffset(ref string, t abi.Type) {
@@ -619,9 +618,10 @@ if %s {
 		g.genStaticItemOffset("item", *elemType.Elem)
 
 		g.L(`
+	offset += %d
 	}
 }
-`)
+`, GetTypeSize(*elemType.Elem))
 
 		offset += elemType.Size * GetTypeSize(*elemType.Elem)
 
@@ -753,6 +753,274 @@ dynamicOffset += n
 	dynamicOffset += written
 }
 `)
+
+	default:
+		panic("unknown dynamic type")
+	}
+}
+
+// genDecode generates the Decode method
+func (g *Generator) genDecode(s Struct) {
+	g.L(`// Decode decodes %s from ABI bytes
+func (t *%s) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+`, s.Name, s.Name)
+}
+
+// genDecodeFrom generates the DecodeFrom method
+func (g *Generator) genDecodeFrom(s Struct) {
+	g.L(`// DecodeFrom decodes %s from ABI bytes in the provided buffer
+func (t *%s) DecodeFrom(data0 []byte) error {
+	if len(data0) < %sStaticSize {
+		return fmt.Errorf("insufficient data for %s")
+	}
+`, s.Name, s.Name, s.Name, s.Name)
+
+	// Generate decoding for each field
+	offset := 0
+	for _, f := range s.Fields {
+		ref := "t." + f.Name
+		if !IsDynamicType(*f.Type) {
+			g.genStaticDecode(ref, *f.Type, offset, 0)
+			offset += GetTypeSize(*f.Type)
+			continue
+		}
+
+		// For dynamic types, we need to read the offset first
+		g.L(`// %s
+{
+	offset := int(binary.BigEndian.Uint64(data0[%d+24:%d+32]))
+`, f.Name, offset, offset)
+
+		g.genDynamicDecode(ref, *f.Type, 0)
+
+		g.L("}")
+		offset += 32
+	}
+
+	g.L(`
+	return nil
+}
+`)
+}
+
+// genStaticDecodeOffset generates decoding logic for static types
+func (g *Generator) genStaticDecodeOffset(ref string, t abi.Type, depth int) {
+	typeName := abiTypeToGoType(t)
+
+	g.L(`// %s (static)`, ref)
+
+	switch t.T {
+	case abi.AddressTy:
+		g.L(`copy(%s[:], data%d[offset+12:offset+32])`, ref, depth)
+
+	case abi.UintTy, abi.IntTy:
+		if t.Size == 8 || t.Size == 16 || t.Size == 32 || t.Size == 64 {
+			// Native Go types
+			if t.Size == 8 {
+				// uint8/int8 - read single byte
+				if t.T == abi.IntTy {
+					g.L(`%s = %s(data%d[offset+31])`, ref, typeName, depth)
+				} else {
+					g.L(`%s = %s(data%d[offset+31])`, ref, typeName, depth)
+				}
+			} else {
+				// uint16/32/64 - use binary.BigEndian
+				if t.T == abi.IntTy {
+					g.L(`%s = %s(binary.BigEndian.Uint%d(data%d[offset+%d:offset+%d]))`, ref, typeName, t.Size, depth, 32-t.Size/8, 32)
+				} else {
+					g.L(`%s = %s(binary.BigEndian.Uint%d(data%d[offset+%d:offset+%d]))`, ref, typeName, t.Size, depth, 32-t.Size/8, 32)
+				}
+			}
+		} else {
+			// big.Int types
+			g.L(`%s = new(big.Int).SetBytes(data%d[offset:offset+32])`, ref, depth)
+		}
+
+	case abi.BoolTy:
+		g.L(`%s = data%d[offset+31] == 1`, ref, depth)
+
+	case abi.FixedBytesTy:
+		g.L(`copy(%s[:], data%d[offset:offset+%d])`, ref, depth, t.Size)
+
+	case abi.ArrayTy:
+		// Fixed-size array with static elements
+		g.T(`// Decode fixed-size array {{.ref}}
+for i{{.depth}} := 0; i{{.depth}} < {{.size}}; i{{.depth}}++ {
+`, M{"ref": ref, "size": t.Size, "depth": depth})
+
+		elemRef := fmt.Sprintf("%s[i%d]", ref, depth)
+		g.genStaticDecodeOffset(elemRef, *t.Elem, depth+1)
+
+		g.L(`
+offset += %d
+	}`, GetTypeSize(*t.Elem))
+
+	case abi.TupleTy:
+		// Nested static tuple
+		g.L(`if err := %s.DecodeFrom(data%d[offset:offset+%d]); err != nil {
+		return err
+	}`, ref, depth, GetTypeSize(t))
+
+	default:
+		panic("unknown static type")
+	}
+}
+
+// genStaticDecode generates decoding logic for static types
+func (g *Generator) genStaticDecode(ref string, t abi.Type, offset int, depth int) {
+	typeName := abiTypeToGoType(t)
+
+	g.L(`// %s (static)`, ref)
+
+	switch t.T {
+	case abi.AddressTy:
+		g.L(`copy(%s[:], data%d[%d+12:%d+32])`, ref, depth, offset, offset)
+
+	case abi.UintTy, abi.IntTy:
+		if t.Size == 8 || t.Size == 16 || t.Size == 32 || t.Size == 64 {
+			// Native Go types
+			if t.Size == 8 {
+				// uint8/int8 - read single byte
+				if t.T == abi.IntTy {
+					g.L(`%s = %s(data%d[%d+31])`, ref, typeName, depth, offset)
+				} else {
+					g.L(`%s = %s(data%d[%d+31])`, ref, typeName, depth, offset)
+				}
+			} else {
+				// uint16/32/64 - use binary.BigEndian
+				if t.T == abi.IntTy {
+					g.L(`%s = %s(binary.BigEndian.Uint%d(data%d[%d+%d:%d+%d]))`, ref, typeName, t.Size, depth, offset, 32-t.Size/8, offset, 32)
+				} else {
+					g.L(`%s = %s(binary.BigEndian.Uint%d(data%d[%d+%d:%d+%d]))`, ref, typeName, t.Size, depth, offset, 32-t.Size/8, offset, 32)
+				}
+			}
+		} else {
+			// big.Int types
+			g.L(`%s = new(big.Int).SetBytes(data%d[%d:%d])`, ref, depth, offset, offset+32)
+		}
+
+	case abi.BoolTy:
+		g.L(`%s = data%d[%d+31] == 1`, ref, depth, offset)
+
+	case abi.FixedBytesTy:
+		g.L(`copy(%s[:], data%d[%d:%d+%d])`, ref, depth, offset, offset, t.Size)
+
+	case abi.ArrayTy:
+		// Fixed-size array with static elements
+		g.T(`// Decode fixed-size array {{.ref}}
+	for i{{.depth}} := 0; i{{.depth}} < {{.length}}; i{{.depth}}++ {
+		offset := {{.offset}} + i{{.depth}} * {{.size}}
+		data{{.depth_plus}} := data{{.depth}}
+`, M{"depth": depth, "depth_plus": depth + 1, "ref": ref, "length": t.Size, "offset": offset, "size": GetTypeSize(*t.Elem)})
+
+		g.genStaticDecodeOffset(fmt.Sprintf("%s[i%d]", ref, depth), *t.Elem, depth+1)
+
+		g.L(`}`)
+
+	case abi.TupleTy:
+		// Nested static tuple
+		g.L(`if err := %s.DecodeFrom(data%d[%d:%d]); err != nil {
+		return err
+	}`, ref, depth, offset, offset+GetTypeSize(t))
+
+	default:
+		panic("unknown static type")
+	}
+}
+
+// genDynamicDecode generates decoding logic for dynamic types
+func (g *Generator) genDynamicDecode(ref string, t abi.Type, depth int) {
+	g.L(`// %s (dynamic)`, ref)
+
+	if RequiresLengthPrefix(t) {
+		g.L(`if offset+32 > len(data%d) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data%d[offset+24:offset+32]))
+		offset += 32`, depth, depth)
+	} else {
+		g.L(`if offset >= len(data%d) {
+			return fmt.Errorf("insufficient data for dynamic data, %s")
+		}`, depth, ref)
+	}
+
+	switch t.T {
+	case abi.StringTy:
+		g.L(`// string data
+		%s = string(data%d[offset:offset+length])`, ref, depth)
+
+	case abi.BytesTy:
+		g.L(`// bytes data
+		%s = data%d[offset:offset+length]`, ref, depth)
+
+	case abi.TupleTy:
+		// Dynamic tuple
+		g.L(`if err := %s.DecodeFrom(data%d[offset:]); err != nil {
+			return err
+		}`, ref, depth)
+
+	case abi.SliceTy:
+		// Dynamic slice
+		typeName := abiTypeToGoType(*t.Elem)
+
+		g.L(`// slice data
+		%s = make([]%s, length)
+		data%d := data%d[offset:]
+		`, ref, typeName, depth+1, depth)
+
+		newRef := fmt.Sprintf("%s[i%d]", ref, depth)
+		if !IsDynamicType(*t.Elem) {
+			// Static elements - direct decoding
+			g.L(`offset = 0
+			for i%d := 0; i%[1]d < length; i%[1]d++ {`, depth)
+
+			g.genStaticDecodeOffset(newRef, *t.Elem, depth+1)
+
+			g.L(`offset += %d }`, GetTypeSize(*t.Elem))
+		} else {
+			// Dynamic elements - each element has an offset
+			g.T(`// Dynamic elements with offsets (dynamic array)
+			for i{{.depth}} := 0; i{{.depth}} < length; i{{.depth}}++ {
+				// Read element offset
+				tmp := i{{.depth}} * 32
+				if tmp + 32 > len(data{{.depth_plus}}) {
+					return fmt.Errorf("insufficient data for element offset")
+				}
+				offset := int(binary.BigEndian.Uint64(data{{.depth_plus}}[tmp+24: tmp+32]))
+				// Decode dynamic element at offset
+			`, M{"depth": depth, "depth_plus": depth + 1})
+
+			// Generate decoding for dynamic element directly - inline the logic
+			g.genDynamicDecode(newRef, *t.Elem, depth+1)
+
+			g.L("}")
+		}
+
+	case abi.ArrayTy:
+		// Fixed-size array with dynamic elements
+		g.L(`// Fixed-size array %s
+		`, ref)
+
+		// Dynamic elements - each element has an offset
+		g.T(`// Dynamic elements with offsets
+		for i{{.depth}} := 0; i{{.depth}} < {{.size}}; i{{.depth}}++ {
+			// Read element offset
+			tmp := i{{.depth}} * 32
+			offset := int(binary.BigEndian.Uint64(data{{.depth}}[tmp+24:tmp+32]))
+			if offset >= len(data{{.depth}}) {
+				return fmt.Errorf("invalid element offset")
+			}
+			// Decode dynamic element at offset
+			{
+				data{{.depth_plus}} := data{{.depth}}[offset:]
+			`, M{"depth": depth, "depth_plus": depth + 1, "size": t.Size})
+
+		g.genDynamicDecode(fmt.Sprintf("%s[i%d]", ref, depth), *t.Elem, depth+1)
+
+		g.L(`}
+		}`)
 
 	default:
 		panic("unknown dynamic type")

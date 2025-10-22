@@ -2,6 +2,7 @@ package testdata
 
 import (
 	"encoding/binary"
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/yihuang/go-abi"
 	"math/big"
@@ -63,6 +64,38 @@ func (t Item) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes Item from ABI bytes in the provided buffer
+func (t *Item) DecodeFrom(data0 []byte) error {
+	if len(data0) < ItemStaticSize {
+		return fmt.Errorf("insufficient data for Item")
+	}
+
+	// t.Id (static)
+	t.Id = uint32(binary.BigEndian.Uint32(data0[0+28 : 0+32]))
+	// Data
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Data (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// bytes data
+		t.Data = data0[offset : offset+length]
+	}
+	// t.Active (static)
+	t.Active = data0[64+31] == 1
+
+	return nil
+}
+
+// Decode decodes Item from ABI bytes
+func (t *Item) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const Level1StaticSize = 32
 
 // Level1 represents an ABI tuple
@@ -104,6 +137,33 @@ func (t Level1) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes Level1 from ABI bytes in the provided buffer
+func (t *Level1) DecodeFrom(data0 []byte) error {
+	if len(data0) < Level1StaticSize {
+		return fmt.Errorf("insufficient data for Level1")
+	}
+
+	// Level1
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Level1 (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Level1")
+		}
+		if err := t.Level1.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes Level1 from ABI bytes
+func (t *Level1) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const Level2StaticSize = 32
@@ -149,6 +209,33 @@ func (t Level2) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes Level2 from ABI bytes in the provided buffer
+func (t *Level2) DecodeFrom(data0 []byte) error {
+	if len(data0) < Level2StaticSize {
+		return fmt.Errorf("insufficient data for Level2")
+	}
+
+	// Level2
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Level2 (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Level2")
+		}
+		if err := t.Level2.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes Level2 from ABI bytes
+func (t *Level2) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const Level3StaticSize = 32
 
 // Level3 represents an ABI tuple
@@ -190,6 +277,33 @@ func (t Level3) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes Level3 from ABI bytes in the provided buffer
+func (t *Level3) DecodeFrom(data0 []byte) error {
+	if len(data0) < Level3StaticSize {
+		return fmt.Errorf("insufficient data for Level3")
+	}
+
+	// Level3
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Level3 (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Level3")
+		}
+		if err := t.Level3.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes Level3 from ABI bytes
+func (t *Level3) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const Level4StaticSize = 64
@@ -244,6 +358,36 @@ func (t Level4) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes Level4 from ABI bytes in the provided buffer
+func (t *Level4) DecodeFrom(data0 []byte) error {
+	if len(data0) < Level4StaticSize {
+		return fmt.Errorf("insufficient data for Level4")
+	}
+
+	// t.Value (static)
+	t.Value = new(big.Int).SetBytes(data0[0:32])
+	// Description
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Description (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// string data
+		t.Description = string(data0[offset : offset+length])
+	}
+
+	return nil
+}
+
+// Decode decodes Level4 from ABI bytes
+func (t *Level4) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const User2StaticSize = 64
 
 // User2 represents an ABI tuple
@@ -292,6 +436,35 @@ func (t User2) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes User2 from ABI bytes in the provided buffer
+func (t *User2) DecodeFrom(data0 []byte) error {
+	if len(data0) < User2StaticSize {
+		return fmt.Errorf("insufficient data for User2")
+	}
+
+	// t.Id (static)
+	t.Id = new(big.Int).SetBytes(data0[0:32])
+	// Profile
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Profile (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Profile")
+		}
+		if err := t.Profile.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes User2 from ABI bytes
+func (t *User2) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const UserMetadata2StaticSize = 64
@@ -374,6 +547,56 @@ func (t UserMetadata2) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes UserMetadata2 from ABI bytes in the provided buffer
+func (t *UserMetadata2) DecodeFrom(data0 []byte) error {
+	if len(data0) < UserMetadata2StaticSize {
+		return fmt.Errorf("insufficient data for UserMetadata2")
+	}
+
+	// t.CreatedAt (static)
+	t.CreatedAt = new(big.Int).SetBytes(data0[0:32])
+	// Tags
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Tags (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Tags = make([]string, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Tags[i0] (dynamic)
+			if offset+32 > len(data1) {
+				return fmt.Errorf("insufficient data for length prefix")
+			}
+			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
+			offset += 32
+			// string data
+			t.Tags[i0] = string(data1[offset : offset+length])
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes UserMetadata2 from ABI bytes
+func (t *UserMetadata2) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const UserProfileStaticSize = 96
@@ -477,6 +700,79 @@ func (t UserProfile) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes UserProfile from ABI bytes in the provided buffer
+func (t *UserProfile) DecodeFrom(data0 []byte) error {
+	if len(data0) < UserProfileStaticSize {
+		return fmt.Errorf("insufficient data for UserProfile")
+	}
+
+	// Name
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Name (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// string data
+		t.Name = string(data0[offset : offset+length])
+	}
+	// Emails
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Emails (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Emails = make([]string, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Emails[i0] (dynamic)
+			if offset+32 > len(data1) {
+				return fmt.Errorf("insufficient data for length prefix")
+			}
+			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
+			offset += 32
+			// string data
+			t.Emails[i0] = string(data1[offset : offset+length])
+		}
+	}
+	// Metadata
+	{
+		offset := int(binary.BigEndian.Uint64(data0[64+24 : 64+32]))
+
+		// t.Metadata (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Metadata")
+		}
+		if err := t.Metadata.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes UserProfile from ABI bytes
+func (t *UserProfile) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const TestComplexDynamicTuplesArgsStaticSize = 32
 
 // TestComplexDynamicTuplesArgs represents an ABI tuple
@@ -550,6 +846,53 @@ func (t TestComplexDynamicTuplesArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes TestComplexDynamicTuplesArgs from ABI bytes in the provided buffer
+func (t *TestComplexDynamicTuplesArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestComplexDynamicTuplesArgsStaticSize {
+		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesArgs")
+	}
+
+	// Users
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Users (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Users = make([]User2, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Users[i0] (dynamic)
+			if offset >= len(data1) {
+				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
+			}
+			if err := t.Users[i0].DecodeFrom(data1[offset:]); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes TestComplexDynamicTuplesArgs from ABI bytes
+func (t *TestComplexDynamicTuplesArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 // EncodeWithSelector encodes testComplexDynamicTuples arguments to ABI bytes including function selector
 func (t TestComplexDynamicTuplesArgs) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -611,6 +954,33 @@ func (t TestDeeplyNestedArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes TestDeeplyNestedArgs from ABI bytes in the provided buffer
+func (t *TestDeeplyNestedArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestDeeplyNestedArgsStaticSize {
+		return fmt.Errorf("insufficient data for TestDeeplyNestedArgs")
+	}
+
+	// Data
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Data (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Data")
+		}
+		if err := t.Data.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes TestDeeplyNestedArgs from ABI bytes
+func (t *TestDeeplyNestedArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 // EncodeWithSelector encodes testDeeplyNested arguments to ABI bytes including function selector
 func (t TestDeeplyNestedArgs) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -659,6 +1029,7 @@ func (t TestFixedArraysArgs) EncodeTo(buf []byte) (int, error) {
 
 			copy(buf[offset+12:offset+32], item[:])
 
+			offset += 32
 		}
 	}
 
@@ -673,6 +1044,7 @@ func (t TestFixedArraysArgs) EncodeTo(buf []byte) (int, error) {
 				return 0, err
 			}
 
+			offset += 32
 		}
 	}
 
@@ -685,6 +1057,7 @@ func (t TestFixedArraysArgs) EncodeTo(buf []byte) (int, error) {
 
 			copy(buf[offset:offset+32], item[:])
 
+			offset += 32
 		}
 	}
 
@@ -698,6 +1071,45 @@ func (t TestFixedArraysArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes TestFixedArraysArgs from ABI bytes in the provided buffer
+func (t *TestFixedArraysArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestFixedArraysArgsStaticSize {
+		return fmt.Errorf("insufficient data for TestFixedArraysArgs")
+	}
+
+	// t.Addresses (static)
+	// Decode fixed-size array t.Addresses
+	for i0 := 0; i0 < 5; i0++ {
+		offset := 0 + i0*32
+		data1 := data0
+		// t.Addresses[i0] (static)
+		copy(t.Addresses[i0][:], data1[offset+12:offset+32])
+	}
+	// t.Uints (static)
+	// Decode fixed-size array t.Uints
+	for i0 := 0; i0 < 3; i0++ {
+		offset := 160 + i0*32
+		data1 := data0
+		// t.Uints[i0] (static)
+		t.Uints[i0] = new(big.Int).SetBytes(data1[offset : offset+32])
+	}
+	// t.Bytes32s (static)
+	// Decode fixed-size array t.Bytes32s
+	for i0 := 0; i0 < 2; i0++ {
+		offset := 256 + i0*32
+		data1 := data0
+		// t.Bytes32s[i0] (static)
+		copy(t.Bytes32s[i0][:], data1[offset:offset+32])
+	}
+
+	return nil
+}
+
+// Decode decodes TestFixedArraysArgs from ABI bytes
+func (t *TestFixedArraysArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testFixedArrays arguments to ABI bytes including function selector
@@ -818,6 +1230,72 @@ func (t TestMixedTypesArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes TestMixedTypesArgs from ABI bytes in the provided buffer
+func (t *TestMixedTypesArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestMixedTypesArgsStaticSize {
+		return fmt.Errorf("insufficient data for TestMixedTypesArgs")
+	}
+
+	// t.FixedData (static)
+	copy(t.FixedData[:], data0[0:0+32])
+	// DynamicData
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.DynamicData (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// bytes data
+		t.DynamicData = data0[offset : offset+length]
+	}
+	// t.Flag (static)
+	t.Flag = data0[64+31] == 1
+	// t.Count (static)
+	t.Count = uint8(data0[96+31])
+	// Items
+	{
+		offset := int(binary.BigEndian.Uint64(data0[128+24 : 128+32]))
+
+		// t.Items (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Items = make([]Item, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Items[i0] (dynamic)
+			if offset >= len(data1) {
+				return fmt.Errorf("insufficient data for dynamic data, t.Items[i0]")
+			}
+			if err := t.Items[i0].DecodeFrom(data1[offset:]); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes TestMixedTypesArgs from ABI bytes
+func (t *TestMixedTypesArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testMixedTypes arguments to ABI bytes including function selector
@@ -979,6 +1457,103 @@ func (t TestNestedDynamicArraysArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes TestNestedDynamicArraysArgs from ABI bytes in the provided buffer
+func (t *TestNestedDynamicArraysArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestNestedDynamicArraysArgsStaticSize {
+		return fmt.Errorf("insufficient data for TestNestedDynamicArraysArgs")
+	}
+
+	// Matrix
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Matrix (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Matrix = make([][]*big.Int, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Matrix[i0] (dynamic)
+			if offset+32 > len(data1) {
+				return fmt.Errorf("insufficient data for length prefix")
+			}
+			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
+			offset += 32
+			// slice data
+			t.Matrix[i0] = make([]*big.Int, length)
+			data2 := data1[offset:]
+
+			offset = 0
+			for i1 := 0; i1 < length; i1++ {
+				// t.Matrix[i0][i1] (static)
+				t.Matrix[i0][i1] = new(big.Int).SetBytes(data2[offset : offset+32])
+				offset += 32
+			}
+		}
+	}
+	// AddressMatrix
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.AddressMatrix (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.AddressMatrix = make([][]common.Address, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.AddressMatrix[i0] (dynamic)
+			if offset+32 > len(data1) {
+				return fmt.Errorf("insufficient data for length prefix")
+			}
+			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
+			offset += 32
+			// slice data
+			t.AddressMatrix[i0] = make([]common.Address, length)
+			data2 := data1[offset:]
+
+			offset = 0
+			for i1 := 0; i1 < length; i1++ {
+				// t.AddressMatrix[i0][i1] (static)
+				copy(t.AddressMatrix[i0][i1][:], data2[offset+12:offset+32])
+				offset += 32
+			}
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes TestNestedDynamicArraysArgs from ABI bytes
+func (t *TestNestedDynamicArraysArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 // EncodeWithSelector encodes testNestedDynamicArrays arguments to ABI bytes including function selector
 func (t TestNestedDynamicArraysArgs) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1077,6 +1652,37 @@ func (t TestSmallIntegersArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes TestSmallIntegersArgs from ABI bytes in the provided buffer
+func (t *TestSmallIntegersArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestSmallIntegersArgsStaticSize {
+		return fmt.Errorf("insufficient data for TestSmallIntegersArgs")
+	}
+
+	// t.U8 (static)
+	t.U8 = uint8(data0[0+31])
+	// t.U16 (static)
+	t.U16 = uint16(binary.BigEndian.Uint16(data0[32+30 : 32+32]))
+	// t.U32 (static)
+	t.U32 = uint32(binary.BigEndian.Uint32(data0[64+28 : 64+32]))
+	// t.U64 (static)
+	t.U64 = uint64(binary.BigEndian.Uint64(data0[96+24 : 96+32]))
+	// t.I8 (static)
+	t.I8 = int8(data0[128+31])
+	// t.I16 (static)
+	t.I16 = int16(binary.BigEndian.Uint16(data0[160+30 : 160+32]))
+	// t.I32 (static)
+	t.I32 = int32(binary.BigEndian.Uint32(data0[192+28 : 192+32]))
+	// t.I64 (static)
+	t.I64 = int64(binary.BigEndian.Uint64(data0[224+24 : 224+32]))
+
+	return nil
+}
+
+// Decode decodes TestSmallIntegersArgs from ABI bytes
+func (t *TestSmallIntegersArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testSmallIntegers arguments to ABI bytes including function selector

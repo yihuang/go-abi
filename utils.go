@@ -121,3 +121,9 @@ func TupleStructName(t abi.Type) string {
 	// This creates a deterministic name based on the tuple structure
 	return GenTupleIdentifier(t)
 }
+
+// RequiresLengthPrefix returns whether the type requires any sort of length
+// prefixing.
+func RequiresLengthPrefix(t abi.Type) bool {
+	return t.T == abi.StringTy || t.T == abi.BytesTy || t.T == abi.SliceTy
+}

@@ -52,6 +52,8 @@ func TestComprehensiveSmallIntegers(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestComprehensiveFixedArrays(t *testing.T) {
@@ -87,7 +89,9 @@ func TestComprehensiveFixedArrays(t *testing.T) {
 		args.Addresses, args.Uints, args.Bytes32s)
 	require.NoError(t, err)
 
-	require.Equal(t, len(encoded), len(goEthEncoded))
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestComprehensiveNestedDynamicArrays(t *testing.T) {
@@ -120,7 +124,9 @@ func TestComprehensiveNestedDynamicArrays(t *testing.T) {
 		args.Matrix, args.AddressMatrix)
 	require.NoError(t, err)
 
-	require.Equal(t, len(encoded), len(goEthEncoded))
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestComprehensiveComplexDynamicTuples(t *testing.T) {
@@ -162,7 +168,9 @@ func TestComprehensiveComplexDynamicTuples(t *testing.T) {
 		args.Users)
 	require.NoError(t, err)
 
-	require.Equal(t, len(encoded), len(goEthEncoded))
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestComprehensiveMixedTypes(t *testing.T) {
@@ -200,7 +208,9 @@ func TestComprehensiveMixedTypes(t *testing.T) {
 		args.FixedData, args.DynamicData, args.Flag, args.Count, args.Items)
 	require.NoError(t, err)
 
-	require.Equal(t, len(encoded), len(goEthEncoded))
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestComprehensiveDeeplyNested(t *testing.T) {
@@ -228,5 +238,7 @@ func TestComprehensiveDeeplyNested(t *testing.T) {
 		args.Data)
 	require.NoError(t, err)
 
-	require.Equal(t, len(encoded), len(goEthEncoded))
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }

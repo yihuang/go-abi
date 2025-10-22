@@ -2,6 +2,7 @@ package testdata
 
 import (
 	"encoding/binary"
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/yihuang/go-abi"
 	"math/big"
@@ -63,6 +64,38 @@ func (t User) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes User from ABI bytes in the provided buffer
+func (t *User) DecodeFrom(data0 []byte) error {
+	if len(data0) < UserStaticSize {
+		return fmt.Errorf("insufficient data for User")
+	}
+
+	// t.Address (static)
+	copy(t.Address[:], data0[0+12:0+32])
+	// Name
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Name (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// string data
+		t.Name = string(data0[offset : offset+length])
+	}
+	// t.Age (static)
+	t.Age = new(big.Int).SetBytes(data0[64:96])
+
+	return nil
+}
+
+// Decode decodes User from ABI bytes
+func (t *User) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const UserDataStaticSize = 64
 
 // UserData represents an ABI tuple
@@ -111,6 +144,35 @@ func (t UserData) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes UserData from ABI bytes in the provided buffer
+func (t *UserData) DecodeFrom(data0 []byte) error {
+	if len(data0) < UserDataStaticSize {
+		return fmt.Errorf("insufficient data for UserData")
+	}
+
+	// t.Id (static)
+	t.Id = new(big.Int).SetBytes(data0[0:32])
+	// Data
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Data (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Data")
+		}
+		if err := t.Data.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes UserData from ABI bytes
+func (t *UserData) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const UserMetadataStaticSize = 64
@@ -162,6 +224,36 @@ func (t UserMetadata) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes UserMetadata from ABI bytes in the provided buffer
+func (t *UserMetadata) DecodeFrom(data0 []byte) error {
+	if len(data0) < UserMetadataStaticSize {
+		return fmt.Errorf("insufficient data for UserMetadata")
+	}
+
+	// t.Key (static)
+	copy(t.Key[:], data0[0:0+32])
+	// Value
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Value (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// string data
+		t.Value = string(data0[offset : offset+length])
+	}
+
+	return nil
+}
+
+// Decode decodes UserMetadata from ABI bytes
+func (t *UserMetadata) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const BalanceOfArgsStaticSize = 32
 
 // BalanceOfArgs represents an ABI tuple
@@ -194,6 +286,23 @@ func (t BalanceOfArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes BalanceOfArgs from ABI bytes in the provided buffer
+func (t *BalanceOfArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < BalanceOfArgsStaticSize {
+		return fmt.Errorf("insufficient data for BalanceOfArgs")
+	}
+
+	// t.Account (static)
+	copy(t.Account[:], data0[0+12:0+32])
+
+	return nil
+}
+
+// Decode decodes BalanceOfArgs from ABI bytes
+func (t *BalanceOfArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes balanceOf arguments to ABI bytes including function selector
@@ -287,6 +396,53 @@ func (t BatchProcessArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes BatchProcessArgs from ABI bytes in the provided buffer
+func (t *BatchProcessArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < BatchProcessArgsStaticSize {
+		return fmt.Errorf("insufficient data for BatchProcessArgs")
+	}
+
+	// Users
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Users (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Users = make([]UserData, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Users[i0] (dynamic)
+			if offset >= len(data1) {
+				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
+			}
+			if err := t.Users[i0].DecodeFrom(data1[offset:]); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes BatchProcessArgs from ABI bytes
+func (t *BatchProcessArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 // EncodeWithSelector encodes batchProcess arguments to ABI bytes including function selector
 func (t BatchProcessArgs) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -333,6 +489,7 @@ func (t GetBalancesArgs) EncodeTo(buf []byte) (int, error) {
 
 			copy(buf[offset+12:offset+32], item[:])
 
+			offset += 32
 		}
 	}
 
@@ -346,6 +503,29 @@ func (t GetBalancesArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes GetBalancesArgs from ABI bytes in the provided buffer
+func (t *GetBalancesArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < GetBalancesArgsStaticSize {
+		return fmt.Errorf("insufficient data for GetBalancesArgs")
+	}
+
+	// t.Accounts (static)
+	// Decode fixed-size array t.Accounts
+	for i0 := 0; i0 < 10; i0++ {
+		offset := 0 + i0*32
+		data1 := data0
+		// t.Accounts[i0] (static)
+		copy(t.Accounts[i0][:], data1[offset+12:offset+32])
+	}
+
+	return nil
+}
+
+// Decode decodes GetBalancesArgs from ABI bytes
+func (t *GetBalancesArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes getBalances arguments to ABI bytes including function selector
@@ -407,6 +587,33 @@ func (t ProcessUserDataArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes ProcessUserDataArgs from ABI bytes in the provided buffer
+func (t *ProcessUserDataArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < ProcessUserDataArgsStaticSize {
+		return fmt.Errorf("insufficient data for ProcessUserDataArgs")
+	}
+
+	// User
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.User (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.User")
+		}
+		if err := t.User.DecodeFrom(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes ProcessUserDataArgs from ABI bytes
+func (t *ProcessUserDataArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes processUserData arguments to ABI bytes including function selector
@@ -476,6 +683,36 @@ func (t SetDataArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes SetDataArgs from ABI bytes in the provided buffer
+func (t *SetDataArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < SetDataArgsStaticSize {
+		return fmt.Errorf("insufficient data for SetDataArgs")
+	}
+
+	// t.Key (static)
+	copy(t.Key[:], data0[0:0+32])
+	// Value
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Value (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// bytes data
+		t.Value = data0[offset : offset+length]
+	}
+
+	return nil
+}
+
+// Decode decodes SetDataArgs from ABI bytes
+func (t *SetDataArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 // EncodeWithSelector encodes setData arguments to ABI bytes including function selector
 func (t SetDataArgs) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -537,6 +774,34 @@ func (t SetMessageArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes SetMessageArgs from ABI bytes in the provided buffer
+func (t *SetMessageArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < SetMessageArgsStaticSize {
+		return fmt.Errorf("insufficient data for SetMessageArgs")
+	}
+
+	// Message
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Message (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// string data
+		t.Message = string(data0[offset : offset+length])
+	}
+
+	return nil
+}
+
+// Decode decodes SetMessageArgs from ABI bytes
+func (t *SetMessageArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes setMessage arguments to ABI bytes including function selector
@@ -639,6 +904,37 @@ func (t SmallIntegersArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes SmallIntegersArgs from ABI bytes in the provided buffer
+func (t *SmallIntegersArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < SmallIntegersArgsStaticSize {
+		return fmt.Errorf("insufficient data for SmallIntegersArgs")
+	}
+
+	// t.U8 (static)
+	t.U8 = uint8(data0[0+31])
+	// t.U16 (static)
+	t.U16 = uint16(binary.BigEndian.Uint16(data0[32+30 : 32+32]))
+	// t.U32 (static)
+	t.U32 = uint32(binary.BigEndian.Uint32(data0[64+28 : 64+32]))
+	// t.U64 (static)
+	t.U64 = uint64(binary.BigEndian.Uint64(data0[96+24 : 96+32]))
+	// t.I8 (static)
+	t.I8 = int8(data0[128+31])
+	// t.I16 (static)
+	t.I16 = int16(binary.BigEndian.Uint16(data0[160+30 : 160+32]))
+	// t.I32 (static)
+	t.I32 = int32(binary.BigEndian.Uint32(data0[192+28 : 192+32]))
+	// t.I64 (static)
+	t.I64 = int64(binary.BigEndian.Uint64(data0[224+24 : 224+32]))
+
+	return nil
+}
+
+// Decode decodes SmallIntegersArgs from ABI bytes
+func (t *SmallIntegersArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 // EncodeWithSelector encodes smallIntegers arguments to ABI bytes including function selector
 func (t SmallIntegersArgs) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -695,6 +991,25 @@ func (t TransferArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes TransferArgs from ABI bytes in the provided buffer
+func (t *TransferArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferArgsStaticSize {
+		return fmt.Errorf("insufficient data for TransferArgs")
+	}
+
+	// t.To (static)
+	copy(t.To[:], data0[0+12:0+32])
+	// t.Amount (static)
+	t.Amount = new(big.Int).SetBytes(data0[32:64])
+
+	return nil
+}
+
+// Decode decodes TransferArgs from ABI bytes
+func (t *TransferArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes transfer arguments to ABI bytes including function selector
@@ -796,6 +1111,63 @@ func (t TransferBatchArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
+// DecodeFrom decodes TransferBatchArgs from ABI bytes in the provided buffer
+func (t *TransferBatchArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferBatchArgsStaticSize {
+		return fmt.Errorf("insufficient data for TransferBatchArgs")
+	}
+
+	// Recipients
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Recipients (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Recipients = make([]common.Address, length)
+		data1 := data0[offset:]
+
+		offset = 0
+		for i0 := 0; i0 < length; i0++ {
+			// t.Recipients[i0] (static)
+			copy(t.Recipients[i0][:], data1[offset+12:offset+32])
+			offset += 32
+		}
+	}
+	// Amounts
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Amounts (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Amounts = make([]*big.Int, length)
+		data1 := data0[offset:]
+
+		offset = 0
+		for i0 := 0; i0 < length; i0++ {
+			// t.Amounts[i0] (static)
+			t.Amounts[i0] = new(big.Int).SetBytes(data1[offset : offset+32])
+			offset += 32
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes TransferBatchArgs from ABI bytes
+func (t *TransferBatchArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 // EncodeWithSelector encodes transferBatch arguments to ABI bytes including function selector
 func (t TransferBatchArgs) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -868,6 +1240,38 @@ func (t UpdateProfileArgs) Encode() ([]byte, error) {
 		return nil, err
 	}
 	return buf, nil
+}
+
+// DecodeFrom decodes UpdateProfileArgs from ABI bytes in the provided buffer
+func (t *UpdateProfileArgs) DecodeFrom(data0 []byte) error {
+	if len(data0) < UpdateProfileArgsStaticSize {
+		return fmt.Errorf("insufficient data for UpdateProfileArgs")
+	}
+
+	// t.User (static)
+	copy(t.User[:], data0[0+12:0+32])
+	// Name
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.Name (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// string data
+		t.Name = string(data0[offset : offset+length])
+	}
+	// t.Age (static)
+	t.Age = new(big.Int).SetBytes(data0[64:96])
+
+	return nil
+}
+
+// Decode decodes UpdateProfileArgs from ABI bytes
+func (t *UpdateProfileArgs) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes updateProfile arguments to ABI bytes including function selector
