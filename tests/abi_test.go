@@ -1,33 +1,49 @@
 package testdata
 
 import (
+	"bytes"
 	"math/big"
-	"strings"
 	"testing"
 
 	"github.com/test-go/testify/require"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-
-	_ "embed"
+	"github.com/yihuang/go-abi"
 )
 
-var (
-	//go:embed test_abi.json
-	ABIJson string
-	ABIDef  abi.ABI
-)
+//go:generate go run ../cmd/main.go -var TestABI -output test.abi.go
+
+// TestABI contains human-readable ABI definitions for testing
+var TestABI = []string{
+	"function transfer(address to, uint256 amount) returns (bool)",
+	"function balanceOf(address account) view returns (uint256)",
+	"function setMessage(string message) returns (bool)",
+	"function updateProfile(address user, string name, uint256 age) returns (bool)",
+	"function transferBatch(address[] recipients, uint256[] amounts) returns (bool)",
+	"function setData(bytes32 key, bytes value)",
+	"function getBalances(address[10] accounts) view returns (uint256[10])",
+	"struct User { address address; string name; uint256 age }",
+	"function processUserData(User user) returns (bool)",
+	"struct UserMetadata { bytes32 key; string value }",
+	"struct UserData { uint256 id; UserMetadata data }",
+	"function batchProcess(UserData[] users) returns (bool)",
+	"function smallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
+}
+
+var TestABIDef ethabi.ABI
 
 func init() {
 	var err error
-	ABIDef, err = abi.JSON(strings.NewReader(ABIJson))
+	abiJSON, err := abi.ParseHumanReadableABI(TestABI)
+	if err != nil {
+		panic(err)
+	}
+	TestABIDef, err = ethabi.JSON(bytes.NewReader(abiJSON))
 	if err != nil {
 		panic(err)
 	}
 }
-
-//go:generate go run github.com/yihuang/go-abi/cmd -input test_abi.json -output test_abi.abi.go
 
 func TestTransferEncoding(t *testing.T) {
 	to := common.HexToAddress("0x742d35Cc6634C0532925a3b8D4C9D7B6f7e5c3a3")
@@ -44,7 +60,7 @@ func TestTransferEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ABIDef.Pack("transfer", to, amount)
+	goEthEncoded, err := TestABIDef.Pack("transfer", to, amount)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
@@ -65,7 +81,7 @@ func TestSetMessageEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ABIDef.Pack("setMessage", args.Message)
+	goEthEncoded, err := TestABIDef.Pack("setMessage", args.Message)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
@@ -90,7 +106,7 @@ func TestUpdateProfileEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ABIDef.Pack("updateProfile", args.User, args.Name, args.Age)
+	goEthEncoded, err := TestABIDef.Pack("updateProfile", args.User, args.Name, args.Age)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
@@ -115,7 +131,7 @@ func TestProcessUserDataEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ABIDef.Pack("processUserData", user)
+	goEthEncoded, err := TestABIDef.Pack("processUserData", user)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
@@ -151,7 +167,7 @@ func TestBatchProcessEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ABIDef.Pack("batchProcess", users)
+	goEthEncoded, err := TestABIDef.Pack("batchProcess", users)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
@@ -177,7 +193,7 @@ func TestSmallIntegers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ABIDef.Pack("smallIntegers",
+	goEthEncoded, err := TestABIDef.Pack("smallIntegers",
 		args.U8, args.U16, args.U32, args.U64,
 		args.I8, args.I16, args.I32, args.I64,
 	)

@@ -142,7 +142,7 @@ func BenchmarkGoEthereum_ComplexDynamicTuples(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err := ComprehensiveABIDef.Pack("testComplexDynamicTuples", args.Users)
+		_, err := ComprehensiveTestABIDef.Pack("testComplexDynamicTuples", args.Users)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -154,7 +154,7 @@ func BenchmarkGoEthereum_NestedDynamicArrays(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err := ComprehensiveABIDef.Pack("testNestedDynamicArrays",
+		_, err := ComprehensiveTestABIDef.Pack("testNestedDynamicArrays",
 			args.Matrix, args.AddressMatrix)
 		if err != nil {
 			b.Fatal(err)
@@ -167,7 +167,7 @@ func BenchmarkGoEthereum_MixedTypes(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err := ComprehensiveABIDef.Pack("testMixedTypes",
+		_, err := ComprehensiveTestABIDef.Pack("testMixedTypes",
 			args.FixedData, args.DynamicData, args.Flag, args.Count, args.Items)
 		if err != nil {
 			b.Fatal(err)
@@ -222,7 +222,7 @@ func BenchmarkGoEthereum_MemoryAllocations_ComplexDynamicTuples(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		_, err := ComprehensiveABIDef.Pack("testComplexDynamicTuples", args.Users)
+		_, err := ComprehensiveTestABIDef.Pack("testComplexDynamicTuples", args.Users)
 		if err != nil {
 			b.Fatal(err)
 		}

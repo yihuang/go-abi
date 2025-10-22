@@ -1,33 +1,50 @@
 package testdata
 
 import (
+	"bytes"
 	"math/big"
-	"strings"
 	"testing"
 
 	"github.com/test-go/testify/require"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-
-	_ "embed"
+	"github.com/yihuang/go-abi"
 )
 
-var (
-	//go:embed comprehensive_test_abi.json
-	ComprehensiveABIJson string
-	ComprehensiveABIDef  abi.ABI
-)
+//go:generate go run ../cmd/main.go -var ComprehensiveTestABI -output comprehensive.abi.go
+
+// ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
+var ComprehensiveTestABI = []string{
+	"function testSmallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
+	"function testFixedArrays(address[5] addresses, uint256[3] uints, bytes32[2] bytes32s) returns (bool)",
+	"function testNestedDynamicArrays(uint256[][] matrix, address[][] addressMatrix) returns (bool)",
+	"struct UserMetadata2 { uint256 createdAt; string[] tags }",
+	"struct UserProfile { string name; string[] emails; UserMetadata2 metadata }",
+	"struct User2 { uint256 id; UserProfile profile }",
+	"function testComplexDynamicTuples(User2[] users) returns (bool)",
+	"struct Item { uint32 id; bytes data; bool active }",
+	"function testMixedTypes(bytes32 fixedData, bytes dynamicData, bool flag, uint8 count, Item[] items) returns (bool)",
+	"struct Level4 { uint256 value; string description }",
+	"struct Level3 { Level4 level3 }",
+	"struct Level2 { Level3 level2 }",
+	"struct Level1 { Level2 level1 }",
+	"function testDeeplyNested(Level1 data) returns (bool)",
+}
+
+var ComprehensiveTestABIDef ethabi.ABI
 
 func init() {
 	var err error
-	ComprehensiveABIDef, err = abi.JSON(strings.NewReader(ComprehensiveABIJson))
+	abiJSON, err := abi.ParseHumanReadableABI(ComprehensiveTestABI)
+	if err != nil {
+		panic(err)
+	}
+	ComprehensiveTestABIDef, err = ethabi.JSON(bytes.NewReader(abiJSON))
 	if err != nil {
 		panic(err)
 	}
 }
-
-//go:generate go run github.com/yihuang/go-abi/cmd -input comprehensive_test_abi.json -output comprehensive_test_abi.abi.go
 
 func TestComprehensiveSmallIntegers(t *testing.T) {
 	args := &TestSmallIntegersArgs{
@@ -46,7 +63,7 @@ func TestComprehensiveSmallIntegers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ComprehensiveABIDef.Pack("testSmallIntegers",
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testSmallIntegers",
 		args.U8, args.U16, args.U32, args.U64,
 		args.I8, args.I16, args.I32, args.I64)
 	require.NoError(t, err)
@@ -85,7 +102,7 @@ func TestComprehensiveFixedArrays(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ComprehensiveABIDef.Pack("testFixedArrays",
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testFixedArrays",
 		args.Addresses, args.Uints, args.Bytes32s)
 	require.NoError(t, err)
 
@@ -120,7 +137,7 @@ func TestComprehensiveNestedDynamicArrays(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ComprehensiveABIDef.Pack("testNestedDynamicArrays",
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testNestedDynamicArrays",
 		args.Matrix, args.AddressMatrix)
 	require.NoError(t, err)
 
@@ -164,7 +181,7 @@ func TestComprehensiveComplexDynamicTuples(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ComprehensiveABIDef.Pack("testComplexDynamicTuples",
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testComplexDynamicTuples",
 		args.Users)
 	require.NoError(t, err)
 
@@ -204,7 +221,7 @@ func TestComprehensiveMixedTypes(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ComprehensiveABIDef.Pack("testMixedTypes",
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testMixedTypes",
 		args.FixedData, args.DynamicData, args.Flag, args.Count, args.Items)
 	require.NoError(t, err)
 
@@ -234,7 +251,7 @@ func TestComprehensiveDeeplyNested(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := ComprehensiveABIDef.Pack("testDeeplyNested",
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testDeeplyNested",
 		args.Data)
 	require.NoError(t, err)
 
