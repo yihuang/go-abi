@@ -39,17 +39,17 @@ var (
 
 // Big endian integer versions of function selectors
 const (
-	BalanceOfSelectorInt       = 1889567281
-	BatchProcessSelectorInt    = 3078107492
-	CommunityPoolSelectorInt   = 349257904
-	GetBalancesSelectorInt     = 1365785981
-	ProcessUserDataSelectorInt = 3298499304
-	SetDataSelectorInt         = 2133027084
-	SetMessageSelectorInt      = 915113842
-	SmallIntegersSelectorInt   = 2558787146
-	TransferSelectorInt        = 2835717307
-	TransferBatchSelectorInt   = 993945391
-	UpdateProfileSelectorInt   = 1844007425
+	BalanceOfID       = 1889567281
+	BatchProcessID    = 3078107492
+	CommunityPoolID   = 349257904
+	GetBalancesID     = 1365785981
+	ProcessUserDataID = 3298499304
+	SetDataID         = 2133027084
+	SetMessageID      = 915113842
+	SmallIntegersID   = 2558787146
+	TransferID        = 2835717307
+	TransferBatchID   = 993945391
+	UpdateProfileID   = 1844007425
 )
 
 const Tuple_45c89796StaticSize = 64
@@ -104,7 +104,7 @@ func (t Tuple_45c89796) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Tuple_45c89796 from ABI bytes in the provided buffer
+// Decode decodes Tuple_45c89796 from ABI bytes in the provided buffer
 func (t *Tuple_45c89796) Decode(data0 []byte) error {
 	if len(data0) < Tuple_45c89796StaticSize {
 		return fmt.Errorf("insufficient data for Tuple_45c89796")
@@ -185,7 +185,7 @@ func (t User) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes User from ABI bytes in the provided buffer
+// Decode decodes User from ABI bytes in the provided buffer
 func (t *User) Decode(data0 []byte) error {
 	if len(data0) < UserStaticSize {
 		return fmt.Errorf("insufficient data for User")
@@ -262,7 +262,7 @@ func (t UserData) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes UserData from ABI bytes in the provided buffer
+// Decode decodes UserData from ABI bytes in the provided buffer
 func (t *UserData) Decode(data0 []byte) error {
 	if len(data0) < UserDataStaticSize {
 		return fmt.Errorf("insufficient data for UserData")
@@ -335,7 +335,7 @@ func (t UserMetadata) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes UserMetadata from ABI bytes in the provided buffer
+// Decode decodes UserMetadata from ABI bytes in the provided buffer
 func (t *UserMetadata) Decode(data0 []byte) error {
 	if len(data0) < UserMetadataStaticSize {
 		return fmt.Errorf("insufficient data for UserMetadata")
@@ -394,7 +394,7 @@ func (t BalanceOfCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes BalanceOfCall from ABI bytes in the provided buffer
+// Decode decodes BalanceOfCall from ABI bytes in the provided buffer
 func (t *BalanceOfCall) Decode(data0 []byte) error {
 	if len(data0) < BalanceOfCallStaticSize {
 		return fmt.Errorf("insufficient data for BalanceOfCall")
@@ -453,7 +453,7 @@ func (t BalanceOfReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes BalanceOfReturn from ABI bytes in the provided buffer
+// Decode decodes BalanceOfReturn from ABI bytes in the provided buffer
 func (t *BalanceOfReturn) Decode(data0 []byte) error {
 	if len(data0) < BalanceOfReturnStaticSize {
 		return fmt.Errorf("insufficient data for BalanceOfReturn")
@@ -538,7 +538,7 @@ func (t BatchProcessCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes BatchProcessCall from ABI bytes in the provided buffer
+// Decode decodes BatchProcessCall from ABI bytes in the provided buffer
 func (t *BatchProcessCall) Decode(data0 []byte) error {
 	if len(data0) < BatchProcessCallStaticSize {
 		return fmt.Errorf("insufficient data for BatchProcessCall")
@@ -627,7 +627,7 @@ func (t BatchProcessReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes BatchProcessReturn from ABI bytes in the provided buffer
+// Decode decodes BatchProcessReturn from ABI bytes in the provided buffer
 func (t *BatchProcessReturn) Decode(data0 []byte) error {
 	if len(data0) < BatchProcessReturnStaticSize {
 		return fmt.Errorf("insufficient data for BatchProcessReturn")
@@ -712,7 +712,7 @@ func (t CommunityPoolReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes CommunityPoolReturn from ABI bytes in the provided buffer
+// Decode decodes CommunityPoolReturn from ABI bytes in the provided buffer
 func (t *CommunityPoolReturn) Decode(data0 []byte) error {
 	if len(data0) < CommunityPoolReturnStaticSize {
 		return fmt.Errorf("insufficient data for CommunityPoolReturn")
@@ -798,7 +798,7 @@ func (t GetBalancesCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetBalancesCall from ABI bytes in the provided buffer
+// Decode decodes GetBalancesCall from ABI bytes in the provided buffer
 func (t *GetBalancesCall) Decode(data0 []byte) error {
 	if len(data0) < GetBalancesCallStaticSize {
 		return fmt.Errorf("insufficient data for GetBalancesCall")
@@ -872,7 +872,7 @@ func (t GetBalancesReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetBalancesReturn from ABI bytes in the provided buffer
+// Decode decodes GetBalancesReturn from ABI bytes in the provided buffer
 func (t *GetBalancesReturn) Decode(data0 []byte) error {
 	if len(data0) < GetBalancesReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetBalancesReturn")
@@ -933,7 +933,7 @@ func (t ProcessUserDataCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes ProcessUserDataCall from ABI bytes in the provided buffer
+// Decode decodes ProcessUserDataCall from ABI bytes in the provided buffer
 func (t *ProcessUserDataCall) Decode(data0 []byte) error {
 	if len(data0) < ProcessUserDataCallStaticSize {
 		return fmt.Errorf("insufficient data for ProcessUserDataCall")
@@ -1002,7 +1002,7 @@ func (t ProcessUserDataReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes ProcessUserDataReturn from ABI bytes in the provided buffer
+// Decode decodes ProcessUserDataReturn from ABI bytes in the provided buffer
 func (t *ProcessUserDataReturn) Decode(data0 []byte) error {
 	if len(data0) < ProcessUserDataReturnStaticSize {
 		return fmt.Errorf("insufficient data for ProcessUserDataReturn")
@@ -1063,7 +1063,7 @@ func (t SetDataCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SetDataCall from ABI bytes in the provided buffer
+// Decode decodes SetDataCall from ABI bytes in the provided buffer
 func (t *SetDataCall) Decode(data0 []byte) error {
 	if len(data0) < SetDataCallStaticSize {
 		return fmt.Errorf("insufficient data for SetDataCall")
@@ -1143,7 +1143,7 @@ func (t SetMessageCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SetMessageCall from ABI bytes in the provided buffer
+// Decode decodes SetMessageCall from ABI bytes in the provided buffer
 func (t *SetMessageCall) Decode(data0 []byte) error {
 	if len(data0) < SetMessageCallStaticSize {
 		return fmt.Errorf("insufficient data for SetMessageCall")
@@ -1213,7 +1213,7 @@ func (t SetMessageReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SetMessageReturn from ABI bytes in the provided buffer
+// Decode decodes SetMessageReturn from ABI bytes in the provided buffer
 func (t *SetMessageReturn) Decode(data0 []byte) error {
 	if len(data0) < SetMessageReturnStaticSize {
 		return fmt.Errorf("insufficient data for SetMessageReturn")
@@ -1307,7 +1307,7 @@ func (t SmallIntegersCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SmallIntegersCall from ABI bytes in the provided buffer
+// Decode decodes SmallIntegersCall from ABI bytes in the provided buffer
 func (t *SmallIntegersCall) Decode(data0 []byte) error {
 	if len(data0) < SmallIntegersCallStaticSize {
 		return fmt.Errorf("insufficient data for SmallIntegersCall")
@@ -1380,7 +1380,7 @@ func (t SmallIntegersReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SmallIntegersReturn from ABI bytes in the provided buffer
+// Decode decodes SmallIntegersReturn from ABI bytes in the provided buffer
 func (t *SmallIntegersReturn) Decode(data0 []byte) error {
 	if len(data0) < SmallIntegersReturnStaticSize {
 		return fmt.Errorf("insufficient data for SmallIntegersReturn")
@@ -1432,7 +1432,7 @@ func (t TransferCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferCall from ABI bytes in the provided buffer
+// Decode decodes TransferCall from ABI bytes in the provided buffer
 func (t *TransferCall) Decode(data0 []byte) error {
 	if len(data0) < TransferCallStaticSize {
 		return fmt.Errorf("insufficient data for TransferCall")
@@ -1493,7 +1493,7 @@ func (t TransferReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferReturn from ABI bytes in the provided buffer
+// Decode decodes TransferReturn from ABI bytes in the provided buffer
 func (t *TransferReturn) Decode(data0 []byte) error {
 	if len(data0) < TransferReturnStaticSize {
 		return fmt.Errorf("insufficient data for TransferReturn")
@@ -1586,7 +1586,7 @@ func (t TransferBatchCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferBatchCall from ABI bytes in the provided buffer
+// Decode decodes TransferBatchCall from ABI bytes in the provided buffer
 func (t *TransferBatchCall) Decode(data0 []byte) error {
 	if len(data0) < TransferBatchCallStaticSize {
 		return fmt.Errorf("insufficient data for TransferBatchCall")
@@ -1685,7 +1685,7 @@ func (t TransferBatchReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferBatchReturn from ABI bytes in the provided buffer
+// Decode decodes TransferBatchReturn from ABI bytes in the provided buffer
 func (t *TransferBatchReturn) Decode(data0 []byte) error {
 	if len(data0) < TransferBatchReturnStaticSize {
 		return fmt.Errorf("insufficient data for TransferBatchReturn")
@@ -1753,7 +1753,7 @@ func (t UpdateProfileCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes UpdateProfileCall from ABI bytes in the provided buffer
+// Decode decodes UpdateProfileCall from ABI bytes in the provided buffer
 func (t *UpdateProfileCall) Decode(data0 []byte) error {
 	if len(data0) < UpdateProfileCallStaticSize {
 		return fmt.Errorf("insufficient data for UpdateProfileCall")
@@ -1827,7 +1827,7 @@ func (t UpdateProfileReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes UpdateProfileReturn from ABI bytes in the provided buffer
+// Decode decodes UpdateProfileReturn from ABI bytes in the provided buffer
 func (t *UpdateProfileReturn) Decode(data0 []byte) error {
 	if len(data0) < UpdateProfileReturnStaticSize {
 		return fmt.Errorf("insufficient data for UpdateProfileReturn")

@@ -4,25 +4,22 @@ import (
 	"testing"
 
 	"github.com/test-go/testify/require"
+	"github.com/yihuang/go-abi"
 )
 
-type Encodable interface {
-	EncodeTo(data []byte) (int, error)
-}
-
-type Decodable[T any] interface {
-	Encode() ([]byte, error)
-	DecodeFrom(data []byte) error
+type Tuple[T any] interface {
+	abi.Encode
+	abi.Decode
 
 	*T
 }
 
-func DecodeRoundTrip[T any, PT Decodable[T]](t *testing.T, orig PT) {
+func DecodeRoundTrip[T any, PT Tuple[T]](t *testing.T, orig PT) {
 	data, err := orig.Encode()
 	require.NoError(t, err)
 
 	var decoded T
-	err = PT(&decoded).DecodeFrom(data)
+	err = PT(&decoded).Decode(data)
 	require.NoError(t, err)
 
 	require.Equal(t, orig, &decoded)

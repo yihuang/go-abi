@@ -83,9 +83,8 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 
 	// Collect all selectors
 	for _, method := range methods {
-		selectorName := fmt.Sprintf("%sSelector", Title.String(method.Name))
 		g.Selectors = append(g.Selectors, SelectorInfo{
-			Name:  selectorName,
+			Name:  Title.String(method.Name),
 			Sig:   method.Sig,
 			Bytes: [4]byte{method.ID[0], method.ID[1], method.ID[2], method.ID[3]},
 		})
@@ -534,7 +533,7 @@ func (g *Generator) genAllSelectors() {
 	var (`)
 	for _, selector := range g.Selectors {
 		g.L("// %s", selector.Sig)
-		g.L("%s = [4]byte{0x%02x, 0x%02x, 0x%02x, 0x%02x}",
+		g.L("%sSelector = [4]byte{0x%02x, 0x%02x, 0x%02x, 0x%02x}",
 			selector.Name,
 			selector.Bytes[0],
 			selector.Bytes[1],
@@ -549,7 +548,7 @@ func (g *Generator) genAllSelectors() {
 	for _, selector := range g.Selectors {
 		// Generate integer version of selector
 		selectorInt := binary.BigEndian.Uint32(selector.Bytes[:])
-		g.L("%sInt = %d", selector.Name, selectorInt)
+		g.L("%sID = %d", selector.Name, selectorInt)
 	}
 	g.L(")")
 }

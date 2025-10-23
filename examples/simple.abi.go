@@ -18,7 +18,7 @@ var (
 
 // Big endian integer versions of function selectors
 const (
-	SendSelectorInt = 3496451380
+	SendID = 3496451380
 )
 
 const SendCallStaticSize = 64
@@ -61,7 +61,7 @@ func (t SendCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SendCall from ABI bytes in the provided buffer
+// Decode decodes SendCall from ABI bytes in the provided buffer
 func (t *SendCall) Decode(data0 []byte) error {
 	if len(data0) < SendCallStaticSize {
 		return fmt.Errorf("insufficient data for SendCall")

@@ -35,15 +35,15 @@ var (
 
 // Big endian integer versions of function selectors
 const (
-	GetAddressStringPairSelectorInt = 3502208234
-	GetComplexNestedSelectorInt     = 3283732078
-	GetDeeplyNestedSelectorInt      = 3837419962
-	GetMultipleReturnsSelectorInt   = 1017407783
-	GetNestedTupleArraySelectorInt  = 2484828335
-	GetSimplePairSelectorInt        = 3396506554
-	GetTupleArraySelectorInt        = 1527428161
-	GetUserWithMetadataSelectorInt  = 4099999864
-	GetUsersArraySelectorInt        = 2583589359
+	GetAddressStringPairID = 3502208234
+	GetComplexNestedID     = 3283732078
+	GetDeeplyNestedID      = 3837419962
+	GetMultipleReturnsID   = 1017407783
+	GetNestedTupleArrayID  = 2484828335
+	GetSimplePairID        = 3396506554
+	GetTupleArrayID        = 1527428161
+	GetUserWithMetadataID  = 4099999864
+	GetUsersArrayID        = 2583589359
 )
 
 const AddressStringPairStaticSize = 64
@@ -95,7 +95,7 @@ func (t AddressStringPair) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes AddressStringPair from ABI bytes in the provided buffer
+// Decode decodes AddressStringPair from ABI bytes in the provided buffer
 func (t *AddressStringPair) Decode(data0 []byte) error {
 	if len(data0) < AddressStringPairStaticSize {
 		return fmt.Errorf("insufficient data for AddressStringPair")
@@ -190,7 +190,7 @@ func (t ComplexNested) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes ComplexNested from ABI bytes in the provided buffer
+// Decode decodes ComplexNested from ABI bytes in the provided buffer
 func (t *ComplexNested) Decode(data0 []byte) error {
 	if len(data0) < ComplexNestedStaticSize {
 		return fmt.Errorf("insufficient data for ComplexNested")
@@ -296,7 +296,7 @@ func (t DeeplyNested) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes DeeplyNested from ABI bytes in the provided buffer
+// Decode decodes DeeplyNested from ABI bytes in the provided buffer
 func (t *DeeplyNested) Decode(data0 []byte) error {
 	if len(data0) < DeeplyNestedStaticSize {
 		return fmt.Errorf("insufficient data for DeeplyNested")
@@ -371,7 +371,7 @@ func (t SimplePair) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SimplePair from ABI bytes in the provided buffer
+// Decode decodes SimplePair from ABI bytes in the provided buffer
 func (t *SimplePair) Decode(data0 []byte) error {
 	if len(data0) < SimplePairStaticSize {
 		return fmt.Errorf("insufficient data for SimplePair")
@@ -458,7 +458,7 @@ func (t UserWithMetadata) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes UserWithMetadata from ABI bytes in the provided buffer
+// Decode decodes UserWithMetadata from ABI bytes in the provided buffer
 func (t *UserWithMetadata) Decode(data0 []byte) error {
 	if len(data0) < UserWithMetadataStaticSize {
 		return fmt.Errorf("insufficient data for UserWithMetadata")
@@ -541,7 +541,7 @@ func (t GetAddressStringPairReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetAddressStringPairReturn from ABI bytes in the provided buffer
+// Decode decodes GetAddressStringPairReturn from ABI bytes in the provided buffer
 func (t *GetAddressStringPairReturn) Decode(data0 []byte) error {
 	if len(data0) < GetAddressStringPairReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetAddressStringPairReturn")
@@ -606,7 +606,7 @@ func (t GetComplexNestedReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetComplexNestedReturn from ABI bytes in the provided buffer
+// Decode decodes GetComplexNestedReturn from ABI bytes in the provided buffer
 func (t *GetComplexNestedReturn) Decode(data0 []byte) error {
 	if len(data0) < GetComplexNestedReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetComplexNestedReturn")
@@ -671,7 +671,7 @@ func (t GetDeeplyNestedReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetDeeplyNestedReturn from ABI bytes in the provided buffer
+// Decode decodes GetDeeplyNestedReturn from ABI bytes in the provided buffer
 func (t *GetDeeplyNestedReturn) Decode(data0 []byte) error {
 	if len(data0) < GetDeeplyNestedReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetDeeplyNestedReturn")
@@ -750,7 +750,7 @@ func (t GetMultipleReturnsReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetMultipleReturnsReturn from ABI bytes in the provided buffer
+// Decode decodes GetMultipleReturnsReturn from ABI bytes in the provided buffer
 func (t *GetMultipleReturnsReturn) Decode(data0 []byte) error {
 	if len(data0) < GetMultipleReturnsReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetMultipleReturnsReturn")
@@ -849,7 +849,7 @@ func (t GetNestedTupleArrayReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetNestedTupleArrayReturn from ABI bytes in the provided buffer
+// Decode decodes GetNestedTupleArrayReturn from ABI bytes in the provided buffer
 func (t *GetNestedTupleArrayReturn) Decode(data0 []byte) error {
 	if len(data0) < GetNestedTupleArrayReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetNestedTupleArrayReturn")
@@ -929,7 +929,7 @@ func (t GetSimplePairReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetSimplePairReturn from ABI bytes in the provided buffer
+// Decode decodes GetSimplePairReturn from ABI bytes in the provided buffer
 func (t *GetSimplePairReturn) Decode(data0 []byte) error {
 	if len(data0) < GetSimplePairReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetSimplePairReturn")
@@ -1001,7 +1001,7 @@ func (t GetTupleArrayReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetTupleArrayReturn from ABI bytes in the provided buffer
+// Decode decodes GetTupleArrayReturn from ABI bytes in the provided buffer
 func (t *GetTupleArrayReturn) Decode(data0 []byte) error {
 	if len(data0) < GetTupleArrayReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetTupleArrayReturn")
@@ -1077,7 +1077,7 @@ func (t GetUserWithMetadataReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetUserWithMetadataReturn from ABI bytes in the provided buffer
+// Decode decodes GetUserWithMetadataReturn from ABI bytes in the provided buffer
 func (t *GetUserWithMetadataReturn) Decode(data0 []byte) error {
 	if len(data0) < GetUserWithMetadataReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetUserWithMetadataReturn")
@@ -1172,7 +1172,7 @@ func (t GetUsersArrayReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes GetUsersArrayReturn from ABI bytes in the provided buffer
+// Decode decodes GetUsersArrayReturn from ABI bytes in the provided buffer
 func (t *GetUsersArrayReturn) Decode(data0 []byte) error {
 	if len(data0) < GetUsersArrayReturnStaticSize {
 		return fmt.Errorf("insufficient data for GetUsersArrayReturn")

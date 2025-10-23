@@ -27,11 +27,11 @@ var (
 
 // Big endian integer versions of function selectors
 const (
-	Overloaded1SelectorInt  = 1842884925
-	Overloaded10SelectorInt = 379656078
-	Overloaded11SelectorInt = 1338137727
-	Overloaded2SelectorInt  = 122435364
-	Overloaded20SelectorInt = 822703915
+	Overloaded1ID  = 1842884925
+	Overloaded10ID = 379656078
+	Overloaded11ID = 1338137727
+	Overloaded2ID  = 122435364
+	Overloaded20ID = 822703915
 )
 
 const Overloaded1CallStaticSize = 64
@@ -74,7 +74,7 @@ func (t Overloaded1Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded1Call from ABI bytes in the provided buffer
+// Decode decodes Overloaded1Call from ABI bytes in the provided buffer
 func (t *Overloaded1Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded1CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded1Call")
@@ -135,7 +135,7 @@ func (t Overloaded1Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded1Return from ABI bytes in the provided buffer
+// Decode decodes Overloaded1Return from ABI bytes in the provided buffer
 func (t *Overloaded1Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded1ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded1Return")
@@ -190,7 +190,7 @@ func (t Overloaded10Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded10Call from ABI bytes in the provided buffer
+// Decode decodes Overloaded10Call from ABI bytes in the provided buffer
 func (t *Overloaded10Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded10CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded10Call")
@@ -253,7 +253,7 @@ func (t Overloaded10Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded10Return from ABI bytes in the provided buffer
+// Decode decodes Overloaded10Return from ABI bytes in the provided buffer
 func (t *Overloaded10Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded10ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded10Return")
@@ -323,7 +323,7 @@ func (t Overloaded11Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded11Call from ABI bytes in the provided buffer
+// Decode decodes Overloaded11Call from ABI bytes in the provided buffer
 func (t *Overloaded11Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded11CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded11Call")
@@ -399,7 +399,7 @@ func (t Overloaded11Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded11Return from ABI bytes in the provided buffer
+// Decode decodes Overloaded11Return from ABI bytes in the provided buffer
 func (t *Overloaded11Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded11ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded11Return")
@@ -445,7 +445,7 @@ func (t Overloaded2Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded2Call from ABI bytes in the provided buffer
+// Decode decodes Overloaded2Call from ABI bytes in the provided buffer
 func (t *Overloaded2Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded2CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded2Call")
@@ -504,7 +504,7 @@ func (t Overloaded2Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded2Return from ABI bytes in the provided buffer
+// Decode decodes Overloaded2Return from ABI bytes in the provided buffer
 func (t *Overloaded2Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded2ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded2Return")
@@ -553,7 +553,7 @@ func (t Overloaded20Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes Overloaded20Return from ABI bytes in the provided buffer
+// Decode decodes Overloaded20Return from ABI bytes in the provided buffer
 func (t *Overloaded20Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded20ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded20Return")

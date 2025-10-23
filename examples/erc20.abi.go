@@ -35,15 +35,15 @@ var (
 
 // Big endian integer versions of function selectors
 const (
-	AllowanceSelectorInt    = 3714247998
-	ApproveSelectorInt      = 157198259
-	BalanceOfSelectorInt    = 1889567281
-	DecimalsSelectorInt     = 826074471
-	NameSelectorInt         = 117300739
-	SymbolSelectorInt       = 2514000705
-	TotalSupplySelectorInt  = 404098525
-	TransferSelectorInt     = 2835717307
-	TransferFromSelectorInt = 599290589
+	AllowanceID    = 3714247998
+	ApproveID      = 157198259
+	BalanceOfID    = 1889567281
+	DecimalsID     = 826074471
+	NameID         = 117300739
+	SymbolID       = 2514000705
+	TotalSupplyID  = 404098525
+	TransferID     = 2835717307
+	TransferFromID = 599290589
 )
 
 const AllowanceCallStaticSize = 64
@@ -83,7 +83,7 @@ func (t AllowanceCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes AllowanceCall from ABI bytes in the provided buffer
+// Decode decodes AllowanceCall from ABI bytes in the provided buffer
 func (t *AllowanceCall) Decode(data0 []byte) error {
 	if len(data0) < AllowanceCallStaticSize {
 		return fmt.Errorf("insufficient data for AllowanceCall")
@@ -144,7 +144,7 @@ func (t AllowanceReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes AllowanceReturn from ABI bytes in the provided buffer
+// Decode decodes AllowanceReturn from ABI bytes in the provided buffer
 func (t *AllowanceReturn) Decode(data0 []byte) error {
 	if len(data0) < AllowanceReturnStaticSize {
 		return fmt.Errorf("insufficient data for AllowanceReturn")
@@ -196,7 +196,7 @@ func (t ApproveCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes ApproveCall from ABI bytes in the provided buffer
+// Decode decodes ApproveCall from ABI bytes in the provided buffer
 func (t *ApproveCall) Decode(data0 []byte) error {
 	if len(data0) < ApproveCallStaticSize {
 		return fmt.Errorf("insufficient data for ApproveCall")
@@ -257,7 +257,7 @@ func (t ApproveReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes ApproveReturn from ABI bytes in the provided buffer
+// Decode decodes ApproveReturn from ABI bytes in the provided buffer
 func (t *ApproveReturn) Decode(data0 []byte) error {
 	if len(data0) < ApproveReturnStaticSize {
 		return fmt.Errorf("insufficient data for ApproveReturn")
@@ -303,7 +303,7 @@ func (t BalanceOfCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes BalanceOfCall from ABI bytes in the provided buffer
+// Decode decodes BalanceOfCall from ABI bytes in the provided buffer
 func (t *BalanceOfCall) Decode(data0 []byte) error {
 	if len(data0) < BalanceOfCallStaticSize {
 		return fmt.Errorf("insufficient data for BalanceOfCall")
@@ -362,7 +362,7 @@ func (t BalanceOfReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes BalanceOfReturn from ABI bytes in the provided buffer
+// Decode decodes BalanceOfReturn from ABI bytes in the provided buffer
 func (t *BalanceOfReturn) Decode(data0 []byte) error {
 	if len(data0) < BalanceOfReturnStaticSize {
 		return fmt.Errorf("insufficient data for BalanceOfReturn")
@@ -408,7 +408,7 @@ func (t DecimalsReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes DecimalsReturn from ABI bytes in the provided buffer
+// Decode decodes DecimalsReturn from ABI bytes in the provided buffer
 func (t *DecimalsReturn) Decode(data0 []byte) error {
 	if len(data0) < DecimalsReturnStaticSize {
 		return fmt.Errorf("insufficient data for DecimalsReturn")
@@ -465,7 +465,7 @@ func (t NameReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes NameReturn from ABI bytes in the provided buffer
+// Decode decodes NameReturn from ABI bytes in the provided buffer
 func (t *NameReturn) Decode(data0 []byte) error {
 	if len(data0) < NameReturnStaticSize {
 		return fmt.Errorf("insufficient data for NameReturn")
@@ -533,7 +533,7 @@ func (t SymbolReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes SymbolReturn from ABI bytes in the provided buffer
+// Decode decodes SymbolReturn from ABI bytes in the provided buffer
 func (t *SymbolReturn) Decode(data0 []byte) error {
 	if len(data0) < SymbolReturnStaticSize {
 		return fmt.Errorf("insufficient data for SymbolReturn")
@@ -593,7 +593,7 @@ func (t TotalSupplyReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TotalSupplyReturn from ABI bytes in the provided buffer
+// Decode decodes TotalSupplyReturn from ABI bytes in the provided buffer
 func (t *TotalSupplyReturn) Decode(data0 []byte) error {
 	if len(data0) < TotalSupplyReturnStaticSize {
 		return fmt.Errorf("insufficient data for TotalSupplyReturn")
@@ -645,7 +645,7 @@ func (t TransferCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferCall from ABI bytes in the provided buffer
+// Decode decodes TransferCall from ABI bytes in the provided buffer
 func (t *TransferCall) Decode(data0 []byte) error {
 	if len(data0) < TransferCallStaticSize {
 		return fmt.Errorf("insufficient data for TransferCall")
@@ -706,7 +706,7 @@ func (t TransferReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferReturn from ABI bytes in the provided buffer
+// Decode decodes TransferReturn from ABI bytes in the provided buffer
 func (t *TransferReturn) Decode(data0 []byte) error {
 	if len(data0) < TransferReturnStaticSize {
 		return fmt.Errorf("insufficient data for TransferReturn")
@@ -761,7 +761,7 @@ func (t TransferFromCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferFromCall from ABI bytes in the provided buffer
+// Decode decodes TransferFromCall from ABI bytes in the provided buffer
 func (t *TransferFromCall) Decode(data0 []byte) error {
 	if len(data0) < TransferFromCallStaticSize {
 		return fmt.Errorf("insufficient data for TransferFromCall")
@@ -824,7 +824,7 @@ func (t TransferFromReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decodedecodes TransferFromReturn from ABI bytes in the provided buffer
+// Decode decodes TransferFromReturn from ABI bytes in the provided buffer
 func (t *TransferFromReturn) Decode(data0 []byte) error {
 	if len(data0) < TransferFromReturnStaticSize {
 		return fmt.Errorf("insufficient data for TransferFromReturn")
