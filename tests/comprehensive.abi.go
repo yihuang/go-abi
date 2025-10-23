@@ -931,6 +931,60 @@ func (t TestComplexDynamicTuplesCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const TestComplexDynamicTuplesReturnStaticSize = 32
+
+// TestComplexDynamicTuplesReturn represents an ABI tuple
+type TestComplexDynamicTuplesReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestComplexDynamicTuplesReturn
+func (t TestComplexDynamicTuplesReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestComplexDynamicTuplesReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestComplexDynamicTuplesReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestComplexDynamicTuplesReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestComplexDynamicTuplesReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestComplexDynamicTuplesReturn to ABI bytes
+func (t TestComplexDynamicTuplesReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TestComplexDynamicTuplesReturn from ABI bytes in the provided buffer
+func (t *TestComplexDynamicTuplesReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestComplexDynamicTuplesReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TestComplexDynamicTuplesReturn from ABI bytes
+func (t *TestComplexDynamicTuplesReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const TestDeeplyNestedCallStaticSize = 32
 
 // TestDeeplyNestedCall represents an ABI tuple
@@ -1009,6 +1063,60 @@ func (t TestDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const TestDeeplyNestedReturnStaticSize = 32
+
+// TestDeeplyNestedReturn represents an ABI tuple
+type TestDeeplyNestedReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestDeeplyNestedReturn
+func (t TestDeeplyNestedReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestDeeplyNestedReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestDeeplyNestedReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestDeeplyNestedReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestDeeplyNestedReturn to ABI bytes
+func (t TestDeeplyNestedReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TestDeeplyNestedReturn from ABI bytes in the provided buffer
+func (t *TestDeeplyNestedReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestDeeplyNestedReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestDeeplyNestedReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TestDeeplyNestedReturn from ABI bytes
+func (t *TestDeeplyNestedReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const TestFixedArraysCallStaticSize = 320
@@ -1132,6 +1240,60 @@ func (t TestFixedArraysCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const TestFixedArraysReturnStaticSize = 32
+
+// TestFixedArraysReturn represents an ABI tuple
+type TestFixedArraysReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestFixedArraysReturn
+func (t TestFixedArraysReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestFixedArraysReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestFixedArraysReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestFixedArraysReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestFixedArraysReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestFixedArraysReturn to ABI bytes
+func (t TestFixedArraysReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TestFixedArraysReturn from ABI bytes in the provided buffer
+func (t *TestFixedArraysReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestFixedArraysReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestFixedArraysReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TestFixedArraysReturn from ABI bytes
+func (t *TestFixedArraysReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const TestMixedTypesCallStaticSize = 160
@@ -1310,6 +1472,60 @@ func (t TestMixedTypesCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const TestMixedTypesReturnStaticSize = 32
+
+// TestMixedTypesReturn represents an ABI tuple
+type TestMixedTypesReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestMixedTypesReturn
+func (t TestMixedTypesReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestMixedTypesReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestMixedTypesReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestMixedTypesReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestMixedTypesReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestMixedTypesReturn to ABI bytes
+func (t TestMixedTypesReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TestMixedTypesReturn from ABI bytes in the provided buffer
+func (t *TestMixedTypesReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestMixedTypesReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestMixedTypesReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TestMixedTypesReturn from ABI bytes
+func (t *TestMixedTypesReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const TestNestedDynamicArraysCallStaticSize = 64
@@ -1560,6 +1776,60 @@ func (t TestNestedDynamicArraysCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const TestNestedDynamicArraysReturnStaticSize = 32
+
+// TestNestedDynamicArraysReturn represents an ABI tuple
+type TestNestedDynamicArraysReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestNestedDynamicArraysReturn
+func (t TestNestedDynamicArraysReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestNestedDynamicArraysReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestNestedDynamicArraysReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestNestedDynamicArraysReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestNestedDynamicArraysReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestNestedDynamicArraysReturn to ABI bytes
+func (t TestNestedDynamicArraysReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TestNestedDynamicArraysReturn from ABI bytes in the provided buffer
+func (t *TestNestedDynamicArraysReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestNestedDynamicArraysReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestNestedDynamicArraysReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TestNestedDynamicArraysReturn from ABI bytes
+func (t *TestNestedDynamicArraysReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const TestSmallIntegersCallStaticSize = 256
 
 // TestSmallIntegersCall represents an ABI tuple
@@ -1681,4 +1951,58 @@ func (t TestSmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const TestSmallIntegersReturnStaticSize = 32
+
+// TestSmallIntegersReturn represents an ABI tuple
+type TestSmallIntegersReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestSmallIntegersReturn
+func (t TestSmallIntegersReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestSmallIntegersReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestSmallIntegersReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestSmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestSmallIntegersReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestSmallIntegersReturn to ABI bytes
+func (t TestSmallIntegersReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TestSmallIntegersReturn from ABI bytes in the provided buffer
+func (t *TestSmallIntegersReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestSmallIntegersReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestSmallIntegersReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TestSmallIntegersReturn from ABI bytes
+func (t *TestSmallIntegersReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }

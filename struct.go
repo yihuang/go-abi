@@ -45,6 +45,22 @@ func StructFromInputs(method abi.Method) Struct {
 	}
 }
 
+func StructFromOutputs(method abi.Method) Struct {
+	fields := make([]StructField, 0, len(method.Outputs))
+	for i, output := range method.Outputs {
+		field := StructFieldFromArgument(output)
+		// Ensure output fields have proper names
+		if field.Name == "" {
+			field.Name = fmt.Sprintf("Result%d", i+1)
+		}
+		fields = append(fields, field)
+	}
+	return Struct{
+		Name:   fmt.Sprintf("%sReturn", Title.String(method.Name)),
+		Fields: fields,
+	}
+}
+
 func StructFromTuple(t abi.Type) Struct {
 	fields := make([]StructField, 0, len(t.TupleElems))
 	for i := range t.TupleElems {

@@ -102,6 +102,60 @@ func (t Overloaded1Call) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const Overloaded1ReturnStaticSize = 32
+
+// Overloaded1Return represents an ABI tuple
+type Overloaded1Return struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of Overloaded1Return
+func (t Overloaded1Return) EncodedSize() int {
+	dynamicSize := 0
+
+	return Overloaded1ReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Overloaded1Return to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t Overloaded1Return) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded1ReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Overloaded1Return to ABI bytes
+func (t Overloaded1Return) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes Overloaded1Return from ABI bytes in the provided buffer
+func (t *Overloaded1Return) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded1ReturnStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded1Return")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes Overloaded1Return from ABI bytes
+func (t *Overloaded1Return) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const Overloaded10CallStaticSize = 96
 
 // Overloaded10Call represents an ABI tuple
@@ -174,6 +228,60 @@ func (t Overloaded10Call) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const Overloaded10ReturnStaticSize = 32
+
+// Overloaded10Return represents an ABI tuple
+type Overloaded10Return struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of Overloaded10Return
+func (t Overloaded10Return) EncodedSize() int {
+	dynamicSize := 0
+
+	return Overloaded10ReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Overloaded10Return to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t Overloaded10Return) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded10ReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Overloaded10Return to ABI bytes
+func (t Overloaded10Return) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes Overloaded10Return from ABI bytes in the provided buffer
+func (t *Overloaded10Return) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded10ReturnStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded10Return")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes Overloaded10Return from ABI bytes
+func (t *Overloaded10Return) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const Overloaded11CallStaticSize = 128
@@ -278,6 +386,60 @@ func (t Overloaded11Call) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const Overloaded11ReturnStaticSize = 32
+
+// Overloaded11Return represents an ABI tuple
+type Overloaded11Return struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of Overloaded11Return
+func (t Overloaded11Return) EncodedSize() int {
+	dynamicSize := 0
+
+	return Overloaded11ReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Overloaded11Return to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t Overloaded11Return) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded11ReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Overloaded11Return to ABI bytes
+func (t Overloaded11Return) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes Overloaded11Return from ABI bytes in the provided buffer
+func (t *Overloaded11Return) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded11ReturnStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded11Return")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes Overloaded11Return from ABI bytes
+func (t *Overloaded11Return) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const Overloaded2CallStaticSize = 32
 
 // Overloaded2Call represents an ABI tuple
@@ -337,4 +499,112 @@ func (t Overloaded2Call) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const Overloaded2ReturnStaticSize = 32
+
+// Overloaded2Return represents an ABI tuple
+type Overloaded2Return struct {
+	Result1 *big.Int
+}
+
+// EncodedSize returns the total encoded size of Overloaded2Return
+func (t Overloaded2Return) EncodedSize() int {
+	dynamicSize := 0
+
+	return Overloaded2ReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Overloaded2Return to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t Overloaded2Return) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded2ReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if err := abi.EncodeBigInt(t.Result1, buf[0:32], false); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Overloaded2Return to ABI bytes
+func (t Overloaded2Return) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes Overloaded2Return from ABI bytes in the provided buffer
+func (t *Overloaded2Return) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded2ReturnStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded2Return")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = new(big.Int).SetBytes(data0[0:32])
+
+	return nil
+}
+
+// Decode decodes Overloaded2Return from ABI bytes
+func (t *Overloaded2Return) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
+const Overloaded20ReturnStaticSize = 32
+
+// Overloaded20Return represents an ABI tuple
+type Overloaded20Return struct {
+	Result1 *big.Int
+}
+
+// EncodedSize returns the total encoded size of Overloaded20Return
+func (t Overloaded20Return) EncodedSize() int {
+	dynamicSize := 0
+
+	return Overloaded20ReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Overloaded20Return to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t Overloaded20Return) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded20ReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if err := abi.EncodeBigInt(t.Result1, buf[0:32], false); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Overloaded20Return to ABI bytes
+func (t Overloaded20Return) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes Overloaded20Return from ABI bytes in the provided buffer
+func (t *Overloaded20Return) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded20ReturnStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded20Return")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = new(big.Int).SetBytes(data0[0:32])
+
+	return nil
+}
+
+// Decode decodes Overloaded20Return from ABI bytes
+func (t *Overloaded20Return) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }

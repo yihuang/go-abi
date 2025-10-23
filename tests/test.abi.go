@@ -355,6 +355,60 @@ func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const BalanceOfReturnStaticSize = 32
+
+// BalanceOfReturn represents an ABI tuple
+type BalanceOfReturn struct {
+	Result1 *big.Int
+}
+
+// EncodedSize returns the total encoded size of BalanceOfReturn
+func (t BalanceOfReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return BalanceOfReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes BalanceOfReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t BalanceOfReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := BalanceOfReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if err := abi.EncodeBigInt(t.Result1, buf[0:32], false); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes BalanceOfReturn to ABI bytes
+func (t BalanceOfReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes BalanceOfReturn from ABI bytes in the provided buffer
+func (t *BalanceOfReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < BalanceOfReturnStaticSize {
+		return fmt.Errorf("insufficient data for BalanceOfReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = new(big.Int).SetBytes(data0[0:32])
+
+	return nil
+}
+
+// Decode decodes BalanceOfReturn from ABI bytes
+func (t *BalanceOfReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const BatchProcessCallStaticSize = 32
 
 // BatchProcessCall represents an ABI tuple
@@ -485,6 +539,60 @@ func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const BatchProcessReturnStaticSize = 32
+
+// BatchProcessReturn represents an ABI tuple
+type BatchProcessReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of BatchProcessReturn
+func (t BatchProcessReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return BatchProcessReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes BatchProcessReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t BatchProcessReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := BatchProcessReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes BatchProcessReturn to ABI bytes
+func (t BatchProcessReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes BatchProcessReturn from ABI bytes in the provided buffer
+func (t *BatchProcessReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < BatchProcessReturnStaticSize {
+		return fmt.Errorf("insufficient data for BatchProcessReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes BatchProcessReturn from ABI bytes
+func (t *BatchProcessReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const GetBalancesCallStaticSize = 320
 
 // GetBalancesCall represents an ABI tuple
@@ -560,6 +668,75 @@ func (t GetBalancesCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const GetBalancesReturnStaticSize = 320
+
+// GetBalancesReturn represents an ABI tuple
+type GetBalancesReturn struct {
+	Result1 [10]*big.Int
+}
+
+// EncodedSize returns the total encoded size of GetBalancesReturn
+func (t GetBalancesReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return GetBalancesReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes GetBalancesReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t GetBalancesReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := GetBalancesReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	// Encode fixed-size array t.Result1
+	{
+		offset := 0
+		for _, item := range t.Result1 {
+
+			if err := abi.EncodeBigInt(item, buf[offset:offset+32], false); err != nil {
+				return 0, err
+			}
+
+			offset += 32
+		}
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes GetBalancesReturn to ABI bytes
+func (t GetBalancesReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes GetBalancesReturn from ABI bytes in the provided buffer
+func (t *GetBalancesReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < GetBalancesReturnStaticSize {
+		return fmt.Errorf("insufficient data for GetBalancesReturn")
+	}
+
+	// t.Result1 (static)
+	// Decode fixed-size array t.Result1
+	for i0 := 0; i0 < 10; i0++ {
+		offset := 0 + i0*32
+		data1 := data0
+		// t.Result1[i0] (static)
+		t.Result1[i0] = new(big.Int).SetBytes(data1[offset : offset+32])
+	}
+
+	return nil
+}
+
+// Decode decodes GetBalancesReturn from ABI bytes
+func (t *GetBalancesReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const ProcessUserDataCallStaticSize = 32
@@ -640,6 +817,60 @@ func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const ProcessUserDataReturnStaticSize = 32
+
+// ProcessUserDataReturn represents an ABI tuple
+type ProcessUserDataReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of ProcessUserDataReturn
+func (t ProcessUserDataReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return ProcessUserDataReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes ProcessUserDataReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t ProcessUserDataReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := ProcessUserDataReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes ProcessUserDataReturn to ABI bytes
+func (t ProcessUserDataReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes ProcessUserDataReturn from ABI bytes in the provided buffer
+func (t *ProcessUserDataReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < ProcessUserDataReturnStaticSize {
+		return fmt.Errorf("insufficient data for ProcessUserDataReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes ProcessUserDataReturn from ABI bytes
+func (t *ProcessUserDataReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const SetDataCallStaticSize = 64
@@ -814,6 +1045,60 @@ func (t SetMessageCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const SetMessageReturnStaticSize = 32
+
+// SetMessageReturn represents an ABI tuple
+type SetMessageReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of SetMessageReturn
+func (t SetMessageReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return SetMessageReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes SetMessageReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t SetMessageReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := SetMessageReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes SetMessageReturn to ABI bytes
+func (t SetMessageReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes SetMessageReturn from ABI bytes in the provided buffer
+func (t *SetMessageReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < SetMessageReturnStaticSize {
+		return fmt.Errorf("insufficient data for SetMessageReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes SetMessageReturn from ABI bytes
+func (t *SetMessageReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const SmallIntegersCallStaticSize = 256
 
 // SmallIntegersCall represents an ABI tuple
@@ -937,6 +1222,60 @@ func (t SmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const SmallIntegersReturnStaticSize = 32
+
+// SmallIntegersReturn represents an ABI tuple
+type SmallIntegersReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of SmallIntegersReturn
+func (t SmallIntegersReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return SmallIntegersReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes SmallIntegersReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t SmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := SmallIntegersReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes SmallIntegersReturn to ABI bytes
+func (t SmallIntegersReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes SmallIntegersReturn from ABI bytes in the provided buffer
+func (t *SmallIntegersReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < SmallIntegersReturnStaticSize {
+		return fmt.Errorf("insufficient data for SmallIntegersReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes SmallIntegersReturn from ABI bytes
+func (t *SmallIntegersReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const TransferCallStaticSize = 64
 
 // TransferCall represents an ABI tuple
@@ -1004,6 +1343,60 @@ func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const TransferReturnStaticSize = 32
+
+// TransferReturn represents an ABI tuple
+type TransferReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TransferReturn
+func (t TransferReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TransferReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TransferReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TransferReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TransferReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TransferReturn to ABI bytes
+func (t TransferReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TransferReturn from ABI bytes in the provided buffer
+func (t *TransferReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferReturnStaticSize {
+		return fmt.Errorf("insufficient data for TransferReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TransferReturn from ABI bytes
+func (t *TransferReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }
 
 const TransferBatchCallStaticSize = 64
@@ -1154,6 +1547,60 @@ func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+const TransferBatchReturnStaticSize = 32
+
+// TransferBatchReturn represents an ABI tuple
+type TransferBatchReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TransferBatchReturn
+func (t TransferBatchReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TransferBatchReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TransferBatchReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TransferBatchReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TransferBatchReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TransferBatchReturn to ABI bytes
+func (t TransferBatchReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes TransferBatchReturn from ABI bytes in the provided buffer
+func (t *TransferBatchReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferBatchReturnStaticSize {
+		return fmt.Errorf("insufficient data for TransferBatchReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes TransferBatchReturn from ABI bytes
+func (t *TransferBatchReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
 const UpdateProfileCallStaticSize = 96
 
 // UpdateProfileCall represents an ABI tuple
@@ -1250,4 +1697,58 @@ func (t UpdateProfileCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+const UpdateProfileReturnStaticSize = 32
+
+// UpdateProfileReturn represents an ABI tuple
+type UpdateProfileReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of UpdateProfileReturn
+func (t UpdateProfileReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return UpdateProfileReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes UpdateProfileReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t UpdateProfileReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := UpdateProfileReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes UpdateProfileReturn to ABI bytes
+func (t UpdateProfileReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes UpdateProfileReturn from ABI bytes in the provided buffer
+func (t *UpdateProfileReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < UpdateProfileReturnStaticSize {
+		return fmt.Errorf("insufficient data for UpdateProfileReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Decode decodes UpdateProfileReturn from ABI bytes
+func (t *UpdateProfileReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
 }

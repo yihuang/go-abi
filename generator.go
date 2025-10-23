@@ -161,21 +161,18 @@ type %s struct {
 
 // genFunction generates Go code for a single function
 func (g *Generator) genFunction(method abi.Method) error {
-	if len(method.Inputs) == 0 {
-		return nil
-	}
-
-	s := StructFromInputs(method)
 	selectorName := fmt.Sprintf("%sSelector", Title.String(method.Name))
 
 	// Generate struct and methods for functions with inputs
-	if err := g.genStruct(s); err != nil {
-		return err
-	}
+	if len(method.Inputs) > 0 {
+		s := StructFromInputs(method)
+		if err := g.genStruct(s); err != nil {
+			return err
+		}
 
-	g.genStructMethods(s)
+		g.genStructMethods(s)
 
-	g.L(`
+		g.L(`
 // EncodeWithSelector encodes %s arguments to ABI bytes including function selector
 func (t %s) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4 + t.EncodedSize())
@@ -186,6 +183,17 @@ func (t %s) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 `, method.Name, s.Name, selectorName)
+	}
+
+	// Generate struct and methods for functions with outputs
+	if len(method.Outputs) > 0 {
+		s := StructFromOutputs(method)
+		if err := g.genStruct(s); err != nil {
+			return err
+		}
+
+		g.genStructMethods(s)
+	}
 
 	return nil
 }
@@ -243,7 +251,7 @@ func abiTypeToGoType(abiType abi.Type) string {
 
 // genTuples generates all tuple structs needed for a function
 func (g *Generator) genTuples(methods []abi.Method) error {
-	// Collect all tuple types from function inputs
+	// Collect all tuple types from function inputs and outputs
 	tupleTypes := make(map[string]abi.Type)
 
 	var collectTuples func(t abi.Type)
@@ -270,6 +278,10 @@ func (g *Generator) genTuples(methods []abi.Method) error {
 		// Collect tuples from all inputs
 		for _, input := range method.Inputs {
 			collectTuples(input.Type)
+		}
+		// Collect tuples from all outputs
+		for _, output := range method.Outputs {
+			collectTuples(output.Type)
 		}
 	}
 
