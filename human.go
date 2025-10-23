@@ -234,6 +234,7 @@ func parseFunctionWithStructs(line string, structs map[string][]map[string]inter
 	line = line[nameEnd:]
 
 	// Find the matching closing parenthesis for inputs
+	// Handle nested parentheses for tuple types
 	bracketCount := 0
 	inputsEnd := -1
 	for i, ch := range line {
@@ -426,7 +427,12 @@ func parseParametersWithStructs(paramsStr string, structs map[string][]map[strin
 		return []map[string]interface{}{}, nil
 	}
 
-	params := strings.Split(paramsStr, ",")
+	// Parse parameters with proper nested parentheses handling
+	params, err := parseNestedParameters(paramsStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse parameters: %w", err)
+	}
+
 	result := make([]map[string]interface{}, 0, len(params))
 
 	for _, param := range params {
@@ -436,15 +442,10 @@ func parseParametersWithStructs(paramsStr string, structs map[string][]map[strin
 		}
 
 		// Parse parameter: "type name" or just "type"
-		parts := strings.Fields(param)
-		if len(parts) == 0 {
+		// Handle tuple types like "(uint256, uint256) pair"
+		paramType, paramName := parseParameterTypeAndName(param)
+		if paramType == "" {
 			continue
-		}
-
-		paramType := parts[0]
-		paramName := ""
-		if len(parts) > 1 {
-			paramName = parts[1]
 		}
 
 		// Check if this is a struct reference (handle arrays too)
@@ -496,10 +497,39 @@ func parseParametersWithStructs(paramsStr string, structs map[string][]map[strin
 			return nil, fmt.Errorf("invalid type '%s': %w", paramType, err)
 		}
 
-		result = append(result, map[string]interface{}{
-			"name": paramName,
-			"type": normalizedType,
-		})
+		// Check if this is a direct tuple type (e.g., (uint256, uint256))
+		if strings.HasPrefix(normalizedType, "(") && strings.HasSuffix(normalizedType, ")") {
+			// Parse the tuple components using proper nested parsing
+			innerTypes := strings.TrimSpace(normalizedType[1 : len(normalizedType)-1])
+			typeParts, err := parseNestedTypes(innerTypes)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse tuple components: %w", err)
+			}
+
+			components := make([]map[string]interface{}, 0, len(typeParts))
+
+			for i, part := range typeParts {
+				part = strings.TrimSpace(part)
+				if part == "" {
+					continue
+				}
+				components = append(components, map[string]interface{}{
+					"name": fmt.Sprintf("field%d", i+1),
+					"type": part,
+				})
+			}
+
+			result = append(result, map[string]interface{}{
+				"name":       paramName,
+				"type":       "tuple",
+				"components": components,
+			})
+		} else {
+			result = append(result, map[string]interface{}{
+				"name": paramName,
+				"type": normalizedType,
+			})
+		}
 	}
 
 	return result, nil
@@ -608,8 +638,194 @@ func parseEventParametersWithStructs(paramsStr string, structs map[string][]map[
 	return result, nil
 }
 
+// parseParameterTypeAndName extracts the type and name from a parameter string
+// Handles both simple types like "uint256 amount" and tuple types like "(uint256, uint256) pair"
+func parseParameterTypeAndName(param string) (string, string) {
+	param = strings.TrimSpace(param)
+	if param == "" {
+		return "", ""
+	}
+
+	// Check if this is a tuple type (starts with '(')
+	if strings.HasPrefix(param, "(") {
+		// Find the matching closing parenthesis for the tuple
+		bracketCount := 0
+		tupleEnd := -1
+		for i, ch := range param {
+			if ch == '(' {
+				bracketCount++
+			} else if ch == ')' {
+				bracketCount--
+				if bracketCount == 0 {
+					tupleEnd = i
+					break
+				}
+			}
+		}
+
+		if tupleEnd == -1 {
+			// Unmatched parentheses, fall back to simple parsing
+			parts := strings.Fields(param)
+			if len(parts) == 0 {
+				return "", ""
+			}
+			paramType := parts[0]
+			paramName := ""
+			if len(parts) > 1 {
+				paramName = parts[1]
+			}
+			return paramType, paramName
+		}
+
+		// Extract tuple type and remaining part for name
+		tupleType := strings.TrimSpace(param[:tupleEnd+1])
+		remaining := strings.TrimSpace(param[tupleEnd+1:])
+
+		// Check for array brackets immediately after the tuple
+		if strings.HasPrefix(remaining, "[]") {
+			tupleType += "[]"
+			remaining = strings.TrimSpace(remaining[2:])
+		} else if strings.HasPrefix(remaining, "[") {
+			// Handle fixed arrays like [10]
+			bracketEnd := strings.Index(remaining, "]")
+			if bracketEnd != -1 {
+				tupleType += remaining[:bracketEnd+1]
+				remaining = strings.TrimSpace(remaining[bracketEnd+1:])
+			}
+		}
+
+		// Parse name from remaining part
+		if remaining == "" {
+			return tupleType, ""
+		}
+
+		parts := strings.Fields(remaining)
+		if len(parts) > 0 {
+			return tupleType, parts[0]
+		}
+		return tupleType, ""
+	}
+
+	// Simple type parsing for non-tuple types
+	parts := strings.Fields(param)
+	if len(parts) == 0 {
+		return "", ""
+	}
+	paramType := parts[0]
+	paramName := ""
+	if len(parts) > 1 {
+		paramName = parts[1]
+	}
+	return paramType, paramName
+}
+
+// parseNestedParameters parses a comma-separated list of parameters that may contain nested parentheses
+func parseNestedParameters(paramsStr string) ([]string, error) {
+	var params []string
+	var current strings.Builder
+	bracketCount := 0
+
+	for _, ch := range paramsStr {
+		if ch == '(' {
+			bracketCount++
+			current.WriteRune(ch)
+		} else if ch == ')' {
+			bracketCount--
+			current.WriteRune(ch)
+		} else if ch == ',' && bracketCount == 0 {
+			// Only split on commas that are not inside parentheses
+			param := strings.TrimSpace(current.String())
+			if param != "" {
+				params = append(params, param)
+			}
+			current.Reset()
+		} else {
+			current.WriteRune(ch)
+		}
+	}
+
+	// Add the last parameter
+	param := strings.TrimSpace(current.String())
+	if param != "" {
+		params = append(params, param)
+	}
+
+	// Validate that all parentheses are balanced
+	if bracketCount != 0 {
+		return nil, fmt.Errorf("unbalanced parentheses in parameter string: %s", paramsStr)
+	}
+
+	return params, nil
+}
+
+// parseNestedTypes parses a comma-separated list of types that may contain nested parentheses
+func parseNestedTypes(typeStr string) ([]string, error) {
+	var parts []string
+	var current strings.Builder
+	bracketCount := 0
+
+	for _, ch := range typeStr {
+		if ch == '(' {
+			bracketCount++
+			current.WriteRune(ch)
+		} else if ch == ')' {
+			bracketCount--
+			current.WriteRune(ch)
+		} else if ch == ',' && bracketCount == 0 {
+			// Only split on commas that are not inside parentheses
+			part := strings.TrimSpace(current.String())
+			if part != "" {
+				parts = append(parts, part)
+			}
+			current.Reset()
+		} else {
+			current.WriteRune(ch)
+		}
+	}
+
+	// Add the last part
+	part := strings.TrimSpace(current.String())
+	if part != "" {
+		parts = append(parts, part)
+	}
+
+	// Validate that all parentheses are balanced
+	if bracketCount != 0 {
+		return nil, fmt.Errorf("unbalanced parentheses in type string: %s", typeStr)
+	}
+
+	return parts, nil
+}
+
 // normalizeType validates and normalizes Solidity type names
 func normalizeType(typeStr string) (string, error) {
+	// Handle direct tuple syntax first (e.g., (uint256, uint256))
+	if strings.HasPrefix(typeStr, "(") && strings.HasSuffix(typeStr, ")") {
+		// Extract inner types from tuple
+		innerTypes := strings.TrimSpace(typeStr[1 : len(typeStr)-1])
+		if innerTypes == "" {
+			return "", fmt.Errorf("empty tuple type: %s", typeStr)
+		}
+
+		// Parse individual types within the tuple using proper nested parsing
+		typeParts, err := parseNestedTypes(innerTypes)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse tuple types: %w", err)
+		}
+
+		normalizedParts := make([]string, 0, len(typeParts))
+
+		for _, part := range typeParts {
+			normalizedPart, err := normalizeType(strings.TrimSpace(part))
+			if err != nil {
+				return "", fmt.Errorf("invalid tuple element type '%s': %w", part, err)
+			}
+			normalizedParts = append(normalizedParts, normalizedPart)
+		}
+
+		return "(" + strings.Join(normalizedParts, ",") + ")", nil
+	}
+
 	// Handle arrays first (they have higher priority)
 	if strings.HasSuffix(typeStr, "[]") {
 		elemType := typeStr[:len(typeStr)-2]
@@ -668,6 +884,11 @@ func normalizeType(typeStr string) (string, error) {
 			prefix = "uint"
 		} else {
 			prefix = "int"
+		}
+
+		if len(typeStr) == len(prefix) {
+			// No size specified - normalize to 256 bits (Solidity default)
+			return prefix + "256", nil
 		}
 
 		if len(typeStr) > len(prefix) {

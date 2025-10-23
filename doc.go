@@ -45,14 +45,14 @@ Generated Code:
 		"math/big"
 	)
 
-	// TransferArgs represents the arguments for transfer function
-	type TransferArgs struct {
+	// TransferCall represents the arguments for transfer function
+	type TransferCall struct {
 		To     common.Address `json:"to"`
 		Amount *big.Int       `json:"amount"`
 	}
 
 	// Encode encodes transfer arguments to ABI bytes
-	func (args *TransferArgs) Encode() ([]byte, error) {
+	func (args *TransferCall) Encode() ([]byte, error) {
 		values := []interface{}{}
 		values = append(values, args.To)
 		values = append(values, args.Amount)
@@ -60,7 +60,7 @@ Generated Code:
 	}
 
 	// Selector returns the function selector for transfer
-	func (*TransferArgs) Selector() [4]byte {
+	func (*TransferCall) Selector() [4]byte {
 		return transferSelector
 	}
 

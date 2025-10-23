@@ -47,7 +47,7 @@ func init() {
 }
 
 func TestComprehensiveSmallIntegers(t *testing.T) {
-	args := &TestSmallIntegersArgs{
+	args := &TestSmallIntegersCall{
 		U8:  uint8(255),
 		U16: uint16(65535),
 		U32: uint32(4294967295),
@@ -91,7 +91,7 @@ func TestComprehensiveFixedArrays(t *testing.T) {
 		{0x04, 0x05, 0x06},
 	}
 
-	args := &TestFixedArraysArgs{
+	args := &TestFixedArraysCall{
 		Addresses: addresses,
 		Uints:     uints,
 		Bytes32s:  bytes32s,
@@ -127,7 +127,7 @@ func TestComprehensiveNestedDynamicArrays(t *testing.T) {
 		},
 	}
 
-	args := &TestNestedDynamicArraysArgs{
+	args := &TestNestedDynamicArraysCall{
 		Matrix:        matrix,
 		AddressMatrix: addressMatrix,
 	}
@@ -172,7 +172,7 @@ func TestComprehensiveComplexDynamicTuples(t *testing.T) {
 		},
 	}
 
-	args := &TestComplexDynamicTuplesArgs{
+	args := &TestComplexDynamicTuplesCall{
 		Users: users,
 	}
 
@@ -208,7 +208,7 @@ func TestComprehensiveMixedTypes(t *testing.T) {
 		},
 	}
 
-	args := &TestMixedTypesArgs{
+	args := &TestMixedTypesCall{
 		FixedData:   fixedData,
 		DynamicData: dynamicData,
 		Flag:        flag,
@@ -242,7 +242,7 @@ func TestComprehensiveDeeplyNested(t *testing.T) {
 		},
 	}
 
-	args := &TestDeeplyNestedArgs{
+	args := &TestDeeplyNestedCall{
 		Data: data,
 	}
 

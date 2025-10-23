@@ -10,6 +10,32 @@ import (
 	"math/big"
 )
 
+// Function selectors
+var (
+	// testComplexDynamicTuples((uint256,(string,string[],(uint256,string[])))[])
+	TestComplexDynamicTuplesSelector = [4]byte{0xc0, 0x96, 0x4c, 0x93}
+	// testDeeplyNested(((((uint256,string)))))
+	TestDeeplyNestedSelector = [4]byte{0x21, 0x75, 0xe8, 0x54}
+	// testFixedArrays(address[5],uint256[3],bytes32[2])
+	TestFixedArraysSelector = [4]byte{0x23, 0xb8, 0x46, 0x5c}
+	// testMixedTypes(bytes32,bytes,bool,uint8,(uint32,bytes,bool)[])
+	TestMixedTypesSelector = [4]byte{0x85, 0x8a, 0xe6, 0x15}
+	// testNestedDynamicArrays(uint256[][],address[][])
+	TestNestedDynamicArraysSelector = [4]byte{0x3d, 0xb1, 0xee, 0x06}
+	// testSmallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
+	TestSmallIntegersSelector = [4]byte{0x29, 0x2b, 0xd2, 0x39}
+)
+
+// Big endian integer versions of function selectors
+const (
+	TestComplexDynamicTuplesSelectorInt = 3231075475
+	TestDeeplyNestedSelectorInt         = 561375316
+	TestFixedArraysSelectorInt          = 599279196
+	TestMixedTypesSelectorInt           = 2240472597
+	TestNestedDynamicArraysSelectorInt  = 1035070982
+	TestSmallIntegersSelectorInt        = 690737721
+)
+
 const ItemStaticSize = 96
 
 // Item represents an ABI tuple
@@ -775,15 +801,15 @@ func (t *UserProfile) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
-const TestComplexDynamicTuplesArgsStaticSize = 32
+const TestComplexDynamicTuplesCallStaticSize = 32
 
-// TestComplexDynamicTuplesArgs represents an ABI tuple
-type TestComplexDynamicTuplesArgs struct {
+// TestComplexDynamicTuplesCall represents an ABI tuple
+type TestComplexDynamicTuplesCall struct {
 	Users []User2
 }
 
-// EncodedSize returns the total encoded size of TestComplexDynamicTuplesArgs
-func (t TestComplexDynamicTuplesArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TestComplexDynamicTuplesCall
+func (t TestComplexDynamicTuplesCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + 32*len(t.Users) // length + offset pointers for dynamic elements
@@ -791,13 +817,13 @@ func (t TestComplexDynamicTuplesArgs) EncodedSize() int {
 		dynamicSize += elem.EncodedSize() // dynamic tuple
 	}
 
-	return TestComplexDynamicTuplesArgsStaticSize + dynamicSize
+	return TestComplexDynamicTuplesCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TestComplexDynamicTuplesArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TestComplexDynamicTuplesCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TestComplexDynamicTuplesArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TestComplexDynamicTuplesArgsStaticSize // Start dynamic data after static section
+func (t TestComplexDynamicTuplesCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestComplexDynamicTuplesCallStaticSize // Start dynamic data after static section
 
 	// Users (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -839,8 +865,8 @@ func (t TestComplexDynamicTuplesArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TestComplexDynamicTuplesArgs to ABI bytes
-func (t TestComplexDynamicTuplesArgs) Encode() ([]byte, error) {
+// Encode encodes TestComplexDynamicTuplesCall to ABI bytes
+func (t TestComplexDynamicTuplesCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -848,10 +874,10 @@ func (t TestComplexDynamicTuplesArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestComplexDynamicTuplesArgs from ABI bytes in the provided buffer
-func (t *TestComplexDynamicTuplesArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TestComplexDynamicTuplesArgsStaticSize {
-		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesArgs")
+// DecodeFrom decodes TestComplexDynamicTuplesCall from ABI bytes in the provided buffer
+func (t *TestComplexDynamicTuplesCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestComplexDynamicTuplesCallStaticSize {
+		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesCall")
 	}
 
 	// Users
@@ -890,49 +916,41 @@ func (t *TestComplexDynamicTuplesArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TestComplexDynamicTuplesArgs from ABI bytes
-func (t *TestComplexDynamicTuplesArgs) Decode(data []byte) error {
+// Decode decodes TestComplexDynamicTuplesCall from ABI bytes
+func (t *TestComplexDynamicTuplesCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testComplexDynamicTuples arguments to ABI bytes including function selector
-func (t TestComplexDynamicTuplesArgs) EncodeWithSelector() ([]byte, error) {
+func (t TestComplexDynamicTuplesCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TestComplexDynamicTuplesArgsSelector[:])
+	copy(result[:4], TestComplexDynamicTuplesSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TestComplexDynamicTuplesArgsSelector is the function selector for testComplexDynamicTuples((uint256,(string,string[],(uint256,string[])))[])
-var TestComplexDynamicTuplesArgsSelector = [4]byte{0xc0, 0x96, 0x4c, 0x93}
+const TestDeeplyNestedCallStaticSize = 32
 
-// Selector returns the function selector for testComplexDynamicTuples
-func (TestComplexDynamicTuplesArgs) Selector() [4]byte {
-	return TestComplexDynamicTuplesArgsSelector
-}
-
-const TestDeeplyNestedArgsStaticSize = 32
-
-// TestDeeplyNestedArgs represents an ABI tuple
-type TestDeeplyNestedArgs struct {
+// TestDeeplyNestedCall represents an ABI tuple
+type TestDeeplyNestedCall struct {
 	Data Level1
 }
 
-// EncodedSize returns the total encoded size of TestDeeplyNestedArgs
-func (t TestDeeplyNestedArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TestDeeplyNestedCall
+func (t TestDeeplyNestedCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += t.Data.EncodedSize() // dynamic tuple
 
-	return TestDeeplyNestedArgsStaticSize + dynamicSize
+	return TestDeeplyNestedCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TestDeeplyNestedArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TestDeeplyNestedCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TestDeeplyNestedArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TestDeeplyNestedArgsStaticSize // Start dynamic data after static section
+func (t TestDeeplyNestedCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestDeeplyNestedCallStaticSize // Start dynamic data after static section
 
 	// Data (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -947,8 +965,8 @@ func (t TestDeeplyNestedArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TestDeeplyNestedArgs to ABI bytes
-func (t TestDeeplyNestedArgs) Encode() ([]byte, error) {
+// Encode encodes TestDeeplyNestedCall to ABI bytes
+func (t TestDeeplyNestedCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -956,10 +974,10 @@ func (t TestDeeplyNestedArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestDeeplyNestedArgs from ABI bytes in the provided buffer
-func (t *TestDeeplyNestedArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TestDeeplyNestedArgsStaticSize {
-		return fmt.Errorf("insufficient data for TestDeeplyNestedArgs")
+// DecodeFrom decodes TestDeeplyNestedCall from ABI bytes in the provided buffer
+func (t *TestDeeplyNestedCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestDeeplyNestedCallStaticSize {
+		return fmt.Errorf("insufficient data for TestDeeplyNestedCall")
 	}
 
 	// Data
@@ -978,49 +996,41 @@ func (t *TestDeeplyNestedArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TestDeeplyNestedArgs from ABI bytes
-func (t *TestDeeplyNestedArgs) Decode(data []byte) error {
+// Decode decodes TestDeeplyNestedCall from ABI bytes
+func (t *TestDeeplyNestedCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testDeeplyNested arguments to ABI bytes including function selector
-func (t TestDeeplyNestedArgs) EncodeWithSelector() ([]byte, error) {
+func (t TestDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TestDeeplyNestedArgsSelector[:])
+	copy(result[:4], TestDeeplyNestedSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TestDeeplyNestedArgsSelector is the function selector for testDeeplyNested(((((uint256,string)))))
-var TestDeeplyNestedArgsSelector = [4]byte{0x21, 0x75, 0xe8, 0x54}
+const TestFixedArraysCallStaticSize = 320
 
-// Selector returns the function selector for testDeeplyNested
-func (TestDeeplyNestedArgs) Selector() [4]byte {
-	return TestDeeplyNestedArgsSelector
-}
-
-const TestFixedArraysArgsStaticSize = 320
-
-// TestFixedArraysArgs represents an ABI tuple
-type TestFixedArraysArgs struct {
+// TestFixedArraysCall represents an ABI tuple
+type TestFixedArraysCall struct {
 	Addresses [5]common.Address
 	Uints     [3]*big.Int
 	Bytes32s  [2][32]byte
 }
 
-// EncodedSize returns the total encoded size of TestFixedArraysArgs
-func (t TestFixedArraysArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TestFixedArraysCall
+func (t TestFixedArraysCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return TestFixedArraysArgsStaticSize + dynamicSize
+	return TestFixedArraysCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TestFixedArraysArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TestFixedArraysCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TestFixedArraysArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TestFixedArraysArgsStaticSize // Start dynamic data after static section
+func (t TestFixedArraysCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestFixedArraysCallStaticSize // Start dynamic data after static section
 
 	// Addresses (static)
 
@@ -1066,8 +1076,8 @@ func (t TestFixedArraysArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TestFixedArraysArgs to ABI bytes
-func (t TestFixedArraysArgs) Encode() ([]byte, error) {
+// Encode encodes TestFixedArraysCall to ABI bytes
+func (t TestFixedArraysCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -1075,10 +1085,10 @@ func (t TestFixedArraysArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestFixedArraysArgs from ABI bytes in the provided buffer
-func (t *TestFixedArraysArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TestFixedArraysArgsStaticSize {
-		return fmt.Errorf("insufficient data for TestFixedArraysArgs")
+// DecodeFrom decodes TestFixedArraysCall from ABI bytes in the provided buffer
+func (t *TestFixedArraysCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestFixedArraysCallStaticSize {
+		return fmt.Errorf("insufficient data for TestFixedArraysCall")
 	}
 
 	// t.Addresses (static)
@@ -1109,33 +1119,25 @@ func (t *TestFixedArraysArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TestFixedArraysArgs from ABI bytes
-func (t *TestFixedArraysArgs) Decode(data []byte) error {
+// Decode decodes TestFixedArraysCall from ABI bytes
+func (t *TestFixedArraysCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testFixedArrays arguments to ABI bytes including function selector
-func (t TestFixedArraysArgs) EncodeWithSelector() ([]byte, error) {
+func (t TestFixedArraysCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TestFixedArraysArgsSelector[:])
+	copy(result[:4], TestFixedArraysSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TestFixedArraysArgsSelector is the function selector for testFixedArrays(address[5],uint256[3],bytes32[2])
-var TestFixedArraysArgsSelector = [4]byte{0x23, 0xb8, 0x46, 0x5c}
+const TestMixedTypesCallStaticSize = 160
 
-// Selector returns the function selector for testFixedArrays
-func (TestFixedArraysArgs) Selector() [4]byte {
-	return TestFixedArraysArgsSelector
-}
-
-const TestMixedTypesArgsStaticSize = 160
-
-// TestMixedTypesArgs represents an ABI tuple
-type TestMixedTypesArgs struct {
+// TestMixedTypesCall represents an ABI tuple
+type TestMixedTypesCall struct {
 	FixedData   [32]byte
 	DynamicData []byte
 	Flag        bool
@@ -1143,8 +1145,8 @@ type TestMixedTypesArgs struct {
 	Items       []Item
 }
 
-// EncodedSize returns the total encoded size of TestMixedTypesArgs
-func (t TestMixedTypesArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TestMixedTypesCall
+func (t TestMixedTypesCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.DynamicData)) // length + padded bytes data
@@ -1153,13 +1155,13 @@ func (t TestMixedTypesArgs) EncodedSize() int {
 		dynamicSize += elem.EncodedSize() // dynamic tuple
 	}
 
-	return TestMixedTypesArgsStaticSize + dynamicSize
+	return TestMixedTypesCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TestMixedTypesArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TestMixedTypesCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TestMixedTypesArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TestMixedTypesArgsStaticSize // Start dynamic data after static section
+func (t TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestMixedTypesCallStaticSize // Start dynamic data after static section
 
 	// FixedData (static)
 	copy(buf[0:0+32], t.FixedData[:])
@@ -1225,8 +1227,8 @@ func (t TestMixedTypesArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TestMixedTypesArgs to ABI bytes
-func (t TestMixedTypesArgs) Encode() ([]byte, error) {
+// Encode encodes TestMixedTypesCall to ABI bytes
+func (t TestMixedTypesCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -1234,10 +1236,10 @@ func (t TestMixedTypesArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestMixedTypesArgs from ABI bytes in the provided buffer
-func (t *TestMixedTypesArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TestMixedTypesArgsStaticSize {
-		return fmt.Errorf("insufficient data for TestMixedTypesArgs")
+// DecodeFrom decodes TestMixedTypesCall from ABI bytes in the provided buffer
+func (t *TestMixedTypesCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestMixedTypesCallStaticSize {
+		return fmt.Errorf("insufficient data for TestMixedTypesCall")
 	}
 
 	// t.FixedData (static)
@@ -1295,39 +1297,31 @@ func (t *TestMixedTypesArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TestMixedTypesArgs from ABI bytes
-func (t *TestMixedTypesArgs) Decode(data []byte) error {
+// Decode decodes TestMixedTypesCall from ABI bytes
+func (t *TestMixedTypesCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testMixedTypes arguments to ABI bytes including function selector
-func (t TestMixedTypesArgs) EncodeWithSelector() ([]byte, error) {
+func (t TestMixedTypesCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TestMixedTypesArgsSelector[:])
+	copy(result[:4], TestMixedTypesSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TestMixedTypesArgsSelector is the function selector for testMixedTypes(bytes32,bytes,bool,uint8,(uint32,bytes,bool)[])
-var TestMixedTypesArgsSelector = [4]byte{0x85, 0x8a, 0xe6, 0x15}
+const TestNestedDynamicArraysCallStaticSize = 64
 
-// Selector returns the function selector for testMixedTypes
-func (TestMixedTypesArgs) Selector() [4]byte {
-	return TestMixedTypesArgsSelector
-}
-
-const TestNestedDynamicArraysArgsStaticSize = 64
-
-// TestNestedDynamicArraysArgs represents an ABI tuple
-type TestNestedDynamicArraysArgs struct {
+// TestNestedDynamicArraysCall represents an ABI tuple
+type TestNestedDynamicArraysCall struct {
 	Matrix        [][]*big.Int
 	AddressMatrix [][]common.Address
 }
 
-// EncodedSize returns the total encoded size of TestNestedDynamicArraysArgs
-func (t TestNestedDynamicArraysArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TestNestedDynamicArraysCall
+func (t TestNestedDynamicArraysCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + 32*len(t.Matrix) // length + offset pointers for dynamic elements
@@ -1339,13 +1333,13 @@ func (t TestNestedDynamicArraysArgs) EncodedSize() int {
 		dynamicSize += 32 + 32*len(elem) // length + static elements
 	}
 
-	return TestNestedDynamicArraysArgsStaticSize + dynamicSize
+	return TestNestedDynamicArraysCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TestNestedDynamicArraysArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TestNestedDynamicArraysCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TestNestedDynamicArraysArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TestNestedDynamicArraysArgsStaticSize // Start dynamic data after static section
+func (t TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestNestedDynamicArraysCallStaticSize // Start dynamic data after static section
 
 	// Matrix (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -1450,8 +1444,8 @@ func (t TestNestedDynamicArraysArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TestNestedDynamicArraysArgs to ABI bytes
-func (t TestNestedDynamicArraysArgs) Encode() ([]byte, error) {
+// Encode encodes TestNestedDynamicArraysCall to ABI bytes
+func (t TestNestedDynamicArraysCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -1459,10 +1453,10 @@ func (t TestNestedDynamicArraysArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestNestedDynamicArraysArgs from ABI bytes in the provided buffer
-func (t *TestNestedDynamicArraysArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TestNestedDynamicArraysArgsStaticSize {
-		return fmt.Errorf("insufficient data for TestNestedDynamicArraysArgs")
+// DecodeFrom decodes TestNestedDynamicArraysCall from ABI bytes in the provided buffer
+func (t *TestNestedDynamicArraysCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestNestedDynamicArraysCallStaticSize {
+		return fmt.Errorf("insufficient data for TestNestedDynamicArraysCall")
 	}
 
 	// Matrix
@@ -1551,33 +1545,25 @@ func (t *TestNestedDynamicArraysArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TestNestedDynamicArraysArgs from ABI bytes
-func (t *TestNestedDynamicArraysArgs) Decode(data []byte) error {
+// Decode decodes TestNestedDynamicArraysCall from ABI bytes
+func (t *TestNestedDynamicArraysCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testNestedDynamicArrays arguments to ABI bytes including function selector
-func (t TestNestedDynamicArraysArgs) EncodeWithSelector() ([]byte, error) {
+func (t TestNestedDynamicArraysCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TestNestedDynamicArraysArgsSelector[:])
+	copy(result[:4], TestNestedDynamicArraysSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TestNestedDynamicArraysArgsSelector is the function selector for testNestedDynamicArrays(uint256[][],address[][])
-var TestNestedDynamicArraysArgsSelector = [4]byte{0x3d, 0xb1, 0xee, 0x06}
+const TestSmallIntegersCallStaticSize = 256
 
-// Selector returns the function selector for testNestedDynamicArrays
-func (TestNestedDynamicArraysArgs) Selector() [4]byte {
-	return TestNestedDynamicArraysArgsSelector
-}
-
-const TestSmallIntegersArgsStaticSize = 256
-
-// TestSmallIntegersArgs represents an ABI tuple
-type TestSmallIntegersArgs struct {
+// TestSmallIntegersCall represents an ABI tuple
+type TestSmallIntegersCall struct {
 	U8  uint8
 	U16 uint16
 	U32 uint32
@@ -1588,17 +1574,17 @@ type TestSmallIntegersArgs struct {
 	I64 int64
 }
 
-// EncodedSize returns the total encoded size of TestSmallIntegersArgs
-func (t TestSmallIntegersArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TestSmallIntegersCall
+func (t TestSmallIntegersCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return TestSmallIntegersArgsStaticSize + dynamicSize
+	return TestSmallIntegersCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TestSmallIntegersArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TestSmallIntegersCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TestSmallIntegersArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TestSmallIntegersArgsStaticSize // Start dynamic data after static section
+func (t TestSmallIntegersCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestSmallIntegersCallStaticSize // Start dynamic data after static section
 
 	// U8 (static)
 	buf[0+31] = byte(t.U8)
@@ -1647,8 +1633,8 @@ func (t TestSmallIntegersArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TestSmallIntegersArgs to ABI bytes
-func (t TestSmallIntegersArgs) Encode() ([]byte, error) {
+// Encode encodes TestSmallIntegersCall to ABI bytes
+func (t TestSmallIntegersCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -1656,10 +1642,10 @@ func (t TestSmallIntegersArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestSmallIntegersArgs from ABI bytes in the provided buffer
-func (t *TestSmallIntegersArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TestSmallIntegersArgsStaticSize {
-		return fmt.Errorf("insufficient data for TestSmallIntegersArgs")
+// DecodeFrom decodes TestSmallIntegersCall from ABI bytes in the provided buffer
+func (t *TestSmallIntegersCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TestSmallIntegersCallStaticSize {
+		return fmt.Errorf("insufficient data for TestSmallIntegersCall")
 	}
 
 	// t.U8 (static)
@@ -1682,25 +1668,17 @@ func (t *TestSmallIntegersArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TestSmallIntegersArgs from ABI bytes
-func (t *TestSmallIntegersArgs) Decode(data []byte) error {
+// Decode decodes TestSmallIntegersCall from ABI bytes
+func (t *TestSmallIntegersCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testSmallIntegers arguments to ABI bytes including function selector
-func (t TestSmallIntegersArgs) EncodeWithSelector() ([]byte, error) {
+func (t TestSmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TestSmallIntegersArgsSelector[:])
+	copy(result[:4], TestSmallIntegersSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
-}
-
-// TestSmallIntegersArgsSelector is the function selector for testSmallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
-var TestSmallIntegersArgsSelector = [4]byte{0x29, 0x2b, 0xd2, 0x39}
-
-// Selector returns the function selector for testSmallIntegers
-func (TestSmallIntegersArgs) Selector() [4]byte {
-	return TestSmallIntegersArgsSelector
 }

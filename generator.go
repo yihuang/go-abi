@@ -2,6 +2,7 @@ package abi
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"go/format"
 	"text/template"
@@ -22,6 +23,14 @@ type Generator struct {
 
 	PackageName string
 	Imports     []string
+	Selectors   []SelectorInfo
+}
+
+// SelectorInfo holds information about a function selector
+type SelectorInfo struct {
+	Name  string
+	Sig   string
+	Bytes [4]byte
 }
 
 // NewGenerator creates a new ABI code generator
@@ -34,6 +43,7 @@ func NewGenerator(packageName string) *Generator {
 			"github.com/ethereum/go-ethereum/common",
 			"github.com/yihuang/go-abi",
 		},
+		Selectors: []SelectorInfo{},
 	}
 }
 
@@ -99,6 +109,19 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 		methods = append(methods, abiDef.Methods[name])
 	}
 
+	// Collect all selectors
+	for _, method := range methods {
+		selectorName := fmt.Sprintf("%sSelector", Title.String(method.Name))
+		g.Selectors = append(g.Selectors, SelectorInfo{
+			Name:  selectorName,
+			Sig:   method.Sig,
+			Bytes: [4]byte{method.ID[0], method.ID[1], method.ID[2], method.ID[3]},
+		})
+	}
+
+	// Generate all selector constants at the beginning
+	g.genAllSelectors()
+
 	if err := g.genTuples(methods); err != nil {
 		return "", err
 	}
@@ -143,42 +166,26 @@ func (g *Generator) genFunction(method abi.Method) error {
 	}
 
 	s := StructFromInputs(method)
+	selectorName := fmt.Sprintf("%sSelector", Title.String(method.Name))
 
-	// Generate struct for function arguments
+	// Generate struct and methods for functions with inputs
 	if err := g.genStruct(s); err != nil {
 		return err
 	}
 
 	g.genStructMethods(s)
 
-	// function sepecific methods
 	g.L(`
 // EncodeWithSelector encodes %s arguments to ABI bytes including function selector
 func (t %s) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4 + t.EncodedSize())
-	copy(result[:4], %sSelector[:])
+	copy(result[:4], %s[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
-`, method.Name, s.Name, s.Name)
-
-	// Generate selector
-	g.L("// %sSelector is the function selector for %s", s.Name, method.Sig)
-	g.L("var %sSelector = [4]byte{0x%02x, 0x%02x, 0x%02x, 0x%02x}",
-		s.Name,
-		method.ID[0],
-		method.ID[1],
-		method.ID[2],
-		method.ID[3])
-
-	g.L(`
-// Selector returns the function selector for %s
-func (%s) Selector() [4]byte {
-	return %sSelector
-}
-`, method.Name, s.Name, s.Name)
+`, method.Name, s.Name, selectorName)
 
 	return nil
 }
@@ -537,6 +544,37 @@ if err := abi.EncodeBigInt(%s, buf[%d:%d], %s); err != nil {
 	}
 
 	return offset + 32
+}
+
+// genAllSelectors generates all selector constants at the beginning of the file
+func (g *Generator) genAllSelectors() {
+	if len(g.Selectors) == 0 {
+		return
+	}
+
+	g.L(`
+	// Function selectors
+	var (`)
+	for _, selector := range g.Selectors {
+		g.L("// %s", selector.Sig)
+		g.L("%s = [4]byte{0x%02x, 0x%02x, 0x%02x, 0x%02x}",
+			selector.Name,
+			selector.Bytes[0],
+			selector.Bytes[1],
+			selector.Bytes[2],
+			selector.Bytes[3])
+	}
+	g.L(")")
+
+	g.L(`
+	// Big endian integer versions of function selectors
+	const (`)
+	for _, selector := range g.Selectors {
+		// Generate integer version of selector
+		selectorInt := binary.BigEndian.Uint32(selector.Bytes[:])
+		g.L("%sInt = %d", selector.Name, selectorInt)
+	}
+	g.L(")")
 }
 
 // genStaticItemOffset generates encoding for a single tuple element in tuple Encode method

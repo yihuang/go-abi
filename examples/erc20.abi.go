@@ -9,25 +9,60 @@ import (
 	"math/big"
 )
 
-const AllowanceArgsStaticSize = 64
+// Function selectors
+var (
+	// allowance(address,address)
+	AllowanceSelector = [4]byte{0xdd, 0x62, 0xed, 0x3e}
+	// approve(address,uint256)
+	ApproveSelector = [4]byte{0x09, 0x5e, 0xa7, 0xb3}
+	// balanceOf(address)
+	BalanceOfSelector = [4]byte{0x70, 0xa0, 0x82, 0x31}
+	// decimals()
+	DecimalsSelector = [4]byte{0x31, 0x3c, 0xe5, 0x67}
+	// name()
+	NameSelector = [4]byte{0x06, 0xfd, 0xde, 0x03}
+	// symbol()
+	SymbolSelector = [4]byte{0x95, 0xd8, 0x9b, 0x41}
+	// totalSupply()
+	TotalSupplySelector = [4]byte{0x18, 0x16, 0x0d, 0xdd}
+	// transfer(address,uint256)
+	TransferSelector = [4]byte{0xa9, 0x05, 0x9c, 0xbb}
+	// transferFrom(address,address,uint256)
+	TransferFromSelector = [4]byte{0x23, 0xb8, 0x72, 0xdd}
+)
 
-// AllowanceArgs represents an ABI tuple
-type AllowanceArgs struct {
+// Big endian integer versions of function selectors
+const (
+	AllowanceSelectorInt    = 3714247998
+	ApproveSelectorInt      = 157198259
+	BalanceOfSelectorInt    = 1889567281
+	DecimalsSelectorInt     = 826074471
+	NameSelectorInt         = 117300739
+	SymbolSelectorInt       = 2514000705
+	TotalSupplySelectorInt  = 404098525
+	TransferSelectorInt     = 2835717307
+	TransferFromSelectorInt = 599290589
+)
+
+const AllowanceCallStaticSize = 64
+
+// AllowanceCall represents an ABI tuple
+type AllowanceCall struct {
 	Owner   common.Address
 	Spender common.Address
 }
 
-// EncodedSize returns the total encoded size of AllowanceArgs
-func (t AllowanceArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of AllowanceCall
+func (t AllowanceCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return AllowanceArgsStaticSize + dynamicSize
+	return AllowanceCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes AllowanceArgs to ABI bytes in the provided buffer
+// EncodeTo encodes AllowanceCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t AllowanceArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := AllowanceArgsStaticSize // Start dynamic data after static section
+func (t AllowanceCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := AllowanceCallStaticSize // Start dynamic data after static section
 
 	// Owner (static)
 	copy(buf[0+12:0+32], t.Owner[:])
@@ -37,8 +72,8 @@ func (t AllowanceArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes AllowanceArgs to ABI bytes
-func (t AllowanceArgs) Encode() ([]byte, error) {
+// Encode encodes AllowanceCall to ABI bytes
+func (t AllowanceCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -46,10 +81,10 @@ func (t AllowanceArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes AllowanceArgs from ABI bytes in the provided buffer
-func (t *AllowanceArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < AllowanceArgsStaticSize {
-		return fmt.Errorf("insufficient data for AllowanceArgs")
+// DecodeFrom decodes AllowanceCall from ABI bytes in the provided buffer
+func (t *AllowanceCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < AllowanceCallStaticSize {
+		return fmt.Errorf("insufficient data for AllowanceCall")
 	}
 
 	// t.Owner (static)
@@ -60,48 +95,40 @@ func (t *AllowanceArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes AllowanceArgs from ABI bytes
-func (t *AllowanceArgs) Decode(data []byte) error {
+// Decode decodes AllowanceCall from ABI bytes
+func (t *AllowanceCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes allowance arguments to ABI bytes including function selector
-func (t AllowanceArgs) EncodeWithSelector() ([]byte, error) {
+func (t AllowanceCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], AllowanceArgsSelector[:])
+	copy(result[:4], AllowanceSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// AllowanceArgsSelector is the function selector for allowance(address,address)
-var AllowanceArgsSelector = [4]byte{0xdd, 0x62, 0xed, 0x3e}
+const ApproveCallStaticSize = 64
 
-// Selector returns the function selector for allowance
-func (AllowanceArgs) Selector() [4]byte {
-	return AllowanceArgsSelector
-}
-
-const ApproveArgsStaticSize = 64
-
-// ApproveArgs represents an ABI tuple
-type ApproveArgs struct {
+// ApproveCall represents an ABI tuple
+type ApproveCall struct {
 	Spender common.Address
 	Amount  *big.Int
 }
 
-// EncodedSize returns the total encoded size of ApproveArgs
-func (t ApproveArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of ApproveCall
+func (t ApproveCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return ApproveArgsStaticSize + dynamicSize
+	return ApproveCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes ApproveArgs to ABI bytes in the provided buffer
+// EncodeTo encodes ApproveCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t ApproveArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := ApproveArgsStaticSize // Start dynamic data after static section
+func (t ApproveCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := ApproveCallStaticSize // Start dynamic data after static section
 
 	// Spender (static)
 	copy(buf[0+12:0+32], t.Spender[:])
@@ -114,8 +141,8 @@ func (t ApproveArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes ApproveArgs to ABI bytes
-func (t ApproveArgs) Encode() ([]byte, error) {
+// Encode encodes ApproveCall to ABI bytes
+func (t ApproveCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -123,10 +150,10 @@ func (t ApproveArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes ApproveArgs from ABI bytes in the provided buffer
-func (t *ApproveArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < ApproveArgsStaticSize {
-		return fmt.Errorf("insufficient data for ApproveArgs")
+// DecodeFrom decodes ApproveCall from ABI bytes in the provided buffer
+func (t *ApproveCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < ApproveCallStaticSize {
+		return fmt.Errorf("insufficient data for ApproveCall")
 	}
 
 	// t.Spender (static)
@@ -137,47 +164,39 @@ func (t *ApproveArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes ApproveArgs from ABI bytes
-func (t *ApproveArgs) Decode(data []byte) error {
+// Decode decodes ApproveCall from ABI bytes
+func (t *ApproveCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes approve arguments to ABI bytes including function selector
-func (t ApproveArgs) EncodeWithSelector() ([]byte, error) {
+func (t ApproveCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], ApproveArgsSelector[:])
+	copy(result[:4], ApproveSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// ApproveArgsSelector is the function selector for approve(address,uint256)
-var ApproveArgsSelector = [4]byte{0x09, 0x5e, 0xa7, 0xb3}
+const BalanceOfCallStaticSize = 32
 
-// Selector returns the function selector for approve
-func (ApproveArgs) Selector() [4]byte {
-	return ApproveArgsSelector
-}
-
-const BalanceOfArgsStaticSize = 32
-
-// BalanceOfArgs represents an ABI tuple
-type BalanceOfArgs struct {
+// BalanceOfCall represents an ABI tuple
+type BalanceOfCall struct {
 	Account common.Address
 }
 
-// EncodedSize returns the total encoded size of BalanceOfArgs
-func (t BalanceOfArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of BalanceOfCall
+func (t BalanceOfCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return BalanceOfArgsStaticSize + dynamicSize
+	return BalanceOfCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes BalanceOfArgs to ABI bytes in the provided buffer
+// EncodeTo encodes BalanceOfCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t BalanceOfArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := BalanceOfArgsStaticSize // Start dynamic data after static section
+func (t BalanceOfCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := BalanceOfCallStaticSize // Start dynamic data after static section
 
 	// Account (static)
 	copy(buf[0+12:0+32], t.Account[:])
@@ -185,8 +204,8 @@ func (t BalanceOfArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes BalanceOfArgs to ABI bytes
-func (t BalanceOfArgs) Encode() ([]byte, error) {
+// Encode encodes BalanceOfCall to ABI bytes
+func (t BalanceOfCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -194,10 +213,10 @@ func (t BalanceOfArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes BalanceOfArgs from ABI bytes in the provided buffer
-func (t *BalanceOfArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < BalanceOfArgsStaticSize {
-		return fmt.Errorf("insufficient data for BalanceOfArgs")
+// DecodeFrom decodes BalanceOfCall from ABI bytes in the provided buffer
+func (t *BalanceOfCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < BalanceOfCallStaticSize {
+		return fmt.Errorf("insufficient data for BalanceOfCall")
 	}
 
 	// t.Account (static)
@@ -206,48 +225,40 @@ func (t *BalanceOfArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes BalanceOfArgs from ABI bytes
-func (t *BalanceOfArgs) Decode(data []byte) error {
+// Decode decodes BalanceOfCall from ABI bytes
+func (t *BalanceOfCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes balanceOf arguments to ABI bytes including function selector
-func (t BalanceOfArgs) EncodeWithSelector() ([]byte, error) {
+func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], BalanceOfArgsSelector[:])
+	copy(result[:4], BalanceOfSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// BalanceOfArgsSelector is the function selector for balanceOf(address)
-var BalanceOfArgsSelector = [4]byte{0x70, 0xa0, 0x82, 0x31}
+const TransferCallStaticSize = 64
 
-// Selector returns the function selector for balanceOf
-func (BalanceOfArgs) Selector() [4]byte {
-	return BalanceOfArgsSelector
-}
-
-const TransferArgsStaticSize = 64
-
-// TransferArgs represents an ABI tuple
-type TransferArgs struct {
+// TransferCall represents an ABI tuple
+type TransferCall struct {
 	To     common.Address
 	Amount *big.Int
 }
 
-// EncodedSize returns the total encoded size of TransferArgs
-func (t TransferArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TransferCall
+func (t TransferCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return TransferArgsStaticSize + dynamicSize
+	return TransferCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TransferArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TransferCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TransferArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TransferArgsStaticSize // Start dynamic data after static section
+func (t TransferCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TransferCallStaticSize // Start dynamic data after static section
 
 	// To (static)
 	copy(buf[0+12:0+32], t.To[:])
@@ -260,8 +271,8 @@ func (t TransferArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TransferArgs to ABI bytes
-func (t TransferArgs) Encode() ([]byte, error) {
+// Encode encodes TransferCall to ABI bytes
+func (t TransferCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -269,10 +280,10 @@ func (t TransferArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TransferArgs from ABI bytes in the provided buffer
-func (t *TransferArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TransferArgsStaticSize {
-		return fmt.Errorf("insufficient data for TransferArgs")
+// DecodeFrom decodes TransferCall from ABI bytes in the provided buffer
+func (t *TransferCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferCallStaticSize {
+		return fmt.Errorf("insufficient data for TransferCall")
 	}
 
 	// t.To (static)
@@ -283,49 +294,41 @@ func (t *TransferArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TransferArgs from ABI bytes
-func (t *TransferArgs) Decode(data []byte) error {
+// Decode decodes TransferCall from ABI bytes
+func (t *TransferCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes transfer arguments to ABI bytes including function selector
-func (t TransferArgs) EncodeWithSelector() ([]byte, error) {
+func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TransferArgsSelector[:])
+	copy(result[:4], TransferSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TransferArgsSelector is the function selector for transfer(address,uint256)
-var TransferArgsSelector = [4]byte{0xa9, 0x05, 0x9c, 0xbb}
+const TransferFromCallStaticSize = 96
 
-// Selector returns the function selector for transfer
-func (TransferArgs) Selector() [4]byte {
-	return TransferArgsSelector
-}
-
-const TransferFromArgsStaticSize = 96
-
-// TransferFromArgs represents an ABI tuple
-type TransferFromArgs struct {
+// TransferFromCall represents an ABI tuple
+type TransferFromCall struct {
 	From   common.Address
 	To     common.Address
 	Amount *big.Int
 }
 
-// EncodedSize returns the total encoded size of TransferFromArgs
-func (t TransferFromArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TransferFromCall
+func (t TransferFromCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return TransferFromArgsStaticSize + dynamicSize
+	return TransferFromCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TransferFromArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TransferFromCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TransferFromArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TransferFromArgsStaticSize // Start dynamic data after static section
+func (t TransferFromCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TransferFromCallStaticSize // Start dynamic data after static section
 
 	// From (static)
 	copy(buf[0+12:0+32], t.From[:])
@@ -340,8 +343,8 @@ func (t TransferFromArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TransferFromArgs to ABI bytes
-func (t TransferFromArgs) Encode() ([]byte, error) {
+// Encode encodes TransferFromCall to ABI bytes
+func (t TransferFromCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -349,10 +352,10 @@ func (t TransferFromArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TransferFromArgs from ABI bytes in the provided buffer
-func (t *TransferFromArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TransferFromArgsStaticSize {
-		return fmt.Errorf("insufficient data for TransferFromArgs")
+// DecodeFrom decodes TransferFromCall from ABI bytes in the provided buffer
+func (t *TransferFromCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferFromCallStaticSize {
+		return fmt.Errorf("insufficient data for TransferFromCall")
 	}
 
 	// t.From (static)
@@ -365,25 +368,17 @@ func (t *TransferFromArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TransferFromArgs from ABI bytes
-func (t *TransferFromArgs) Decode(data []byte) error {
+// Decode decodes TransferFromCall from ABI bytes
+func (t *TransferFromCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes transferFrom arguments to ABI bytes including function selector
-func (t TransferFromArgs) EncodeWithSelector() ([]byte, error) {
+func (t TransferFromCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TransferFromArgsSelector[:])
+	copy(result[:4], TransferFromSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
-}
-
-// TransferFromArgsSelector is the function selector for transferFrom(address,address,uint256)
-var TransferFromArgsSelector = [4]byte{0x23, 0xb8, 0x72, 0xdd}
-
-// Selector returns the function selector for transferFrom
-func (TransferFromArgs) Selector() [4]byte {
-	return TransferFromArgsSelector
 }

@@ -10,25 +10,48 @@ import (
 	"math/big"
 )
 
-const Overloaded1ArgsStaticSize = 64
+// Function selectors
+var (
+	// overloaded1(address,uint256)
+	Overloaded1Selector = [4]byte{0x6d, 0xd8, 0x31, 0x3d}
+	// overloaded1(address,address,uint256)
+	Overloaded10Selector = [4]byte{0x16, 0xa1, 0x17, 0x8e}
+	// overloaded1(address,address,uint256,bytes)
+	Overloaded11Selector = [4]byte{0x4f, 0xc2, 0x5c, 0x7f}
+	// overloaded2(address)
+	Overloaded2Selector = [4]byte{0x07, 0x4c, 0x37, 0x24}
+	// overloaded2()
+	Overloaded20Selector = [4]byte{0x31, 0x09, 0x77, 0x2b}
+)
 
-// Overloaded1Args represents an ABI tuple
-type Overloaded1Args struct {
+// Big endian integer versions of function selectors
+const (
+	Overloaded1SelectorInt  = 1842884925
+	Overloaded10SelectorInt = 379656078
+	Overloaded11SelectorInt = 1338137727
+	Overloaded2SelectorInt  = 122435364
+	Overloaded20SelectorInt = 822703915
+)
+
+const Overloaded1CallStaticSize = 64
+
+// Overloaded1Call represents an ABI tuple
+type Overloaded1Call struct {
 	To     common.Address
 	Amount *big.Int
 }
 
-// EncodedSize returns the total encoded size of Overloaded1Args
-func (t Overloaded1Args) EncodedSize() int {
+// EncodedSize returns the total encoded size of Overloaded1Call
+func (t Overloaded1Call) EncodedSize() int {
 	dynamicSize := 0
 
-	return Overloaded1ArgsStaticSize + dynamicSize
+	return Overloaded1CallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes Overloaded1Args to ABI bytes in the provided buffer
+// EncodeTo encodes Overloaded1Call to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t Overloaded1Args) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Overloaded1ArgsStaticSize // Start dynamic data after static section
+func (t Overloaded1Call) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded1CallStaticSize // Start dynamic data after static section
 
 	// To (static)
 	copy(buf[0+12:0+32], t.To[:])
@@ -41,8 +64,8 @@ func (t Overloaded1Args) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Overloaded1Args to ABI bytes
-func (t Overloaded1Args) Encode() ([]byte, error) {
+// Encode encodes Overloaded1Call to ABI bytes
+func (t Overloaded1Call) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -50,10 +73,10 @@ func (t Overloaded1Args) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded1Args from ABI bytes in the provided buffer
-func (t *Overloaded1Args) DecodeFrom(data0 []byte) error {
-	if len(data0) < Overloaded1ArgsStaticSize {
-		return fmt.Errorf("insufficient data for Overloaded1Args")
+// DecodeFrom decodes Overloaded1Call from ABI bytes in the provided buffer
+func (t *Overloaded1Call) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded1CallStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded1Call")
 	}
 
 	// t.To (static)
@@ -64,49 +87,41 @@ func (t *Overloaded1Args) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes Overloaded1Args from ABI bytes
-func (t *Overloaded1Args) Decode(data []byte) error {
+// Decode decodes Overloaded1Call from ABI bytes
+func (t *Overloaded1Call) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded1 arguments to ABI bytes including function selector
-func (t Overloaded1Args) EncodeWithSelector() ([]byte, error) {
+func (t Overloaded1Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], Overloaded1ArgsSelector[:])
+	copy(result[:4], Overloaded1Selector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// Overloaded1ArgsSelector is the function selector for overloaded1(address,uint256)
-var Overloaded1ArgsSelector = [4]byte{0x6d, 0xd8, 0x31, 0x3d}
+const Overloaded10CallStaticSize = 96
 
-// Selector returns the function selector for overloaded1
-func (Overloaded1Args) Selector() [4]byte {
-	return Overloaded1ArgsSelector
-}
-
-const Overloaded10ArgsStaticSize = 96
-
-// Overloaded10Args represents an ABI tuple
-type Overloaded10Args struct {
+// Overloaded10Call represents an ABI tuple
+type Overloaded10Call struct {
 	From   common.Address
 	To     common.Address
 	Amount *big.Int
 }
 
-// EncodedSize returns the total encoded size of Overloaded10Args
-func (t Overloaded10Args) EncodedSize() int {
+// EncodedSize returns the total encoded size of Overloaded10Call
+func (t Overloaded10Call) EncodedSize() int {
 	dynamicSize := 0
 
-	return Overloaded10ArgsStaticSize + dynamicSize
+	return Overloaded10CallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes Overloaded10Args to ABI bytes in the provided buffer
+// EncodeTo encodes Overloaded10Call to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t Overloaded10Args) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Overloaded10ArgsStaticSize // Start dynamic data after static section
+func (t Overloaded10Call) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded10CallStaticSize // Start dynamic data after static section
 
 	// From (static)
 	copy(buf[0+12:0+32], t.From[:])
@@ -121,8 +136,8 @@ func (t Overloaded10Args) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Overloaded10Args to ABI bytes
-func (t Overloaded10Args) Encode() ([]byte, error) {
+// Encode encodes Overloaded10Call to ABI bytes
+func (t Overloaded10Call) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -130,10 +145,10 @@ func (t Overloaded10Args) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded10Args from ABI bytes in the provided buffer
-func (t *Overloaded10Args) DecodeFrom(data0 []byte) error {
-	if len(data0) < Overloaded10ArgsStaticSize {
-		return fmt.Errorf("insufficient data for Overloaded10Args")
+// DecodeFrom decodes Overloaded10Call from ABI bytes in the provided buffer
+func (t *Overloaded10Call) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded10CallStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded10Call")
 	}
 
 	// t.From (static)
@@ -146,52 +161,44 @@ func (t *Overloaded10Args) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes Overloaded10Args from ABI bytes
-func (t *Overloaded10Args) Decode(data []byte) error {
+// Decode decodes Overloaded10Call from ABI bytes
+func (t *Overloaded10Call) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded10 arguments to ABI bytes including function selector
-func (t Overloaded10Args) EncodeWithSelector() ([]byte, error) {
+func (t Overloaded10Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], Overloaded10ArgsSelector[:])
+	copy(result[:4], Overloaded10Selector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// Overloaded10ArgsSelector is the function selector for overloaded1(address,address,uint256)
-var Overloaded10ArgsSelector = [4]byte{0x16, 0xa1, 0x17, 0x8e}
+const Overloaded11CallStaticSize = 128
 
-// Selector returns the function selector for overloaded10
-func (Overloaded10Args) Selector() [4]byte {
-	return Overloaded10ArgsSelector
-}
-
-const Overloaded11ArgsStaticSize = 128
-
-// Overloaded11Args represents an ABI tuple
-type Overloaded11Args struct {
+// Overloaded11Call represents an ABI tuple
+type Overloaded11Call struct {
 	From   common.Address
 	To     common.Address
 	Amount *big.Int
 	Data   []byte
 }
 
-// EncodedSize returns the total encoded size of Overloaded11Args
-func (t Overloaded11Args) EncodedSize() int {
+// EncodedSize returns the total encoded size of Overloaded11Call
+func (t Overloaded11Call) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.Data)) // length + padded bytes data
 
-	return Overloaded11ArgsStaticSize + dynamicSize
+	return Overloaded11CallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes Overloaded11Args to ABI bytes in the provided buffer
+// EncodeTo encodes Overloaded11Call to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t Overloaded11Args) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Overloaded11ArgsStaticSize // Start dynamic data after static section
+func (t Overloaded11Call) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded11CallStaticSize // Start dynamic data after static section
 
 	// From (static)
 	copy(buf[0+12:0+32], t.From[:])
@@ -218,8 +225,8 @@ func (t Overloaded11Args) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Overloaded11Args to ABI bytes
-func (t Overloaded11Args) Encode() ([]byte, error) {
+// Encode encodes Overloaded11Call to ABI bytes
+func (t Overloaded11Call) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -227,10 +234,10 @@ func (t Overloaded11Args) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded11Args from ABI bytes in the provided buffer
-func (t *Overloaded11Args) DecodeFrom(data0 []byte) error {
-	if len(data0) < Overloaded11ArgsStaticSize {
-		return fmt.Errorf("insufficient data for Overloaded11Args")
+// DecodeFrom decodes Overloaded11Call from ABI bytes in the provided buffer
+func (t *Overloaded11Call) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded11CallStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded11Call")
 	}
 
 	// t.From (static)
@@ -256,47 +263,39 @@ func (t *Overloaded11Args) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes Overloaded11Args from ABI bytes
-func (t *Overloaded11Args) Decode(data []byte) error {
+// Decode decodes Overloaded11Call from ABI bytes
+func (t *Overloaded11Call) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded11 arguments to ABI bytes including function selector
-func (t Overloaded11Args) EncodeWithSelector() ([]byte, error) {
+func (t Overloaded11Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], Overloaded11ArgsSelector[:])
+	copy(result[:4], Overloaded11Selector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// Overloaded11ArgsSelector is the function selector for overloaded1(address,address,uint256,bytes)
-var Overloaded11ArgsSelector = [4]byte{0x4f, 0xc2, 0x5c, 0x7f}
+const Overloaded2CallStaticSize = 32
 
-// Selector returns the function selector for overloaded11
-func (Overloaded11Args) Selector() [4]byte {
-	return Overloaded11ArgsSelector
-}
-
-const Overloaded2ArgsStaticSize = 32
-
-// Overloaded2Args represents an ABI tuple
-type Overloaded2Args struct {
+// Overloaded2Call represents an ABI tuple
+type Overloaded2Call struct {
 	Account common.Address
 }
 
-// EncodedSize returns the total encoded size of Overloaded2Args
-func (t Overloaded2Args) EncodedSize() int {
+// EncodedSize returns the total encoded size of Overloaded2Call
+func (t Overloaded2Call) EncodedSize() int {
 	dynamicSize := 0
 
-	return Overloaded2ArgsStaticSize + dynamicSize
+	return Overloaded2CallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes Overloaded2Args to ABI bytes in the provided buffer
+// EncodeTo encodes Overloaded2Call to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t Overloaded2Args) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := Overloaded2ArgsStaticSize // Start dynamic data after static section
+func (t Overloaded2Call) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Overloaded2CallStaticSize // Start dynamic data after static section
 
 	// Account (static)
 	copy(buf[0+12:0+32], t.Account[:])
@@ -304,8 +303,8 @@ func (t Overloaded2Args) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes Overloaded2Args to ABI bytes
-func (t Overloaded2Args) Encode() ([]byte, error) {
+// Encode encodes Overloaded2Call to ABI bytes
+func (t Overloaded2Call) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -313,10 +312,10 @@ func (t Overloaded2Args) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded2Args from ABI bytes in the provided buffer
-func (t *Overloaded2Args) DecodeFrom(data0 []byte) error {
-	if len(data0) < Overloaded2ArgsStaticSize {
-		return fmt.Errorf("insufficient data for Overloaded2Args")
+// DecodeFrom decodes Overloaded2Call from ABI bytes in the provided buffer
+func (t *Overloaded2Call) DecodeFrom(data0 []byte) error {
+	if len(data0) < Overloaded2CallStaticSize {
+		return fmt.Errorf("insufficient data for Overloaded2Call")
 	}
 
 	// t.Account (static)
@@ -325,25 +324,17 @@ func (t *Overloaded2Args) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes Overloaded2Args from ABI bytes
-func (t *Overloaded2Args) Decode(data []byte) error {
+// Decode decodes Overloaded2Call from ABI bytes
+func (t *Overloaded2Call) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded2 arguments to ABI bytes including function selector
-func (t Overloaded2Args) EncodeWithSelector() ([]byte, error) {
+func (t Overloaded2Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], Overloaded2ArgsSelector[:])
+	copy(result[:4], Overloaded2Selector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
-}
-
-// Overloaded2ArgsSelector is the function selector for overloaded2(address)
-var Overloaded2ArgsSelector = [4]byte{0x07, 0x4c, 0x37, 0x24}
-
-// Selector returns the function selector for overloaded2
-func (Overloaded2Args) Selector() [4]byte {
-	return Overloaded2ArgsSelector
 }

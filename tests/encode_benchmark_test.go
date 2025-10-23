@@ -8,8 +8,8 @@ import (
 )
 
 // Benchmark data setup functions
-func createComplexDynamicTuplesData() TestComplexDynamicTuplesArgs {
-	return TestComplexDynamicTuplesArgs{
+func createComplexDynamicTuplesData() TestComplexDynamicTuplesCall {
+	return TestComplexDynamicTuplesCall{
 		Users: []User2{
 			{
 				Id: big.NewInt(1),
@@ -48,8 +48,8 @@ func createComplexDynamicTuplesData() TestComplexDynamicTuplesArgs {
 	}
 }
 
-func createNestedDynamicArraysData() TestNestedDynamicArraysArgs {
-	return TestNestedDynamicArraysArgs{
+func createNestedDynamicArraysData() TestNestedDynamicArraysCall {
+	return TestNestedDynamicArraysCall{
 		Matrix: [][]*big.Int{
 			{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)},
 			{big.NewInt(6), big.NewInt(7), big.NewInt(8)},
@@ -73,8 +73,8 @@ func createNestedDynamicArraysData() TestNestedDynamicArraysArgs {
 	}
 }
 
-func createMixedTypesData() TestMixedTypesArgs {
-	return TestMixedTypesArgs{
+func createMixedTypesData() TestMixedTypesCall {
+	return TestMixedTypesCall{
 		FixedData:   [32]byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
 		DynamicData: []byte{0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12},
 		Flag:        true,

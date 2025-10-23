@@ -40,7 +40,7 @@ func StructFromInputs(method abi.Method) Struct {
 		fields = append(fields, StructFieldFromArgument(input))
 	}
 	return Struct{
-		Name:   fmt.Sprintf("%sArgs", Title.String(method.Name)),
+		Name:   fmt.Sprintf("%sCall", Title.String(method.Name)),
 		Fields: fields,
 	}
 }

@@ -10,6 +10,44 @@ import (
 	"math/big"
 )
 
+// Function selectors
+var (
+	// balanceOf(address)
+	BalanceOfSelector = [4]byte{0x70, 0xa0, 0x82, 0x31}
+	// batchProcess((uint256,(bytes32,string))[])
+	BatchProcessSelector = [4]byte{0xb7, 0x78, 0x31, 0x64}
+	// getBalances(address[10])
+	GetBalancesSelector = [4]byte{0x51, 0x68, 0x3d, 0x7d}
+	// processUserData((address,string,uint256))
+	ProcessUserDataSelector = [4]byte{0xc4, 0x9b, 0x1a, 0xe8}
+	// setData(bytes32,bytes)
+	SetDataSelector = [4]byte{0x7f, 0x23, 0x69, 0x0c}
+	// setMessage(string)
+	SetMessageSelector = [4]byte{0x36, 0x8b, 0x87, 0x72}
+	// smallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
+	SmallIntegersSelector = [4]byte{0x98, 0x83, 0xfe, 0x4a}
+	// transfer(address,uint256)
+	TransferSelector = [4]byte{0xa9, 0x05, 0x9c, 0xbb}
+	// transferBatch(address[],uint256[])
+	TransferBatchSelector = [4]byte{0x3b, 0x3e, 0x67, 0x2f}
+	// updateProfile(address,string,uint256)
+	UpdateProfileSelector = [4]byte{0x6d, 0xe9, 0x52, 0x01}
+)
+
+// Big endian integer versions of function selectors
+const (
+	BalanceOfSelectorInt       = 1889567281
+	BatchProcessSelectorInt    = 3078107492
+	GetBalancesSelectorInt     = 1365785981
+	ProcessUserDataSelectorInt = 3298499304
+	SetDataSelectorInt         = 2133027084
+	SetMessageSelectorInt      = 915113842
+	SmallIntegersSelectorInt   = 2558787146
+	TransferSelectorInt        = 2835717307
+	TransferBatchSelectorInt   = 993945391
+	UpdateProfileSelectorInt   = 1844007425
+)
+
 const UserStaticSize = 96
 
 // User represents an ABI tuple
@@ -256,24 +294,24 @@ func (t *UserMetadata) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
-const BalanceOfArgsStaticSize = 32
+const BalanceOfCallStaticSize = 32
 
-// BalanceOfArgs represents an ABI tuple
-type BalanceOfArgs struct {
+// BalanceOfCall represents an ABI tuple
+type BalanceOfCall struct {
 	Account common.Address
 }
 
-// EncodedSize returns the total encoded size of BalanceOfArgs
-func (t BalanceOfArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of BalanceOfCall
+func (t BalanceOfCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return BalanceOfArgsStaticSize + dynamicSize
+	return BalanceOfCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes BalanceOfArgs to ABI bytes in the provided buffer
+// EncodeTo encodes BalanceOfCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t BalanceOfArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := BalanceOfArgsStaticSize // Start dynamic data after static section
+func (t BalanceOfCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := BalanceOfCallStaticSize // Start dynamic data after static section
 
 	// Account (static)
 	copy(buf[0+12:0+32], t.Account[:])
@@ -281,8 +319,8 @@ func (t BalanceOfArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes BalanceOfArgs to ABI bytes
-func (t BalanceOfArgs) Encode() ([]byte, error) {
+// Encode encodes BalanceOfCall to ABI bytes
+func (t BalanceOfCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -290,10 +328,10 @@ func (t BalanceOfArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes BalanceOfArgs from ABI bytes in the provided buffer
-func (t *BalanceOfArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < BalanceOfArgsStaticSize {
-		return fmt.Errorf("insufficient data for BalanceOfArgs")
+// DecodeFrom decodes BalanceOfCall from ABI bytes in the provided buffer
+func (t *BalanceOfCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < BalanceOfCallStaticSize {
+		return fmt.Errorf("insufficient data for BalanceOfCall")
 	}
 
 	// t.Account (static)
@@ -302,38 +340,30 @@ func (t *BalanceOfArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes BalanceOfArgs from ABI bytes
-func (t *BalanceOfArgs) Decode(data []byte) error {
+// Decode decodes BalanceOfCall from ABI bytes
+func (t *BalanceOfCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes balanceOf arguments to ABI bytes including function selector
-func (t BalanceOfArgs) EncodeWithSelector() ([]byte, error) {
+func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], BalanceOfArgsSelector[:])
+	copy(result[:4], BalanceOfSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// BalanceOfArgsSelector is the function selector for balanceOf(address)
-var BalanceOfArgsSelector = [4]byte{0x70, 0xa0, 0x82, 0x31}
+const BatchProcessCallStaticSize = 32
 
-// Selector returns the function selector for balanceOf
-func (BalanceOfArgs) Selector() [4]byte {
-	return BalanceOfArgsSelector
-}
-
-const BatchProcessArgsStaticSize = 32
-
-// BatchProcessArgs represents an ABI tuple
-type BatchProcessArgs struct {
+// BatchProcessCall represents an ABI tuple
+type BatchProcessCall struct {
 	Users []UserData
 }
 
-// EncodedSize returns the total encoded size of BatchProcessArgs
-func (t BatchProcessArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of BatchProcessCall
+func (t BatchProcessCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + 32*len(t.Users) // length + offset pointers for dynamic elements
@@ -341,13 +371,13 @@ func (t BatchProcessArgs) EncodedSize() int {
 		dynamicSize += elem.EncodedSize() // dynamic tuple
 	}
 
-	return BatchProcessArgsStaticSize + dynamicSize
+	return BatchProcessCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes BatchProcessArgs to ABI bytes in the provided buffer
+// EncodeTo encodes BatchProcessCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t BatchProcessArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := BatchProcessArgsStaticSize // Start dynamic data after static section
+func (t BatchProcessCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := BatchProcessCallStaticSize // Start dynamic data after static section
 
 	// Users (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -389,8 +419,8 @@ func (t BatchProcessArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes BatchProcessArgs to ABI bytes
-func (t BatchProcessArgs) Encode() ([]byte, error) {
+// Encode encodes BatchProcessCall to ABI bytes
+func (t BatchProcessCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -398,10 +428,10 @@ func (t BatchProcessArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes BatchProcessArgs from ABI bytes in the provided buffer
-func (t *BatchProcessArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < BatchProcessArgsStaticSize {
-		return fmt.Errorf("insufficient data for BatchProcessArgs")
+// DecodeFrom decodes BatchProcessCall from ABI bytes in the provided buffer
+func (t *BatchProcessCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < BatchProcessCallStaticSize {
+		return fmt.Errorf("insufficient data for BatchProcessCall")
 	}
 
 	// Users
@@ -440,47 +470,39 @@ func (t *BatchProcessArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes BatchProcessArgs from ABI bytes
-func (t *BatchProcessArgs) Decode(data []byte) error {
+// Decode decodes BatchProcessCall from ABI bytes
+func (t *BatchProcessCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes batchProcess arguments to ABI bytes including function selector
-func (t BatchProcessArgs) EncodeWithSelector() ([]byte, error) {
+func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], BatchProcessArgsSelector[:])
+	copy(result[:4], BatchProcessSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// BatchProcessArgsSelector is the function selector for batchProcess((uint256,(bytes32,string))[])
-var BatchProcessArgsSelector = [4]byte{0xb7, 0x78, 0x31, 0x64}
+const GetBalancesCallStaticSize = 320
 
-// Selector returns the function selector for batchProcess
-func (BatchProcessArgs) Selector() [4]byte {
-	return BatchProcessArgsSelector
-}
-
-const GetBalancesArgsStaticSize = 320
-
-// GetBalancesArgs represents an ABI tuple
-type GetBalancesArgs struct {
+// GetBalancesCall represents an ABI tuple
+type GetBalancesCall struct {
 	Accounts [10]common.Address
 }
 
-// EncodedSize returns the total encoded size of GetBalancesArgs
-func (t GetBalancesArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of GetBalancesCall
+func (t GetBalancesCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return GetBalancesArgsStaticSize + dynamicSize
+	return GetBalancesCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes GetBalancesArgs to ABI bytes in the provided buffer
+// EncodeTo encodes GetBalancesCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t GetBalancesArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := GetBalancesArgsStaticSize // Start dynamic data after static section
+func (t GetBalancesCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := GetBalancesCallStaticSize // Start dynamic data after static section
 
 	// Accounts (static)
 
@@ -498,8 +520,8 @@ func (t GetBalancesArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes GetBalancesArgs to ABI bytes
-func (t GetBalancesArgs) Encode() ([]byte, error) {
+// Encode encodes GetBalancesCall to ABI bytes
+func (t GetBalancesCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -507,10 +529,10 @@ func (t GetBalancesArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes GetBalancesArgs from ABI bytes in the provided buffer
-func (t *GetBalancesArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < GetBalancesArgsStaticSize {
-		return fmt.Errorf("insufficient data for GetBalancesArgs")
+// DecodeFrom decodes GetBalancesCall from ABI bytes in the provided buffer
+func (t *GetBalancesCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < GetBalancesCallStaticSize {
+		return fmt.Errorf("insufficient data for GetBalancesCall")
 	}
 
 	// t.Accounts (static)
@@ -525,49 +547,41 @@ func (t *GetBalancesArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes GetBalancesArgs from ABI bytes
-func (t *GetBalancesArgs) Decode(data []byte) error {
+// Decode decodes GetBalancesCall from ABI bytes
+func (t *GetBalancesCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes getBalances arguments to ABI bytes including function selector
-func (t GetBalancesArgs) EncodeWithSelector() ([]byte, error) {
+func (t GetBalancesCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], GetBalancesArgsSelector[:])
+	copy(result[:4], GetBalancesSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// GetBalancesArgsSelector is the function selector for getBalances(address[10])
-var GetBalancesArgsSelector = [4]byte{0x51, 0x68, 0x3d, 0x7d}
+const ProcessUserDataCallStaticSize = 32
 
-// Selector returns the function selector for getBalances
-func (GetBalancesArgs) Selector() [4]byte {
-	return GetBalancesArgsSelector
-}
-
-const ProcessUserDataArgsStaticSize = 32
-
-// ProcessUserDataArgs represents an ABI tuple
-type ProcessUserDataArgs struct {
+// ProcessUserDataCall represents an ABI tuple
+type ProcessUserDataCall struct {
 	User User
 }
 
-// EncodedSize returns the total encoded size of ProcessUserDataArgs
-func (t ProcessUserDataArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of ProcessUserDataCall
+func (t ProcessUserDataCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += t.User.EncodedSize() // dynamic tuple
 
-	return ProcessUserDataArgsStaticSize + dynamicSize
+	return ProcessUserDataCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes ProcessUserDataArgs to ABI bytes in the provided buffer
+// EncodeTo encodes ProcessUserDataCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t ProcessUserDataArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := ProcessUserDataArgsStaticSize // Start dynamic data after static section
+func (t ProcessUserDataCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := ProcessUserDataCallStaticSize // Start dynamic data after static section
 
 	// User (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -582,8 +596,8 @@ func (t ProcessUserDataArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes ProcessUserDataArgs to ABI bytes
-func (t ProcessUserDataArgs) Encode() ([]byte, error) {
+// Encode encodes ProcessUserDataCall to ABI bytes
+func (t ProcessUserDataCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -591,10 +605,10 @@ func (t ProcessUserDataArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes ProcessUserDataArgs from ABI bytes in the provided buffer
-func (t *ProcessUserDataArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < ProcessUserDataArgsStaticSize {
-		return fmt.Errorf("insufficient data for ProcessUserDataArgs")
+// DecodeFrom decodes ProcessUserDataCall from ABI bytes in the provided buffer
+func (t *ProcessUserDataCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < ProcessUserDataCallStaticSize {
+		return fmt.Errorf("insufficient data for ProcessUserDataCall")
 	}
 
 	// User
@@ -613,50 +627,42 @@ func (t *ProcessUserDataArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes ProcessUserDataArgs from ABI bytes
-func (t *ProcessUserDataArgs) Decode(data []byte) error {
+// Decode decodes ProcessUserDataCall from ABI bytes
+func (t *ProcessUserDataCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes processUserData arguments to ABI bytes including function selector
-func (t ProcessUserDataArgs) EncodeWithSelector() ([]byte, error) {
+func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], ProcessUserDataArgsSelector[:])
+	copy(result[:4], ProcessUserDataSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// ProcessUserDataArgsSelector is the function selector for processUserData((address,string,uint256))
-var ProcessUserDataArgsSelector = [4]byte{0xc4, 0x9b, 0x1a, 0xe8}
+const SetDataCallStaticSize = 64
 
-// Selector returns the function selector for processUserData
-func (ProcessUserDataArgs) Selector() [4]byte {
-	return ProcessUserDataArgsSelector
-}
-
-const SetDataArgsStaticSize = 64
-
-// SetDataArgs represents an ABI tuple
-type SetDataArgs struct {
+// SetDataCall represents an ABI tuple
+type SetDataCall struct {
 	Key   [32]byte
 	Value []byte
 }
 
-// EncodedSize returns the total encoded size of SetDataArgs
-func (t SetDataArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of SetDataCall
+func (t SetDataCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.Value)) // length + padded bytes data
 
-	return SetDataArgsStaticSize + dynamicSize
+	return SetDataCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes SetDataArgs to ABI bytes in the provided buffer
+// EncodeTo encodes SetDataCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t SetDataArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := SetDataArgsStaticSize // Start dynamic data after static section
+func (t SetDataCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := SetDataCallStaticSize // Start dynamic data after static section
 
 	// Key (static)
 	copy(buf[0:0+32], t.Key[:])
@@ -676,8 +682,8 @@ func (t SetDataArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes SetDataArgs to ABI bytes
-func (t SetDataArgs) Encode() ([]byte, error) {
+// Encode encodes SetDataCall to ABI bytes
+func (t SetDataCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -685,10 +691,10 @@ func (t SetDataArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes SetDataArgs from ABI bytes in the provided buffer
-func (t *SetDataArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < SetDataArgsStaticSize {
-		return fmt.Errorf("insufficient data for SetDataArgs")
+// DecodeFrom decodes SetDataCall from ABI bytes in the provided buffer
+func (t *SetDataCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < SetDataCallStaticSize {
+		return fmt.Errorf("insufficient data for SetDataCall")
 	}
 
 	// t.Key (static)
@@ -710,49 +716,41 @@ func (t *SetDataArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes SetDataArgs from ABI bytes
-func (t *SetDataArgs) Decode(data []byte) error {
+// Decode decodes SetDataCall from ABI bytes
+func (t *SetDataCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes setData arguments to ABI bytes including function selector
-func (t SetDataArgs) EncodeWithSelector() ([]byte, error) {
+func (t SetDataCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], SetDataArgsSelector[:])
+	copy(result[:4], SetDataSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// SetDataArgsSelector is the function selector for setData(bytes32,bytes)
-var SetDataArgsSelector = [4]byte{0x7f, 0x23, 0x69, 0x0c}
+const SetMessageCallStaticSize = 32
 
-// Selector returns the function selector for setData
-func (SetDataArgs) Selector() [4]byte {
-	return SetDataArgsSelector
-}
-
-const SetMessageArgsStaticSize = 32
-
-// SetMessageArgs represents an ABI tuple
-type SetMessageArgs struct {
+// SetMessageCall represents an ABI tuple
+type SetMessageCall struct {
 	Message string
 }
 
-// EncodedSize returns the total encoded size of SetMessageArgs
-func (t SetMessageArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of SetMessageCall
+func (t SetMessageCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.Message)) // length + padded string data
 
-	return SetMessageArgsStaticSize + dynamicSize
+	return SetMessageCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes SetMessageArgs to ABI bytes in the provided buffer
+// EncodeTo encodes SetMessageCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t SetMessageArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := SetMessageArgsStaticSize // Start dynamic data after static section
+func (t SetMessageCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := SetMessageCallStaticSize // Start dynamic data after static section
 
 	// Message (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -769,8 +767,8 @@ func (t SetMessageArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes SetMessageArgs to ABI bytes
-func (t SetMessageArgs) Encode() ([]byte, error) {
+// Encode encodes SetMessageCall to ABI bytes
+func (t SetMessageCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -778,10 +776,10 @@ func (t SetMessageArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes SetMessageArgs from ABI bytes in the provided buffer
-func (t *SetMessageArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < SetMessageArgsStaticSize {
-		return fmt.Errorf("insufficient data for SetMessageArgs")
+// DecodeFrom decodes SetMessageCall from ABI bytes in the provided buffer
+func (t *SetMessageCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < SetMessageCallStaticSize {
+		return fmt.Errorf("insufficient data for SetMessageCall")
 	}
 
 	// Message
@@ -801,33 +799,25 @@ func (t *SetMessageArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes SetMessageArgs from ABI bytes
-func (t *SetMessageArgs) Decode(data []byte) error {
+// Decode decodes SetMessageCall from ABI bytes
+func (t *SetMessageCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes setMessage arguments to ABI bytes including function selector
-func (t SetMessageArgs) EncodeWithSelector() ([]byte, error) {
+func (t SetMessageCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], SetMessageArgsSelector[:])
+	copy(result[:4], SetMessageSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// SetMessageArgsSelector is the function selector for setMessage(string)
-var SetMessageArgsSelector = [4]byte{0x36, 0x8b, 0x87, 0x72}
+const SmallIntegersCallStaticSize = 256
 
-// Selector returns the function selector for setMessage
-func (SetMessageArgs) Selector() [4]byte {
-	return SetMessageArgsSelector
-}
-
-const SmallIntegersArgsStaticSize = 256
-
-// SmallIntegersArgs represents an ABI tuple
-type SmallIntegersArgs struct {
+// SmallIntegersCall represents an ABI tuple
+type SmallIntegersCall struct {
 	U8  uint8
 	U16 uint16
 	U32 uint32
@@ -838,17 +828,17 @@ type SmallIntegersArgs struct {
 	I64 int64
 }
 
-// EncodedSize returns the total encoded size of SmallIntegersArgs
-func (t SmallIntegersArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of SmallIntegersCall
+func (t SmallIntegersCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return SmallIntegersArgsStaticSize + dynamicSize
+	return SmallIntegersCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes SmallIntegersArgs to ABI bytes in the provided buffer
+// EncodeTo encodes SmallIntegersCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t SmallIntegersArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := SmallIntegersArgsStaticSize // Start dynamic data after static section
+func (t SmallIntegersCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := SmallIntegersCallStaticSize // Start dynamic data after static section
 
 	// U8 (static)
 	buf[0+31] = byte(t.U8)
@@ -897,8 +887,8 @@ func (t SmallIntegersArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes SmallIntegersArgs to ABI bytes
-func (t SmallIntegersArgs) Encode() ([]byte, error) {
+// Encode encodes SmallIntegersCall to ABI bytes
+func (t SmallIntegersCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -906,10 +896,10 @@ func (t SmallIntegersArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes SmallIntegersArgs from ABI bytes in the provided buffer
-func (t *SmallIntegersArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < SmallIntegersArgsStaticSize {
-		return fmt.Errorf("insufficient data for SmallIntegersArgs")
+// DecodeFrom decodes SmallIntegersCall from ABI bytes in the provided buffer
+func (t *SmallIntegersCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < SmallIntegersCallStaticSize {
+		return fmt.Errorf("insufficient data for SmallIntegersCall")
 	}
 
 	// t.U8 (static)
@@ -932,48 +922,40 @@ func (t *SmallIntegersArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes SmallIntegersArgs from ABI bytes
-func (t *SmallIntegersArgs) Decode(data []byte) error {
+// Decode decodes SmallIntegersCall from ABI bytes
+func (t *SmallIntegersCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes smallIntegers arguments to ABI bytes including function selector
-func (t SmallIntegersArgs) EncodeWithSelector() ([]byte, error) {
+func (t SmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], SmallIntegersArgsSelector[:])
+	copy(result[:4], SmallIntegersSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// SmallIntegersArgsSelector is the function selector for smallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
-var SmallIntegersArgsSelector = [4]byte{0x98, 0x83, 0xfe, 0x4a}
+const TransferCallStaticSize = 64
 
-// Selector returns the function selector for smallIntegers
-func (SmallIntegersArgs) Selector() [4]byte {
-	return SmallIntegersArgsSelector
-}
-
-const TransferArgsStaticSize = 64
-
-// TransferArgs represents an ABI tuple
-type TransferArgs struct {
+// TransferCall represents an ABI tuple
+type TransferCall struct {
 	To     common.Address
 	Amount *big.Int
 }
 
-// EncodedSize returns the total encoded size of TransferArgs
-func (t TransferArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TransferCall
+func (t TransferCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return TransferArgsStaticSize + dynamicSize
+	return TransferCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TransferArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TransferCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TransferArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TransferArgsStaticSize // Start dynamic data after static section
+func (t TransferCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TransferCallStaticSize // Start dynamic data after static section
 
 	// To (static)
 	copy(buf[0+12:0+32], t.To[:])
@@ -986,8 +968,8 @@ func (t TransferArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TransferArgs to ABI bytes
-func (t TransferArgs) Encode() ([]byte, error) {
+// Encode encodes TransferCall to ABI bytes
+func (t TransferCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -995,10 +977,10 @@ func (t TransferArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TransferArgs from ABI bytes in the provided buffer
-func (t *TransferArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TransferArgsStaticSize {
-		return fmt.Errorf("insufficient data for TransferArgs")
+// DecodeFrom decodes TransferCall from ABI bytes in the provided buffer
+func (t *TransferCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferCallStaticSize {
+		return fmt.Errorf("insufficient data for TransferCall")
 	}
 
 	// t.To (static)
@@ -1009,51 +991,43 @@ func (t *TransferArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TransferArgs from ABI bytes
-func (t *TransferArgs) Decode(data []byte) error {
+// Decode decodes TransferCall from ABI bytes
+func (t *TransferCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes transfer arguments to ABI bytes including function selector
-func (t TransferArgs) EncodeWithSelector() ([]byte, error) {
+func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TransferArgsSelector[:])
+	copy(result[:4], TransferSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TransferArgsSelector is the function selector for transfer(address,uint256)
-var TransferArgsSelector = [4]byte{0xa9, 0x05, 0x9c, 0xbb}
+const TransferBatchCallStaticSize = 64
 
-// Selector returns the function selector for transfer
-func (TransferArgs) Selector() [4]byte {
-	return TransferArgsSelector
-}
-
-const TransferBatchArgsStaticSize = 64
-
-// TransferBatchArgs represents an ABI tuple
-type TransferBatchArgs struct {
+// TransferBatchCall represents an ABI tuple
+type TransferBatchCall struct {
 	Recipients []common.Address
 	Amounts    []*big.Int
 }
 
-// EncodedSize returns the total encoded size of TransferBatchArgs
-func (t TransferBatchArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of TransferBatchCall
+func (t TransferBatchCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + 32*len(t.Recipients) // length + static elements
 	dynamicSize += 32 + 32*len(t.Amounts)    // length + static elements
 
-	return TransferBatchArgsStaticSize + dynamicSize
+	return TransferBatchCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes TransferBatchArgs to ABI bytes in the provided buffer
+// EncodeTo encodes TransferBatchCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t TransferBatchArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := TransferBatchArgsStaticSize // Start dynamic data after static section
+func (t TransferBatchCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TransferBatchCallStaticSize // Start dynamic data after static section
 
 	// Recipients (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -1104,8 +1078,8 @@ func (t TransferBatchArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes TransferBatchArgs to ABI bytes
-func (t TransferBatchArgs) Encode() ([]byte, error) {
+// Encode encodes TransferBatchCall to ABI bytes
+func (t TransferBatchCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -1113,10 +1087,10 @@ func (t TransferBatchArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TransferBatchArgs from ABI bytes in the provided buffer
-func (t *TransferBatchArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < TransferBatchArgsStaticSize {
-		return fmt.Errorf("insufficient data for TransferBatchArgs")
+// DecodeFrom decodes TransferBatchCall from ABI bytes in the provided buffer
+func (t *TransferBatchCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < TransferBatchCallStaticSize {
+		return fmt.Errorf("insufficient data for TransferBatchCall")
 	}
 
 	// Recipients
@@ -1165,51 +1139,43 @@ func (t *TransferBatchArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TransferBatchArgs from ABI bytes
-func (t *TransferBatchArgs) Decode(data []byte) error {
+// Decode decodes TransferBatchCall from ABI bytes
+func (t *TransferBatchCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes transferBatch arguments to ABI bytes including function selector
-func (t TransferBatchArgs) EncodeWithSelector() ([]byte, error) {
+func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], TransferBatchArgsSelector[:])
+	copy(result[:4], TransferBatchSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// TransferBatchArgsSelector is the function selector for transferBatch(address[],uint256[])
-var TransferBatchArgsSelector = [4]byte{0x3b, 0x3e, 0x67, 0x2f}
+const UpdateProfileCallStaticSize = 96
 
-// Selector returns the function selector for transferBatch
-func (TransferBatchArgs) Selector() [4]byte {
-	return TransferBatchArgsSelector
-}
-
-const UpdateProfileArgsStaticSize = 96
-
-// UpdateProfileArgs represents an ABI tuple
-type UpdateProfileArgs struct {
+// UpdateProfileCall represents an ABI tuple
+type UpdateProfileCall struct {
 	User common.Address
 	Name string
 	Age  *big.Int
 }
 
-// EncodedSize returns the total encoded size of UpdateProfileArgs
-func (t UpdateProfileArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of UpdateProfileCall
+func (t UpdateProfileCall) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.Name)) // length + padded string data
 
-	return UpdateProfileArgsStaticSize + dynamicSize
+	return UpdateProfileCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes UpdateProfileArgs to ABI bytes in the provided buffer
+// EncodeTo encodes UpdateProfileCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t UpdateProfileArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := UpdateProfileArgsStaticSize // Start dynamic data after static section
+func (t UpdateProfileCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := UpdateProfileCallStaticSize // Start dynamic data after static section
 
 	// User (static)
 	copy(buf[0+12:0+32], t.User[:])
@@ -1235,8 +1201,8 @@ func (t UpdateProfileArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes UpdateProfileArgs to ABI bytes
-func (t UpdateProfileArgs) Encode() ([]byte, error) {
+// Encode encodes UpdateProfileCall to ABI bytes
+func (t UpdateProfileCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -1244,10 +1210,10 @@ func (t UpdateProfileArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes UpdateProfileArgs from ABI bytes in the provided buffer
-func (t *UpdateProfileArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < UpdateProfileArgsStaticSize {
-		return fmt.Errorf("insufficient data for UpdateProfileArgs")
+// DecodeFrom decodes UpdateProfileCall from ABI bytes in the provided buffer
+func (t *UpdateProfileCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < UpdateProfileCallStaticSize {
+		return fmt.Errorf("insufficient data for UpdateProfileCall")
 	}
 
 	// t.User (static)
@@ -1271,25 +1237,17 @@ func (t *UpdateProfileArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes UpdateProfileArgs from ABI bytes
-func (t *UpdateProfileArgs) Decode(data []byte) error {
+// Decode decodes UpdateProfileCall from ABI bytes
+func (t *UpdateProfileCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes updateProfile arguments to ABI bytes including function selector
-func (t UpdateProfileArgs) EncodeWithSelector() ([]byte, error) {
+func (t UpdateProfileCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], UpdateProfileArgsSelector[:])
+	copy(result[:4], UpdateProfileSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
-}
-
-// UpdateProfileArgsSelector is the function selector for updateProfile(address,string,uint256)
-var UpdateProfileArgsSelector = [4]byte{0x6d, 0xe9, 0x52, 0x01}
-
-// Selector returns the function selector for updateProfile
-func (UpdateProfileArgs) Selector() [4]byte {
-	return UpdateProfileArgsSelector
 }

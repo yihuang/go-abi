@@ -50,7 +50,7 @@ func TestTransferEncoding(t *testing.T) {
 	amount := big.NewInt(1000)
 
 	// Get our generated encoding
-	args := &TransferArgs{
+	args := &TransferCall{
 		To:     to,
 		Amount: amount,
 	}
@@ -72,7 +72,7 @@ func TestSetMessageEncoding(t *testing.T) {
 	message := "Hello, World!"
 
 	// Get our generated encoding
-	args := &SetMessageArgs{
+	args := &SetMessageCall{
 		Message: message,
 	}
 
@@ -95,7 +95,7 @@ func TestUpdateProfileEncoding(t *testing.T) {
 	age := big.NewInt(25)
 
 	// Get our generated encoding
-	args := &UpdateProfileArgs{
+	args := &UpdateProfileCall{
 		User: user,
 		Name: name,
 		Age:  age,
@@ -122,7 +122,7 @@ func TestProcessUserDataEncoding(t *testing.T) {
 	}
 
 	// Get our generated encoding
-	args := &ProcessUserDataArgs{
+	args := &ProcessUserDataCall{
 		User: user,
 	}
 
@@ -158,7 +158,7 @@ func TestBatchProcessEncoding(t *testing.T) {
 	}
 
 	// Get our generated encoding
-	args := &BatchProcessArgs{
+	args := &BatchProcessCall{
 		Users: users,
 	}
 
@@ -177,7 +177,7 @@ func TestBatchProcessEncoding(t *testing.T) {
 
 func TestSmallIntegers(t *testing.T) {
 	// Get our generated encoding
-	args := &SmallIntegersArgs{
+	args := &SmallIntegersCall{
 		U8:  uint8(10),
 		U16: uint16(1000),
 		U32: uint32(100000),

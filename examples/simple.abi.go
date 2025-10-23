@@ -9,25 +9,36 @@ import (
 	"math/big"
 )
 
-const SendArgsStaticSize = 64
+// Function selectors
+var (
+	// send(address,uint256)
+	SendSelector = [4]byte{0xd0, 0x67, 0x9d, 0x34}
+)
 
-// SendArgs represents an ABI tuple
-type SendArgs struct {
+// Big endian integer versions of function selectors
+const (
+	SendSelectorInt = 3496451380
+)
+
+const SendCallStaticSize = 64
+
+// SendCall represents an ABI tuple
+type SendCall struct {
 	To     common.Address
 	Amount *big.Int
 }
 
-// EncodedSize returns the total encoded size of SendArgs
-func (t SendArgs) EncodedSize() int {
+// EncodedSize returns the total encoded size of SendCall
+func (t SendCall) EncodedSize() int {
 	dynamicSize := 0
 
-	return SendArgsStaticSize + dynamicSize
+	return SendCallStaticSize + dynamicSize
 }
 
-// EncodeTo encodes SendArgs to ABI bytes in the provided buffer
+// EncodeTo encodes SendCall to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t SendArgs) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := SendArgsStaticSize // Start dynamic data after static section
+func (t SendCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := SendCallStaticSize // Start dynamic data after static section
 
 	// To (static)
 	copy(buf[0+12:0+32], t.To[:])
@@ -40,8 +51,8 @@ func (t SendArgs) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes SendArgs to ABI bytes
-func (t SendArgs) Encode() ([]byte, error) {
+// Encode encodes SendCall to ABI bytes
+func (t SendCall) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -49,10 +60,10 @@ func (t SendArgs) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes SendArgs from ABI bytes in the provided buffer
-func (t *SendArgs) DecodeFrom(data0 []byte) error {
-	if len(data0) < SendArgsStaticSize {
-		return fmt.Errorf("insufficient data for SendArgs")
+// DecodeFrom decodes SendCall from ABI bytes in the provided buffer
+func (t *SendCall) DecodeFrom(data0 []byte) error {
+	if len(data0) < SendCallStaticSize {
+		return fmt.Errorf("insufficient data for SendCall")
 	}
 
 	// t.To (static)
@@ -63,25 +74,17 @@ func (t *SendArgs) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes SendArgs from ABI bytes
-func (t *SendArgs) Decode(data []byte) error {
+// Decode decodes SendCall from ABI bytes
+func (t *SendCall) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes send arguments to ABI bytes including function selector
-func (t SendArgs) EncodeWithSelector() ([]byte, error) {
+func (t SendCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
-	copy(result[:4], SendArgsSelector[:])
+	copy(result[:4], SendSelector[:])
 	if _, err := t.EncodeTo(result[4:]); err != nil {
 		return nil, err
 	}
 	return result, nil
-}
-
-// SendArgsSelector is the function selector for send(address,uint256)
-var SendArgsSelector = [4]byte{0xd0, 0x67, 0x9d, 0x34}
-
-// Selector returns the function selector for send
-func (SendArgs) Selector() [4]byte {
-	return SendArgsSelector
 }

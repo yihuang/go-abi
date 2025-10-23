@@ -463,6 +463,48 @@ func TestParseHumanReadableABI(t *testing.T) {
 				}
 			]`,
 		},
+		{
+			name: "int and uint without explicit sizes normalize to 256 bits",
+			input: []string{
+				"function testIntUint(int value1, uint value2)",
+				"function testArrays(int[] values1, uint[10] values2)",
+				"function testMixed(int value1, uint value2, int8 value3, uint256 value4)",
+			},
+			expected: `[
+				{
+					"type": "function",
+					"name": "testIntUint",
+					"inputs": [
+						{"name": "value1", "type": "int256"},
+						{"name": "value2", "type": "uint256"}
+					],
+					"outputs": [],
+					"stateMutability": "nonpayable"
+				},
+				{
+					"type": "function",
+					"name": "testArrays",
+					"inputs": [
+						{"name": "values1", "type": "int256[]"},
+						{"name": "values2", "type": "uint256[10]"}
+					],
+					"outputs": [],
+					"stateMutability": "nonpayable"
+				},
+				{
+					"type": "function",
+					"name": "testMixed",
+					"inputs": [
+						{"name": "value1", "type": "int256"},
+						{"name": "value2", "type": "uint256"},
+						{"name": "value3", "type": "int8"},
+						{"name": "value4", "type": "uint256"}
+					],
+					"outputs": [],
+					"stateMutability": "nonpayable"
+				}
+			]`,
+		},
 	}
 
 	for _, tt := range tests {
