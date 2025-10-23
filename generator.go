@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"go/format"
 	"text/template"
 
 	"golang.org/x/text/cases"
@@ -39,6 +38,7 @@ func NewGenerator(packageName string) *Generator {
 		PackageName: packageName,
 		Imports: []string{
 			"fmt",
+			"encoding/binary",
 			"math/big",
 			"github.com/ethereum/go-ethereum/common",
 			"github.com/yihuang/go-abi",
@@ -66,38 +66,10 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	// Write package declaration
 	g.L("package %s", g.PackageName)
 
-	// Check if we need encoding/binary import for optimized integer encoding
-	// We always need it for offset/length encoding, and also for 8,16,32,64-bit integers
-	needsBinaryImport := false
-	for _, method := range abiDef.Methods {
-		for _, input := range method.Inputs {
-			// Check for integer types that need binary encoding
-			if (input.Type.T == abi.UintTy || input.Type.T == abi.IntTy) &&
-				(input.Type.Size == 8 || input.Type.Size == 16 || input.Type.Size == 32 || input.Type.Size == 64) {
-				needsBinaryImport = true
-				break
-			}
-			// Check for dynamic types that need offset/length encoding
-			if IsDynamicType(input.Type) {
-				needsBinaryImport = true
-				break
-			}
-		}
-		if needsBinaryImport {
-			break
-		}
-	}
-
 	// Write imports
-	imports := make([]string, len(g.Imports))
-	copy(imports, g.Imports)
-	if needsBinaryImport {
-		imports = append(imports, "encoding/binary")
-	}
-
-	if len(imports) > 0 {
+	if len(g.Imports) > 0 {
 		g.L("import (")
-		for _, imp := range imports {
+		for _, imp := range g.Imports {
 			g.L("\"%s\"", imp)
 		}
 		g.L(")")
@@ -134,13 +106,7 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	}
 
 	// Format the generated code
-	src := g.buf.Bytes()
-	formatted, err := format.Source(src)
-	if err != nil {
-		return string(src), fmt.Errorf("failed to format generated code: %w", err)
-	}
-
-	return string(formatted), nil
+	return string(g.buf.Bytes()), nil
 }
 
 func (g *Generator) genStruct(s Struct) error {

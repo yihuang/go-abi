@@ -11,6 +11,8 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/tools/imports"
+
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/yihuang/go-abi"
 )
@@ -134,10 +136,19 @@ func main() {
 	// Write output
 	if *outputFile == "" {
 		fmt.Println(generatedCode)
-	} else {
-		if err := os.WriteFile(*outputFile, []byte(generatedCode), 0644); err != nil {
-			log.Fatalf("Failed to write output file: %v", err)
-		}
-		fmt.Printf("Generated code written to %s\n", *outputFile)
+		return
 	}
+
+	opt := imports.Options{
+		Comments: true,
+	}
+	formatted, err := imports.Process(*outputFile, []byte(generatedCode), &opt)
+	if err != nil {
+		log.Fatalf("failed to format generated code: %v", err)
+	}
+
+	if err := os.WriteFile(*outputFile, formatted, 0644); err != nil {
+		log.Fatalf("Failed to write output file: %v", err)
+	}
+	fmt.Printf("Generated code written to %s\n", *outputFile)
 }

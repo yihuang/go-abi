@@ -4,9 +4,10 @@ package examples
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/yihuang/go-abi"
-	"math/big"
 )
 
 // Function selectors
