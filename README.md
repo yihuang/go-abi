@@ -2,8 +2,6 @@
 
 Generating statically typed Go structs and encode/decode methods from Ethereum contract ABI definitions.
 
-[ABI Specification](https://github.com/argotorg/solidity/blob/v0.8.30/docs/abi-spec.rst)
-
 ## Why
 
 - Deterministic
@@ -14,8 +12,25 @@ Generating statically typed Go structs and encode/decode methods from Ethereum c
 
 - **Single Allocation**,  allocate buffer once during the encoding.
 - **Static Typing**, natural type mapping from ABI to golang.
+- **Human Readable ABI Support**, generate code directly from human-readable ABI definitions.
 
 ## Quick Start
+
+### From Human Readable ABI
+
+Define ABI directly in Go source files:
+
+```go
+//go:generate go run github.com/yihuang/go-abi/cmd -var ContractABI -output contract.abi.go
+
+var ContractABI = []string{
+    "function transfer(address to, uint256 amount) returns (bool)",
+    "function balanceOf(address account) view returns (uint256)",
+    "event Transfer(address indexed from, address indexed to, uint256 value)",
+}
+```
+
+### From JSON ABI Files
 
 Embed the generator command in code comments:
 
@@ -23,33 +38,17 @@ Embed the generator command in code comments:
 //go:generate go run github.com/yihuang/go-abi/cmd -input test_abi.json -output test_abi.abi.go
 ```
 
-Run `go generate` to sync the generated files.
+### Sync
+
+Run `go generate` to sync all the files.
 
 ```bash
 $ go generate ./...
 ```
 
-## Usage Examples
-
-### Basic Example
-
-```go
-// Use the generated code
-args := &TransferArgs{
-	To:     common.HexToAddress("0x742d35Cc6634C0532925a3b8DfBc6A8c4f4C9F7F"),
-	Amount: big.NewInt(1000),
-}
-
-// Encode the arguments
-encoded, err := args.Encode()
-
-// Encode with selector
-encoded, err := args.EncodeWithSelector()
-```
-
 ## Example
 
-See `tests/` directory for example ABIs and generated code.
+See `tests/` and `examples/` directories for example ABIs and generated code.
 
 ## Type Mappings
 
@@ -74,3 +73,8 @@ The generator maps Solidity types to Go types as follows:
 | `bytesN` | `[N]byte` |
 | `type[]` | `[]GoType` |
 | `type[N]` | `[N]GoType` |
+
+## References
+
+* [ABI Specification](https://github.com/argotorg/solidity/blob/v0.8.30/docs/abi-spec.rst)
+* [Human Readable ABI](https://abitype.dev/api/human)
