@@ -376,7 +376,6 @@ func (t %s) Encode() ([]byte, error) {
 }
 `, s.Name, s.Name)
 
-	g.genDecodeFrom(s)
 	g.genDecode(s)
 }
 
@@ -780,17 +779,8 @@ dynamicOffset += n
 
 // genDecode generates the Decode method
 func (g *Generator) genDecode(s Struct) {
-	g.L(`// Decode decodes %s from ABI bytes
-func (t *%s) Decode(data []byte) error {
-	return t.DecodeFrom(data)
-}
-`, s.Name, s.Name)
-}
-
-// genDecodeFrom generates the DecodeFrom method
-func (g *Generator) genDecodeFrom(s Struct) {
-	g.L(`// DecodeFrom decodes %s from ABI bytes in the provided buffer
-func (t *%s) DecodeFrom(data0 []byte) error {
+	g.L(`// Decodedecodes %s from ABI bytes in the provided buffer
+func (t *%s) Decode(data0 []byte) error {
 	if len(data0) < %sStaticSize {
 		return fmt.Errorf("insufficient data for %s")
 	}
@@ -878,7 +868,7 @@ offset += %d
 
 	case abi.TupleTy:
 		// Nested static tuple
-		g.L(`if err := %s.DecodeFrom(data%d[offset:offset+%d]); err != nil {
+		g.L(`if err := %s.Decode(data%d[offset:offset+%d]); err != nil {
 		return err
 	}`, ref, depth, GetTypeSize(t))
 
@@ -940,7 +930,7 @@ func (g *Generator) genStaticDecode(ref string, t abi.Type, offset int, depth in
 
 	case abi.TupleTy:
 		// Nested static tuple
-		g.L(`if err := %s.DecodeFrom(data%d[%d:%d]); err != nil {
+		g.L(`if err := %s.Decode(data%d[%d:%d]); err != nil {
 		return err
 	}`, ref, depth, offset, offset+GetTypeSize(t))
 
@@ -976,7 +966,7 @@ func (g *Generator) genDynamicDecode(ref string, t abi.Type, depth int) {
 
 	case abi.TupleTy:
 		// Dynamic tuple
-		g.L(`if err := %s.DecodeFrom(data%d[offset:]); err != nil {
+		g.L(`if err := %s.Decode(data%d[offset:]); err != nil {
 			return err
 		}`, ref, depth)
 

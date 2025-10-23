@@ -93,8 +93,8 @@ func (t Item) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Item from ABI bytes in the provided buffer
-func (t *Item) DecodeFrom(data0 []byte) error {
+// Decodedecodes Item from ABI bytes in the provided buffer
+func (t *Item) Decode(data0 []byte) error {
 	if len(data0) < ItemStaticSize {
 		return fmt.Errorf("insufficient data for Item")
 	}
@@ -118,11 +118,6 @@ func (t *Item) DecodeFrom(data0 []byte) error {
 	t.Active = data0[64+31] == 1
 
 	return nil
-}
-
-// Decode decodes Item from ABI bytes
-func (t *Item) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Level1StaticSize = 32
@@ -168,8 +163,8 @@ func (t Level1) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Level1 from ABI bytes in the provided buffer
-func (t *Level1) DecodeFrom(data0 []byte) error {
+// Decodedecodes Level1 from ABI bytes in the provided buffer
+func (t *Level1) Decode(data0 []byte) error {
 	if len(data0) < Level1StaticSize {
 		return fmt.Errorf("insufficient data for Level1")
 	}
@@ -182,17 +177,12 @@ func (t *Level1) DecodeFrom(data0 []byte) error {
 		if offset >= len(data0) {
 			return fmt.Errorf("insufficient data for dynamic data, t.Level1")
 		}
-		if err := t.Level1.DecodeFrom(data0[offset:]); err != nil {
+		if err := t.Level1.Decode(data0[offset:]); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes Level1 from ABI bytes
-func (t *Level1) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Level2StaticSize = 32
@@ -238,8 +228,8 @@ func (t Level2) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Level2 from ABI bytes in the provided buffer
-func (t *Level2) DecodeFrom(data0 []byte) error {
+// Decodedecodes Level2 from ABI bytes in the provided buffer
+func (t *Level2) Decode(data0 []byte) error {
 	if len(data0) < Level2StaticSize {
 		return fmt.Errorf("insufficient data for Level2")
 	}
@@ -252,17 +242,12 @@ func (t *Level2) DecodeFrom(data0 []byte) error {
 		if offset >= len(data0) {
 			return fmt.Errorf("insufficient data for dynamic data, t.Level2")
 		}
-		if err := t.Level2.DecodeFrom(data0[offset:]); err != nil {
+		if err := t.Level2.Decode(data0[offset:]); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes Level2 from ABI bytes
-func (t *Level2) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Level3StaticSize = 32
@@ -308,8 +293,8 @@ func (t Level3) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Level3 from ABI bytes in the provided buffer
-func (t *Level3) DecodeFrom(data0 []byte) error {
+// Decodedecodes Level3 from ABI bytes in the provided buffer
+func (t *Level3) Decode(data0 []byte) error {
 	if len(data0) < Level3StaticSize {
 		return fmt.Errorf("insufficient data for Level3")
 	}
@@ -322,17 +307,12 @@ func (t *Level3) DecodeFrom(data0 []byte) error {
 		if offset >= len(data0) {
 			return fmt.Errorf("insufficient data for dynamic data, t.Level3")
 		}
-		if err := t.Level3.DecodeFrom(data0[offset:]); err != nil {
+		if err := t.Level3.Decode(data0[offset:]); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes Level3 from ABI bytes
-func (t *Level3) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Level4StaticSize = 64
@@ -387,8 +367,8 @@ func (t Level4) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Level4 from ABI bytes in the provided buffer
-func (t *Level4) DecodeFrom(data0 []byte) error {
+// Decodedecodes Level4 from ABI bytes in the provided buffer
+func (t *Level4) Decode(data0 []byte) error {
 	if len(data0) < Level4StaticSize {
 		return fmt.Errorf("insufficient data for Level4")
 	}
@@ -410,11 +390,6 @@ func (t *Level4) DecodeFrom(data0 []byte) error {
 	}
 
 	return nil
-}
-
-// Decode decodes Level4 from ABI bytes
-func (t *Level4) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const User2StaticSize = 64
@@ -467,8 +442,8 @@ func (t User2) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes User2 from ABI bytes in the provided buffer
-func (t *User2) DecodeFrom(data0 []byte) error {
+// Decodedecodes User2 from ABI bytes in the provided buffer
+func (t *User2) Decode(data0 []byte) error {
 	if len(data0) < User2StaticSize {
 		return fmt.Errorf("insufficient data for User2")
 	}
@@ -483,17 +458,12 @@ func (t *User2) DecodeFrom(data0 []byte) error {
 		if offset >= len(data0) {
 			return fmt.Errorf("insufficient data for dynamic data, t.Profile")
 		}
-		if err := t.Profile.DecodeFrom(data0[offset:]); err != nil {
+		if err := t.Profile.Decode(data0[offset:]); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes User2 from ABI bytes
-func (t *User2) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const UserMetadata2StaticSize = 64
@@ -578,8 +548,8 @@ func (t UserMetadata2) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes UserMetadata2 from ABI bytes in the provided buffer
-func (t *UserMetadata2) DecodeFrom(data0 []byte) error {
+// Decodedecodes UserMetadata2 from ABI bytes in the provided buffer
+func (t *UserMetadata2) Decode(data0 []byte) error {
 	if len(data0) < UserMetadata2StaticSize {
 		return fmt.Errorf("insufficient data for UserMetadata2")
 	}
@@ -621,11 +591,6 @@ func (t *UserMetadata2) DecodeFrom(data0 []byte) error {
 	}
 
 	return nil
-}
-
-// Decode decodes UserMetadata2 from ABI bytes
-func (t *UserMetadata2) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const UserProfileStaticSize = 96
@@ -729,8 +694,8 @@ func (t UserProfile) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes UserProfile from ABI bytes in the provided buffer
-func (t *UserProfile) DecodeFrom(data0 []byte) error {
+// Decodedecodes UserProfile from ABI bytes in the provided buffer
+func (t *UserProfile) Decode(data0 []byte) error {
 	if len(data0) < UserProfileStaticSize {
 		return fmt.Errorf("insufficient data for UserProfile")
 	}
@@ -789,17 +754,12 @@ func (t *UserProfile) DecodeFrom(data0 []byte) error {
 		if offset >= len(data0) {
 			return fmt.Errorf("insufficient data for dynamic data, t.Metadata")
 		}
-		if err := t.Metadata.DecodeFrom(data0[offset:]); err != nil {
+		if err := t.Metadata.Decode(data0[offset:]); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes UserProfile from ABI bytes
-func (t *UserProfile) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const TestComplexDynamicTuplesCallStaticSize = 32
@@ -875,8 +835,8 @@ func (t TestComplexDynamicTuplesCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestComplexDynamicTuplesCall from ABI bytes in the provided buffer
-func (t *TestComplexDynamicTuplesCall) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestComplexDynamicTuplesCall from ABI bytes in the provided buffer
+func (t *TestComplexDynamicTuplesCall) Decode(data0 []byte) error {
 	if len(data0) < TestComplexDynamicTuplesCallStaticSize {
 		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesCall")
 	}
@@ -908,18 +868,13 @@ func (t *TestComplexDynamicTuplesCall) DecodeFrom(data0 []byte) error {
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
 			}
-			if err := t.Users[i0].DecodeFrom(data1[offset:]); err != nil {
+			if err := t.Users[i0].Decode(data1[offset:]); err != nil {
 				return err
 			}
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes TestComplexDynamicTuplesCall from ABI bytes
-func (t *TestComplexDynamicTuplesCall) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testComplexDynamicTuples arguments to ABI bytes including function selector
@@ -969,8 +924,8 @@ func (t TestComplexDynamicTuplesReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestComplexDynamicTuplesReturn from ABI bytes in the provided buffer
-func (t *TestComplexDynamicTuplesReturn) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestComplexDynamicTuplesReturn from ABI bytes in the provided buffer
+func (t *TestComplexDynamicTuplesReturn) Decode(data0 []byte) error {
 	if len(data0) < TestComplexDynamicTuplesReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesReturn")
 	}
@@ -979,11 +934,6 @@ func (t *TestComplexDynamicTuplesReturn) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes TestComplexDynamicTuplesReturn from ABI bytes
-func (t *TestComplexDynamicTuplesReturn) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const TestDeeplyNestedCallStaticSize = 32
@@ -1029,8 +979,8 @@ func (t TestDeeplyNestedCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestDeeplyNestedCall from ABI bytes in the provided buffer
-func (t *TestDeeplyNestedCall) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestDeeplyNestedCall from ABI bytes in the provided buffer
+func (t *TestDeeplyNestedCall) Decode(data0 []byte) error {
 	if len(data0) < TestDeeplyNestedCallStaticSize {
 		return fmt.Errorf("insufficient data for TestDeeplyNestedCall")
 	}
@@ -1043,17 +993,12 @@ func (t *TestDeeplyNestedCall) DecodeFrom(data0 []byte) error {
 		if offset >= len(data0) {
 			return fmt.Errorf("insufficient data for dynamic data, t.Data")
 		}
-		if err := t.Data.DecodeFrom(data0[offset:]); err != nil {
+		if err := t.Data.Decode(data0[offset:]); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes TestDeeplyNestedCall from ABI bytes
-func (t *TestDeeplyNestedCall) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testDeeplyNested arguments to ABI bytes including function selector
@@ -1103,8 +1048,8 @@ func (t TestDeeplyNestedReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestDeeplyNestedReturn from ABI bytes in the provided buffer
-func (t *TestDeeplyNestedReturn) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestDeeplyNestedReturn from ABI bytes in the provided buffer
+func (t *TestDeeplyNestedReturn) Decode(data0 []byte) error {
 	if len(data0) < TestDeeplyNestedReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestDeeplyNestedReturn")
 	}
@@ -1113,11 +1058,6 @@ func (t *TestDeeplyNestedReturn) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes TestDeeplyNestedReturn from ABI bytes
-func (t *TestDeeplyNestedReturn) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const TestFixedArraysCallStaticSize = 320
@@ -1194,8 +1134,8 @@ func (t TestFixedArraysCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestFixedArraysCall from ABI bytes in the provided buffer
-func (t *TestFixedArraysCall) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestFixedArraysCall from ABI bytes in the provided buffer
+func (t *TestFixedArraysCall) Decode(data0 []byte) error {
 	if len(data0) < TestFixedArraysCallStaticSize {
 		return fmt.Errorf("insufficient data for TestFixedArraysCall")
 	}
@@ -1226,11 +1166,6 @@ func (t *TestFixedArraysCall) DecodeFrom(data0 []byte) error {
 	}
 
 	return nil
-}
-
-// Decode decodes TestFixedArraysCall from ABI bytes
-func (t *TestFixedArraysCall) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testFixedArrays arguments to ABI bytes including function selector
@@ -1280,8 +1215,8 @@ func (t TestFixedArraysReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestFixedArraysReturn from ABI bytes in the provided buffer
-func (t *TestFixedArraysReturn) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestFixedArraysReturn from ABI bytes in the provided buffer
+func (t *TestFixedArraysReturn) Decode(data0 []byte) error {
 	if len(data0) < TestFixedArraysReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestFixedArraysReturn")
 	}
@@ -1290,11 +1225,6 @@ func (t *TestFixedArraysReturn) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes TestFixedArraysReturn from ABI bytes
-func (t *TestFixedArraysReturn) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const TestMixedTypesCallStaticSize = 160
@@ -1399,8 +1329,8 @@ func (t TestMixedTypesCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestMixedTypesCall from ABI bytes in the provided buffer
-func (t *TestMixedTypesCall) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestMixedTypesCall from ABI bytes in the provided buffer
+func (t *TestMixedTypesCall) Decode(data0 []byte) error {
 	if len(data0) < TestMixedTypesCallStaticSize {
 		return fmt.Errorf("insufficient data for TestMixedTypesCall")
 	}
@@ -1451,18 +1381,13 @@ func (t *TestMixedTypesCall) DecodeFrom(data0 []byte) error {
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Items[i0]")
 			}
-			if err := t.Items[i0].DecodeFrom(data1[offset:]); err != nil {
+			if err := t.Items[i0].Decode(data1[offset:]); err != nil {
 				return err
 			}
 		}
 	}
 
 	return nil
-}
-
-// Decode decodes TestMixedTypesCall from ABI bytes
-func (t *TestMixedTypesCall) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testMixedTypes arguments to ABI bytes including function selector
@@ -1512,8 +1437,8 @@ func (t TestMixedTypesReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestMixedTypesReturn from ABI bytes in the provided buffer
-func (t *TestMixedTypesReturn) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestMixedTypesReturn from ABI bytes in the provided buffer
+func (t *TestMixedTypesReturn) Decode(data0 []byte) error {
 	if len(data0) < TestMixedTypesReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestMixedTypesReturn")
 	}
@@ -1522,11 +1447,6 @@ func (t *TestMixedTypesReturn) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes TestMixedTypesReturn from ABI bytes
-func (t *TestMixedTypesReturn) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const TestNestedDynamicArraysCallStaticSize = 64
@@ -1670,8 +1590,8 @@ func (t TestNestedDynamicArraysCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestNestedDynamicArraysCall from ABI bytes in the provided buffer
-func (t *TestNestedDynamicArraysCall) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestNestedDynamicArraysCall from ABI bytes in the provided buffer
+func (t *TestNestedDynamicArraysCall) Decode(data0 []byte) error {
 	if len(data0) < TestNestedDynamicArraysCallStaticSize {
 		return fmt.Errorf("insufficient data for TestNestedDynamicArraysCall")
 	}
@@ -1762,11 +1682,6 @@ func (t *TestNestedDynamicArraysCall) DecodeFrom(data0 []byte) error {
 	return nil
 }
 
-// Decode decodes TestNestedDynamicArraysCall from ABI bytes
-func (t *TestNestedDynamicArraysCall) Decode(data []byte) error {
-	return t.DecodeFrom(data)
-}
-
 // EncodeWithSelector encodes testNestedDynamicArrays arguments to ABI bytes including function selector
 func (t TestNestedDynamicArraysCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1814,8 +1729,8 @@ func (t TestNestedDynamicArraysReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestNestedDynamicArraysReturn from ABI bytes in the provided buffer
-func (t *TestNestedDynamicArraysReturn) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestNestedDynamicArraysReturn from ABI bytes in the provided buffer
+func (t *TestNestedDynamicArraysReturn) Decode(data0 []byte) error {
 	if len(data0) < TestNestedDynamicArraysReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestNestedDynamicArraysReturn")
 	}
@@ -1824,11 +1739,6 @@ func (t *TestNestedDynamicArraysReturn) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes TestNestedDynamicArraysReturn from ABI bytes
-func (t *TestNestedDynamicArraysReturn) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const TestSmallIntegersCallStaticSize = 256
@@ -1913,8 +1823,8 @@ func (t TestSmallIntegersCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestSmallIntegersCall from ABI bytes in the provided buffer
-func (t *TestSmallIntegersCall) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestSmallIntegersCall from ABI bytes in the provided buffer
+func (t *TestSmallIntegersCall) Decode(data0 []byte) error {
 	if len(data0) < TestSmallIntegersCallStaticSize {
 		return fmt.Errorf("insufficient data for TestSmallIntegersCall")
 	}
@@ -1937,11 +1847,6 @@ func (t *TestSmallIntegersCall) DecodeFrom(data0 []byte) error {
 	t.I64 = int64(binary.BigEndian.Uint64(data0[224+24 : 224+32]))
 
 	return nil
-}
-
-// Decode decodes TestSmallIntegersCall from ABI bytes
-func (t *TestSmallIntegersCall) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes testSmallIntegers arguments to ABI bytes including function selector
@@ -1991,8 +1896,8 @@ func (t TestSmallIntegersReturn) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes TestSmallIntegersReturn from ABI bytes in the provided buffer
-func (t *TestSmallIntegersReturn) DecodeFrom(data0 []byte) error {
+// Decodedecodes TestSmallIntegersReturn from ABI bytes in the provided buffer
+func (t *TestSmallIntegersReturn) Decode(data0 []byte) error {
 	if len(data0) < TestSmallIntegersReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestSmallIntegersReturn")
 	}
@@ -2001,9 +1906,4 @@ func (t *TestSmallIntegersReturn) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes TestSmallIntegersReturn from ABI bytes
-func (t *TestSmallIntegersReturn) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }

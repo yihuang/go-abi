@@ -61,8 +61,8 @@ func (t SendCall) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes SendCall from ABI bytes in the provided buffer
-func (t *SendCall) DecodeFrom(data0 []byte) error {
+// Decodedecodes SendCall from ABI bytes in the provided buffer
+func (t *SendCall) Decode(data0 []byte) error {
 	if len(data0) < SendCallStaticSize {
 		return fmt.Errorf("insufficient data for SendCall")
 	}
@@ -73,11 +73,6 @@ func (t *SendCall) DecodeFrom(data0 []byte) error {
 	t.Amount = new(big.Int).SetBytes(data0[32:64])
 
 	return nil
-}
-
-// Decode decodes SendCall from ABI bytes
-func (t *SendCall) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes send arguments to ABI bytes including function selector

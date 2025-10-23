@@ -74,8 +74,8 @@ func (t Overloaded1Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded1Call from ABI bytes in the provided buffer
-func (t *Overloaded1Call) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded1Call from ABI bytes in the provided buffer
+func (t *Overloaded1Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded1CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded1Call")
 	}
@@ -86,11 +86,6 @@ func (t *Overloaded1Call) DecodeFrom(data0 []byte) error {
 	t.Amount = new(big.Int).SetBytes(data0[32:64])
 
 	return nil
-}
-
-// Decode decodes Overloaded1Call from ABI bytes
-func (t *Overloaded1Call) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded1 arguments to ABI bytes including function selector
@@ -140,8 +135,8 @@ func (t Overloaded1Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded1Return from ABI bytes in the provided buffer
-func (t *Overloaded1Return) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded1Return from ABI bytes in the provided buffer
+func (t *Overloaded1Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded1ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded1Return")
 	}
@@ -150,11 +145,6 @@ func (t *Overloaded1Return) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes Overloaded1Return from ABI bytes
-func (t *Overloaded1Return) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Overloaded10CallStaticSize = 96
@@ -200,8 +190,8 @@ func (t Overloaded10Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded10Call from ABI bytes in the provided buffer
-func (t *Overloaded10Call) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded10Call from ABI bytes in the provided buffer
+func (t *Overloaded10Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded10CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded10Call")
 	}
@@ -214,11 +204,6 @@ func (t *Overloaded10Call) DecodeFrom(data0 []byte) error {
 	t.Amount = new(big.Int).SetBytes(data0[64:96])
 
 	return nil
-}
-
-// Decode decodes Overloaded10Call from ABI bytes
-func (t *Overloaded10Call) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded10 arguments to ABI bytes including function selector
@@ -268,8 +253,8 @@ func (t Overloaded10Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded10Return from ABI bytes in the provided buffer
-func (t *Overloaded10Return) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded10Return from ABI bytes in the provided buffer
+func (t *Overloaded10Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded10ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded10Return")
 	}
@@ -278,11 +263,6 @@ func (t *Overloaded10Return) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes Overloaded10Return from ABI bytes
-func (t *Overloaded10Return) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Overloaded11CallStaticSize = 128
@@ -343,8 +323,8 @@ func (t Overloaded11Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded11Call from ABI bytes in the provided buffer
-func (t *Overloaded11Call) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded11Call from ABI bytes in the provided buffer
+func (t *Overloaded11Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded11CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded11Call")
 	}
@@ -370,11 +350,6 @@ func (t *Overloaded11Call) DecodeFrom(data0 []byte) error {
 	}
 
 	return nil
-}
-
-// Decode decodes Overloaded11Call from ABI bytes
-func (t *Overloaded11Call) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded11 arguments to ABI bytes including function selector
@@ -424,8 +399,8 @@ func (t Overloaded11Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded11Return from ABI bytes in the provided buffer
-func (t *Overloaded11Return) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded11Return from ABI bytes in the provided buffer
+func (t *Overloaded11Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded11ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded11Return")
 	}
@@ -434,11 +409,6 @@ func (t *Overloaded11Return) DecodeFrom(data0 []byte) error {
 	t.Result1 = data0[0+31] == 1
 
 	return nil
-}
-
-// Decode decodes Overloaded11Return from ABI bytes
-func (t *Overloaded11Return) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Overloaded2CallStaticSize = 32
@@ -475,8 +445,8 @@ func (t Overloaded2Call) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded2Call from ABI bytes in the provided buffer
-func (t *Overloaded2Call) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded2Call from ABI bytes in the provided buffer
+func (t *Overloaded2Call) Decode(data0 []byte) error {
 	if len(data0) < Overloaded2CallStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded2Call")
 	}
@@ -485,11 +455,6 @@ func (t *Overloaded2Call) DecodeFrom(data0 []byte) error {
 	copy(t.Account[:], data0[0+12:0+32])
 
 	return nil
-}
-
-// Decode decodes Overloaded2Call from ABI bytes
-func (t *Overloaded2Call) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 // EncodeWithSelector encodes overloaded2 arguments to ABI bytes including function selector
@@ -539,8 +504,8 @@ func (t Overloaded2Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded2Return from ABI bytes in the provided buffer
-func (t *Overloaded2Return) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded2Return from ABI bytes in the provided buffer
+func (t *Overloaded2Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded2ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded2Return")
 	}
@@ -549,11 +514,6 @@ func (t *Overloaded2Return) DecodeFrom(data0 []byte) error {
 	t.Result1 = new(big.Int).SetBytes(data0[0:32])
 
 	return nil
-}
-
-// Decode decodes Overloaded2Return from ABI bytes
-func (t *Overloaded2Return) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
 
 const Overloaded20ReturnStaticSize = 32
@@ -593,8 +553,8 @@ func (t Overloaded20Return) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// DecodeFrom decodes Overloaded20Return from ABI bytes in the provided buffer
-func (t *Overloaded20Return) DecodeFrom(data0 []byte) error {
+// Decodedecodes Overloaded20Return from ABI bytes in the provided buffer
+func (t *Overloaded20Return) Decode(data0 []byte) error {
 	if len(data0) < Overloaded20ReturnStaticSize {
 		return fmt.Errorf("insufficient data for Overloaded20Return")
 	}
@@ -603,9 +563,4 @@ func (t *Overloaded20Return) DecodeFrom(data0 []byte) error {
 	t.Result1 = new(big.Int).SetBytes(data0[0:32])
 
 	return nil
-}
-
-// Decode decodes Overloaded20Return from ABI bytes
-func (t *Overloaded20Return) Decode(data []byte) error {
-	return t.DecodeFrom(data)
 }
