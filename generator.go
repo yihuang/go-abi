@@ -779,7 +779,7 @@ dynamicOffset += n
 
 // genDecode generates the Decode method
 func (g *Generator) genDecode(s Struct) {
-	g.L(`// Decodedecodes %s from ABI bytes in the provided buffer
+	g.L(`// Decode decodes %s from ABI bytes in the provided buffer
 func (t *%s) Decode(data0 []byte) error {
 	if len(data0) < %sStaticSize {
 		return fmt.Errorf("insufficient data for %s")
