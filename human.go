@@ -8,13 +8,26 @@ import (
 	"strings"
 )
 
-// Regular expressions compiled once at package level to avoid recompilation
+// Regular expressions compiled once at package level
 var (
-	structLineRegex      = regexp.MustCompile(`^struct\s+\w+\s*\{\s*.*\s*\}$`)
-	structDefinitionRegex = regexp.MustCompile(`^struct\s+(\w+)\s*\{\s*(.*)\s*\}$`)
-	eventRegex           = regexp.MustCompile(`^event\s+(\w+)\s*\(([^)]*)\)$`)
-	constructorRegex     = regexp.MustCompile(`^constructor\s*\(([^)]*)\)\s*(\w*)$`)
-	fallbackRegex        = regexp.MustCompile(`^(fallback|receive)\s*\(\s*\)\s*(\w*)$`)
+	// Function: function name(type1,type2) [payable|view|pure] [returns(type3,type4)]
+	// Match basic function structure, handle parameters and returns manually
+	functionRegex = regexp.MustCompile(`^function\s+(\w+)\s*\(.*\)\s*(payable|view|pure)?(?:\s+returns\s*\(.*\))?$`)
+
+	// Event: event name(type1 indexed name1, type2 name2)
+	eventRegex = regexp.MustCompile(`^event\s+(\w+)\s*\(([^)]*)\)$`)
+
+	// Constructor: constructor(type1,type2) [payable]
+	constructorRegex = regexp.MustCompile(`^constructor\s*\(([^)]*)\)\s*(payable)?$`)
+
+	// Fallback/Receive: fallback() [payable] or receive() [payable]
+	fallbackRegex = regexp.MustCompile(`^(fallback|receive)\s*\(\s*\)\s*(payable)?$`)
+
+	// Struct: struct Name { type1 name1; type2 name2; }
+	structRegex = regexp.MustCompile(`^struct\s+(\w+)\s*\{\s*([^}]*)\s*\}$`)
+
+	// Parameter with optional indexed and name: type [indexed] [name]
+	paramRegex = regexp.MustCompile(`^(\S+)(?:\s+(indexed))?(?:\s+(\w+))?$`)
 )
 
 // ParseHumanReadableABI parses human-readable ABI definitions and converts them to JSON ABI format
@@ -38,7 +51,7 @@ func ParseHumanReadableABI(humanABI []string) ([]byte, error) {
 			continue
 		}
 
-		item, err := parseHumanReadableLineWithStructs(line, structs)
+		item, err := parseLineWithStructs(line, structs)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse line '%s': %w", line, err)
 		}
@@ -47,7 +60,10 @@ func ParseHumanReadableABI(humanABI []string) ([]byte, error) {
 		}
 	}
 
-	// Convert to JSON bytes
+	if len(jsonABI) == 0 {
+		return nil, fmt.Errorf("no valid ABI items found")
+	}
+
 	jsonBytes, err := json.Marshal(jsonABI)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal JSON: %w", err)
@@ -56,39 +72,561 @@ func ParseHumanReadableABI(humanABI []string) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-// parseHumanReadableLine parses a single line of human-readable ABI
-func parseHumanReadableLine(line string) (map[string]interface{}, error) {
-	return parseHumanReadableLineWithStructs(line, nil)
+// isStructSignature checks if a line is a struct definition
+func isStructSignature(line string) bool {
+	return structRegex.MatchString(line)
 }
 
-// parseHumanReadableLineWithStructs parses a single line of human-readable ABI with struct context
-func parseHumanReadableLineWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
+// parseLineWithStructs parses a single line of human-readable ABI with struct context
+func parseLineWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	// Try to match function
-	if item, err := parseFunctionWithStructs(line, structs); err == nil && item != nil {
+	if item := parseFunctionWithStructs(line, structs); item != nil {
 		return item, nil
 	}
 
 	// Try to match event
-	if item, err := parseEventWithStructs(line, structs); err == nil && item != nil {
+	if item := parseEventWithStructs(line, structs); item != nil {
 		return item, nil
 	}
 
 	// Try to match constructor
-	if item, err := parseConstructorWithStructs(line, structs); err == nil && item != nil {
+	if item := parseConstructorWithStructs(line, structs); item != nil {
 		return item, nil
 	}
 
 	// Try to match fallback/receive
-	if item, err := parseFallback(line); err == nil && item != nil {
+	if item := parseFallback(line); item != nil {
 		return item, nil
 	}
 
-	return nil, fmt.Errorf("unrecognized ABI line format")
+	return nil, fmt.Errorf("unrecognized ABI line format: %s", line)
 }
 
-// isStructSignature checks if a line is a struct definition
-func isStructSignature(line string) bool {
-	return structLineRegex.MatchString(line)
+// parseLine parses a single line of human-readable ABI
+func parseLine(line string) (map[string]interface{}, error) {
+	return parseLineWithStructs(line, nil)
+}
+
+// parseFunctionWithStructs parses a function definition with struct context
+func parseFunctionWithStructs(line string, structs map[string][]map[string]interface{}) map[string]interface{} {
+	matches := functionRegex.FindStringSubmatch(line)
+	if matches == nil {
+		return nil
+	}
+
+	name := matches[1]
+	inputsStr := ""
+	outputsStr := ""
+
+	// Manually extract parameters section
+	openParen := strings.Index(line, "(")
+	if openParen != -1 {
+		// Find the matching closing parenthesis for parameters
+		parenCount := 1
+		for i := openParen + 1; i < len(line); i++ {
+			if line[i] == '(' {
+				parenCount++
+			} else if line[i] == ')' {
+				parenCount--
+				if parenCount == 0 {
+					inputsStr = line[openParen+1 : i]
+					break
+				}
+			}
+		}
+	}
+
+	// Manually extract returns section if it exists
+	returnsIndex := -1
+	if strings.Contains(line, "returns") {
+		returnsIndex = strings.Index(line, "returns")
+		if returnsIndex != -1 {
+			// Find the opening parenthesis after "returns"
+			openParen := strings.Index(line[returnsIndex:], "(")
+			if openParen != -1 {
+				start := returnsIndex + openParen + 1
+				// Find the matching closing parenthesis
+				parenCount := 1
+				for i := start; i < len(line); i++ {
+					if line[i] == '(' {
+						parenCount++
+					} else if line[i] == ')' {
+						parenCount--
+						if parenCount == 0 {
+							outputsStr = line[start:i]
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Extract state mutability manually - look for payable/view/pure between parameters and returns
+	stateMutability := "nonpayable"
+	if returnsIndex != -1 {
+		// Look for state mutability between the end of parameters and "returns"
+		endOfParams := openParen + len(inputsStr) + 2 // position after closing parenthesis of parameters
+		if endOfParams < returnsIndex {
+			between := strings.TrimSpace(line[endOfParams:returnsIndex])
+			if between == "payable" {
+				stateMutability = "payable"
+			} else if between == "view" {
+				stateMutability = "view"
+			} else if between == "pure" {
+				stateMutability = "pure"
+			}
+		}
+	} else {
+		// No returns clause, look for state mutability after parameters
+		endOfParams := openParen + len(inputsStr) + 2 // position after closing parenthesis of parameters
+		if endOfParams < len(line) {
+			remaining := strings.TrimSpace(line[endOfParams:])
+			if remaining == "payable" {
+				stateMutability = "payable"
+			} else if remaining == "view" {
+				stateMutability = "view"
+			} else if remaining == "pure" {
+				stateMutability = "pure"
+			}
+		}
+	}
+
+	inputs, err := parseParametersWithStructs(inputsStr, false, structs)
+	if err != nil {
+		return nil
+	}
+
+	outputs := []map[string]interface{}{}
+	if outputsStr != "" {
+		outputs, err = parseParametersWithStructs(outputsStr, false, structs)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return map[string]interface{}{
+		"type":            "function",
+		"name":            name,
+		"inputs":          inputs,
+		"outputs":         outputs,
+		"stateMutability": stateMutability,
+	}
+}
+
+// parseFunction parses a function definition
+func parseFunction(line string) map[string]interface{} {
+	return parseFunctionWithStructs(line, nil)
+}
+
+// parseEventWithStructs parses an event definition with struct context
+func parseEventWithStructs(line string, structs map[string][]map[string]interface{}) map[string]interface{} {
+	matches := eventRegex.FindStringSubmatch(line)
+	if matches == nil {
+		return nil
+	}
+
+	name := matches[1]
+	inputsStr := matches[2]
+
+	inputs, err := parseParametersWithStructs(inputsStr, true, structs)
+	if err != nil {
+		return nil
+	}
+
+	return map[string]interface{}{
+		"type":      "event",
+		"name":      name,
+		"inputs":    inputs,
+		"anonymous": false,
+	}
+}
+
+// parseEvent parses an event definition
+func parseEvent(line string) map[string]interface{} {
+	return parseEventWithStructs(line, nil)
+}
+
+// parseConstructorWithStructs parses a constructor definition with struct context
+func parseConstructorWithStructs(line string, structs map[string][]map[string]interface{}) map[string]interface{} {
+	matches := constructorRegex.FindStringSubmatch(line)
+	if matches == nil {
+		return nil
+	}
+
+	inputsStr := matches[1]
+	stateMutability := matches[2]
+
+	if stateMutability == "" {
+		stateMutability = "nonpayable"
+	}
+
+	inputs, err := parseParametersWithStructs(inputsStr, false, structs)
+	if err != nil {
+		return nil
+	}
+
+	return map[string]interface{}{
+		"type":            "constructor",
+		"inputs":          inputs,
+		"stateMutability": stateMutability,
+	}
+}
+
+// parseConstructor parses a constructor definition
+func parseConstructor(line string) map[string]interface{} {
+	return parseConstructorWithStructs(line, nil)
+}
+
+// parseFallback parses fallback and receive function definitions
+func parseFallback(line string) map[string]interface{} {
+	matches := fallbackRegex.FindStringSubmatch(line)
+	if matches == nil {
+		return nil
+	}
+
+	funcType := matches[1]
+	stateMutability := matches[2]
+
+	if stateMutability == "" {
+		stateMutability = "nonpayable"
+	}
+
+	return map[string]interface{}{
+		"type":            funcType,
+		"stateMutability": stateMutability,
+	}
+}
+
+// parseParametersWithStructs parses a comma-separated list of parameters with struct context
+func parseParametersWithStructs(paramsStr string, isEvent bool, structs map[string][]map[string]interface{}) ([]map[string]interface{}, error) {
+	if strings.TrimSpace(paramsStr) == "" {
+		return []map[string]interface{}{}, nil
+	}
+
+	// Parse parameters with proper nested parentheses handling
+	params, err := splitByCommaOutsideParentheses(paramsStr)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]map[string]interface{}, 0, len(params))
+
+	for _, param := range params {
+		param = strings.TrimSpace(param)
+		if param == "" {
+			continue
+		}
+
+		// Parse parameter components
+		paramMap, err := parseParameterWithStructs(param, isEvent, structs)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, paramMap)
+	}
+
+	return result, nil
+}
+
+// parseParameterWithStructs parses a single parameter string with struct context
+func parseParameterWithStructs(paramStr string, isEvent bool, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
+	// For tuple types, we need special handling
+	// Look for opening parenthesis and find matching closing parenthesis
+	if strings.HasPrefix(paramStr, "(") {
+		// Find the matching closing parenthesis
+		parenCount := 0
+		for _, ch := range paramStr {
+			if ch == '(' {
+				parenCount++
+			} else if ch == ')' {
+				parenCount--
+				if parenCount == 0 {
+					// Found matching closing parenthesis at position i
+					return parseTupleParameterWithStructs(paramStr, isEvent, structs)
+				}
+			}
+		}
+	}
+
+	// For regular types, use regex parsing
+	matches := paramRegex.FindStringSubmatch(paramStr)
+	if matches == nil {
+		return nil, fmt.Errorf("invalid parameter format: %s", paramStr)
+	}
+
+	typeStr := matches[1]
+	indexed := matches[2] == "indexed"
+	name := matches[3]
+
+	// Check if this is a struct reference
+	if structs != nil {
+		// Handle array types with structs
+		if strings.HasSuffix(typeStr, "[]") {
+			baseType := typeStr[:len(typeStr)-2]
+			if structComponents, exists := structs[baseType]; exists {
+				// Create tuple array type with components
+				result := map[string]interface{}{
+					"name":         name,
+					"type":         "tuple[]",
+					"internalType": "struct " + baseType + "[]",
+					"components":   structComponents,
+				}
+				if isEvent {
+					result["indexed"] = indexed
+				}
+				return result, nil
+			}
+		}
+		// Handle fixed array types with structs
+		if idx := strings.Index(typeStr, "["); idx != -1 && strings.HasSuffix(typeStr, "]") {
+			baseType := typeStr[:idx]
+			if structComponents, exists := structs[baseType]; exists {
+				// Create tuple fixed array type with components
+				result := map[string]interface{}{
+					"name":         name,
+					"type":         "tuple" + typeStr[idx:],
+					"internalType": "struct " + baseType + typeStr[idx:],
+					"components":   structComponents,
+				}
+				if isEvent {
+					result["indexed"] = indexed
+				}
+				return result, nil
+			}
+		}
+		// Handle regular struct reference
+		if structComponents, exists := structs[typeStr]; exists {
+			// Create tuple type with components
+			result := map[string]interface{}{
+				"name":         name,
+				"type":         "tuple",
+				"internalType": "struct " + typeStr,
+				"components":   structComponents,
+			}
+			if isEvent {
+				result["indexed"] = indexed
+			}
+			return result, nil
+		}
+	}
+
+	// Validate and normalize type
+	normalizedType, err := normalizeType(typeStr)
+	if err != nil {
+		return nil, err
+	}
+
+	paramMap := map[string]interface{}{
+		"name": name,
+		"type": normalizedType,
+	}
+
+	if isEvent {
+		paramMap["indexed"] = indexed
+	}
+
+	return paramMap, nil
+}
+
+// parseTupleParameterWithStructs parses a tuple parameter with struct context
+func parseTupleParameterWithStructs(paramStr string, isEvent bool, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
+	// Find the matching closing parenthesis for the tuple content
+	parenCount := 0
+	tupleEnd := -1
+	for i, ch := range paramStr {
+		if ch == '(' {
+			parenCount++
+		} else if ch == ')' {
+			parenCount--
+			if parenCount == 0 {
+				tupleEnd = i
+				break
+			}
+		}
+	}
+
+	if tupleEnd == -1 {
+		return nil, fmt.Errorf("unbalanced parentheses in tuple: %s", paramStr)
+	}
+
+	// Extract the content inside the tuple parentheses
+	content := strings.TrimSpace(paramStr[1:tupleEnd])
+
+	// Parse the tuple components
+	components, err := parseParametersWithStructs(content, false, structs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract name and array info from the part after the tuple
+	name := ""
+	isArray := false
+	isFixedArray := false
+	arraySize := ""
+
+	if tupleEnd+1 < len(paramStr) {
+		remaining := strings.TrimSpace(paramStr[tupleEnd+1:])
+		if remaining != "" {
+			// Check for array types
+			if strings.HasPrefix(remaining, "[]") {
+				isArray = true
+				// Update the name to remove the array brackets
+				name = strings.TrimSpace(strings.TrimPrefix(remaining, "[]"))
+			} else if bracketIdx := strings.Index(remaining, "["); bracketIdx != -1 && strings.HasSuffix(remaining, "]") {
+				isFixedArray = true
+				arraySize = remaining[bracketIdx+1 : len(remaining)-1]
+				// Update the name to remove the fixed array brackets
+				name = strings.TrimSpace(remaining[:bracketIdx])
+			} else {
+				// No array, just a name
+				name = remaining
+			}
+		}
+	}
+
+	paramMap := map[string]interface{}{
+		"name":       name,
+		"type":       "tuple",
+		"components": components,
+	}
+
+	if isArray {
+		paramMap["type"] = "tuple[]"
+	} else if isFixedArray {
+		paramMap["type"] = "tuple[" + arraySize + "]"
+	}
+
+	// Only add indexed field for events
+	// For functions, don't include the indexed field at all
+
+	return paramMap, nil
+}
+
+// splitByCommaOutsideParentheses splits a string by commas that are not inside parentheses
+func splitByCommaOutsideParentheses(s string) ([]string, error) {
+	var parts []string
+	var current strings.Builder
+	parenCount := 0
+
+	for _, ch := range s {
+		if ch == '(' {
+			parenCount++
+			current.WriteRune(ch)
+		} else if ch == ')' {
+			parenCount--
+			current.WriteRune(ch)
+		} else if ch == ',' && parenCount == 0 {
+			// Only split on commas that are not inside parentheses
+			part := strings.TrimSpace(current.String())
+			if part != "" {
+				parts = append(parts, part)
+			}
+			current.Reset()
+		} else {
+			current.WriteRune(ch)
+		}
+	}
+
+	// Add the last part
+	part := strings.TrimSpace(current.String())
+	if part != "" {
+		parts = append(parts, part)
+	}
+
+	// Validate that all parentheses are balanced
+	if parenCount != 0 {
+		return nil, fmt.Errorf("unbalanced parentheses in parameter string: %s", s)
+	}
+
+	return parts, nil
+}
+
+// normalizeType validates and normalizes Solidity type names
+func normalizeType(typeStr string) (string, error) {
+	// Handle arrays first
+	if strings.HasSuffix(typeStr, "[]") {
+		elemType := typeStr[:len(typeStr)-2]
+		normalizedElem, err := normalizeType(elemType)
+		if err != nil {
+			return "", err
+		}
+		return normalizedElem + "[]", nil
+	}
+
+	// Handle fixed arrays
+	if idx := strings.Index(typeStr, "["); idx != -1 && strings.HasSuffix(typeStr, "]") {
+		elemType := typeStr[:idx]
+		sizeStr := typeStr[idx+1 : len(typeStr)-1]
+
+		normalizedElem, err := normalizeType(elemType)
+		if err != nil {
+			return "", err
+		}
+
+		if _, err := strconv.Atoi(sizeStr); err != nil {
+			return "", fmt.Errorf("invalid array size '%s'", sizeStr)
+		}
+
+		return normalizedElem + "[" + sizeStr + "]", nil
+	}
+
+	// Handle basic types
+	basicTypes := map[string]string{
+		"address": "address",
+		"bool":    "bool",
+		"string":  "string",
+		"bytes":   "bytes",
+	}
+
+	if normalized, exists := basicTypes[typeStr]; exists {
+		return normalized, nil
+	}
+
+	// Handle fixed bytes (bytes1 to bytes32)
+	if strings.HasPrefix(typeStr, "bytes") {
+		if len(typeStr) > 5 {
+			sizeStr := typeStr[5:]
+			if size, err := strconv.Atoi(sizeStr); err == nil && size >= 1 && size <= 32 {
+				return typeStr, nil
+			}
+		}
+		return "", fmt.Errorf("invalid bytes type: %s", typeStr)
+	}
+
+	// Handle integers (u)int8 to (u)int256
+	if strings.HasPrefix(typeStr, "uint") || strings.HasPrefix(typeStr, "int") {
+		// Extract size
+		prefix := ""
+		if strings.HasPrefix(typeStr, "uint") {
+			prefix = "uint"
+		} else {
+			prefix = "int"
+		}
+
+		if len(typeStr) == len(prefix) {
+			// No size specified - normalize to 256 bits (Solidity default)
+			return prefix + "256", nil
+		}
+
+		if len(typeStr) > len(prefix) {
+			sizeStr := typeStr[len(prefix):]
+			if size, err := strconv.Atoi(sizeStr); err == nil && size >= 8 && size <= 256 && size%8 == 0 {
+				return typeStr, nil
+			}
+		}
+		return "", fmt.Errorf("invalid integer type: %s", typeStr)
+	}
+
+	// Handle tuple types (already handled in parseParameter)
+	if strings.HasPrefix(typeStr, "(") && strings.HasSuffix(typeStr, ")") {
+		return typeStr, nil
+	}
+
+	// For now, treat any unrecognized type as a potential struct reference
+	// This allows the parsing to continue and the struct resolution can happen later
+	return typeStr, nil
 }
 
 // parseStructs parses struct definitions from a list of lines
@@ -103,7 +641,7 @@ func parseStructs(lines []string) (map[string][]map[string]interface{}, error) {
 			continue
 		}
 
-		matches := structDefinitionRegex.FindStringSubmatch(line)
+		matches := structRegex.FindStringSubmatch(line)
 		if matches == nil {
 			continue
 		}
@@ -210,697 +748,4 @@ func resolveStructComponents(parameters []map[string]interface{}, structs map[st
 	}
 
 	return components, nil
-}
-
-// parseFunction parses a function definition
-func parseFunction(line string) (map[string]interface{}, error) {
-	return parseFunctionWithStructs(line, nil)
-}
-
-// parseFunctionWithStructs parses a function definition with struct context
-func parseFunctionWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
-	// Check if this is a function line
-	if !strings.HasPrefix(line, "function ") {
-		return nil, nil
-	}
-
-	// Extract function name
-	line = strings.TrimPrefix(line, "function ")
-	nameEnd := strings.Index(line, "(")
-	if nameEnd == -1 {
-		return nil, nil
-	}
-	name := strings.TrimSpace(line[:nameEnd])
-	line = line[nameEnd:]
-
-	// Find the matching closing parenthesis for inputs
-	// Handle nested parentheses for tuple types
-	bracketCount := 0
-	inputsEnd := -1
-	for i, ch := range line {
-		if ch == '(' {
-			bracketCount++
-		} else if ch == ')' {
-			bracketCount--
-			if bracketCount == 0 {
-				inputsEnd = i
-				break
-			}
-		}
-	}
-	if inputsEnd == -1 {
-		return nil, nil
-	}
-
-	inputsStr := line[1:inputsEnd]
-	line = line[inputsEnd+1:]
-
-	// Parse state mutability and returns
-	stateMutability := "nonpayable"
-	var outputsStr string
-
-	// Check for state mutability
-	line = strings.TrimSpace(line)
-	if strings.HasPrefix(line, "view ") || strings.HasPrefix(line, "pure ") || strings.HasPrefix(line, "payable ") || line == "view" || line == "pure" || line == "payable" {
-		parts := strings.Fields(line)
-		stateMutability = parts[0]
-		line = strings.TrimSpace(strings.TrimPrefix(line, parts[0]))
-	}
-
-	// Check for returns
-	if strings.HasPrefix(line, "returns (") {
-		line = strings.TrimPrefix(line, "returns ")
-		// Find the matching closing parenthesis for returns
-		bracketCount = 0
-		returnsEnd := -1
-		for i, ch := range line {
-			if ch == '(' {
-				bracketCount++
-			} else if ch == ')' {
-				bracketCount--
-				if bracketCount == 0 {
-					returnsEnd = i
-					break
-				}
-			}
-		}
-		if returnsEnd == -1 {
-			return nil, nil
-		}
-		outputsStr = line[1:returnsEnd] // Skip the opening '('
-	}
-
-	// Parse inputs
-	inputs, err := parseParametersWithStructs(inputsStr, structs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse inputs for function %s: %w", name, err)
-	}
-
-	// Parse outputs
-	var outputs []map[string]interface{}
-	if outputsStr != "" {
-		outputs, err = parseParametersWithStructs(outputsStr, structs)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse outputs for function %s: %w", name, err)
-		}
-	} else {
-		outputs = []map[string]interface{}{}
-	}
-
-	return map[string]interface{}{
-		"type":            "function",
-		"name":            name,
-		"inputs":          inputs,
-		"outputs":         outputs,
-		"stateMutability": stateMutability,
-	}, nil
-}
-
-// parseEvent parses an event definition
-func parseEvent(line string) (map[string]interface{}, error) {
-	return parseEventWithStructs(line, nil)
-}
-
-// parseEventWithStructs parses an event definition with struct context
-func parseEventWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
-	// Match event with optional indexed parameters
-	// Examples:
-	// "event Transfer(address from, address to, uint256 value)"
-	// "event Transfer(address indexed from, address indexed to, uint256 value)"
-	matches := eventRegex.FindStringSubmatch(line)
-	if matches == nil {
-		return nil, nil
-	}
-
-	name := matches[1]
-	inputsStr := matches[2]
-
-	// Parse inputs with indexed support
-	inputs, err := parseEventParametersWithStructs(inputsStr, structs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse event inputs: %w", err)
-	}
-
-	return map[string]interface{}{
-		"type":      "event",
-		"name":      name,
-		"inputs":    inputs,
-		"anonymous": false,
-	}, nil
-}
-
-// parseConstructor parses a constructor definition
-func parseConstructor(line string) (map[string]interface{}, error) {
-	return parseConstructorWithStructs(line, nil)
-}
-
-// parseConstructorWithStructs parses a constructor definition with struct context
-func parseConstructorWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
-	// Match constructor
-	// Examples:
-	// "constructor(address owner, uint256 initialSupply)"
-	// "constructor(address owner, uint256 initialSupply) payable"
-	matches := constructorRegex.FindStringSubmatch(line)
-	if matches == nil {
-		return nil, nil
-	}
-
-	inputsStr := matches[1]
-	stateMutability := matches[2]
-
-	// Parse inputs
-	inputs, err := parseParametersWithStructs(inputsStr, structs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse constructor inputs: %w", err)
-	}
-
-	// Determine state mutability
-	if stateMutability == "" {
-		stateMutability = "nonpayable"
-	} else if stateMutability != "payable" {
-		return nil, fmt.Errorf("invalid state mutability for constructor: %s", stateMutability)
-	}
-
-	return map[string]interface{}{
-		"type":            "constructor",
-		"inputs":          inputs,
-		"stateMutability": stateMutability,
-	}, nil
-}
-
-// parseFallback parses fallback and receive function definitions
-func parseFallback(line string) (map[string]interface{}, error) {
-	// Match fallback function
-	// Examples:
-	// "fallback()"
-	// "fallback() payable"
-	// "receive() payable"
-	matches := fallbackRegex.FindStringSubmatch(line)
-	if matches == nil {
-		return nil, nil
-	}
-
-	funcType := matches[1]
-	stateMutability := matches[2]
-
-	// Determine state mutability
-	if stateMutability == "" {
-		stateMutability = "nonpayable"
-	} else if stateMutability != "payable" {
-		return nil, fmt.Errorf("invalid state mutability for %s: %s", funcType, stateMutability)
-	}
-
-	return map[string]interface{}{
-		"type":            funcType,
-		"stateMutability": stateMutability,
-	}, nil
-}
-
-// parseParameters parses a comma-separated list of parameters
-func parseParameters(paramsStr string) ([]map[string]interface{}, error) {
-	return parseParametersWithStructs(paramsStr, nil)
-}
-
-// parseParametersWithStructs parses a comma-separated list of parameters with struct context
-func parseParametersWithStructs(paramsStr string, structs map[string][]map[string]interface{}) ([]map[string]interface{}, error) {
-	if strings.TrimSpace(paramsStr) == "" {
-		return []map[string]interface{}{}, nil
-	}
-
-	// Parse parameters with proper nested parentheses handling
-	params, err := parseNestedParameters(paramsStr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse parameters: %w", err)
-	}
-
-	result := make([]map[string]interface{}, 0, len(params))
-
-	for _, param := range params {
-		param = strings.TrimSpace(param)
-		if param == "" {
-			continue
-		}
-
-		// Parse parameter: "type name" or just "type"
-		// Handle tuple types like "(uint256, uint256) pair"
-		paramType, paramName := parseParameterTypeAndName(param)
-		if paramType == "" {
-			continue
-		}
-
-		// Check if this is a struct reference (handle arrays too)
-		if structs != nil {
-			// Check for array types with structs
-			if strings.HasSuffix(paramType, "[]") {
-				baseType := paramType[:len(paramType)-2]
-				if structComponents, exists := structs[baseType]; exists {
-					// Create tuple array type with components
-					result = append(result, map[string]interface{}{
-						"name":         paramName,
-						"type":         "tuple[]",
-						"internalType": "struct " + baseType + "[]",
-						"components":   structComponents,
-					})
-					continue
-				}
-			}
-			// Check for fixed array types with structs
-			if idx := strings.Index(paramType, "["); idx != -1 && strings.HasSuffix(paramType, "]") {
-				baseType := paramType[:idx]
-				if structComponents, exists := structs[baseType]; exists {
-					// Create tuple fixed array type with components
-					result = append(result, map[string]interface{}{
-						"name":         paramName,
-						"type":         "tuple" + paramType[idx:],
-						"internalType": "struct " + baseType + paramType[idx:],
-						"components":   structComponents,
-					})
-					continue
-				}
-			}
-			// Check for regular struct reference
-			if structComponents, exists := structs[paramType]; exists {
-				// Create tuple type with components
-				result = append(result, map[string]interface{}{
-					"name":         paramName,
-					"type":         "tuple",
-					"internalType": "struct " + paramType,
-					"components":   structComponents,
-				})
-				continue
-			}
-		}
-
-		// Validate and normalize type
-		normalizedType, err := normalizeType(paramType)
-		if err != nil {
-			return nil, fmt.Errorf("invalid type '%s': %w", paramType, err)
-		}
-
-		// Check if this is a direct tuple type (e.g., (uint256, uint256))
-		if strings.HasPrefix(normalizedType, "(") && strings.HasSuffix(normalizedType, ")") {
-			// Parse the tuple components using proper nested parsing
-			innerTypes := strings.TrimSpace(normalizedType[1 : len(normalizedType)-1])
-			typeParts, err := parseNestedTypes(innerTypes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse tuple components: %w", err)
-			}
-
-			components := make([]map[string]interface{}, 0, len(typeParts))
-
-			for i, part := range typeParts {
-				part = strings.TrimSpace(part)
-				if part == "" {
-					continue
-				}
-				components = append(components, map[string]interface{}{
-					"name": fmt.Sprintf("field%d", i+1),
-					"type": part,
-				})
-			}
-
-			result = append(result, map[string]interface{}{
-				"name":       paramName,
-				"type":       "tuple",
-				"components": components,
-			})
-		} else {
-			result = append(result, map[string]interface{}{
-				"name": paramName,
-				"type": normalizedType,
-			})
-		}
-	}
-
-	return result, nil
-}
-
-// parseEventParameters parses event parameters with indexed support
-func parseEventParameters(paramsStr string) ([]map[string]interface{}, error) {
-	return parseEventParametersWithStructs(paramsStr, nil)
-}
-
-// parseEventParametersWithStructs parses event parameters with indexed support and struct context
-func parseEventParametersWithStructs(paramsStr string, structs map[string][]map[string]interface{}) ([]map[string]interface{}, error) {
-	if strings.TrimSpace(paramsStr) == "" {
-		return []map[string]interface{}{}, nil
-	}
-
-	params := strings.Split(paramsStr, ",")
-	result := make([]map[string]interface{}, 0, len(params))
-
-	for _, param := range params {
-		param = strings.TrimSpace(param)
-		if param == "" {
-			continue
-		}
-
-		// Parse parameter: "type [indexed] name" or "type name"
-		parts := strings.Fields(param)
-		if len(parts) == 0 {
-			continue
-		}
-
-		indexed := false
-		paramType := parts[0]
-		paramName := ""
-
-		// Check for indexed keyword - it can appear after the type
-		if len(parts) > 1 && parts[1] == "indexed" {
-			indexed = true
-			if len(parts) > 2 {
-				paramName = parts[2]
-			}
-		} else if len(parts) > 1 {
-			// No indexed keyword, second part is the name
-			paramName = parts[1]
-		}
-
-		// Check if this is a struct reference (handle arrays too)
-		if structs != nil {
-			// Check for array types with structs
-			if strings.HasSuffix(paramType, "[]") {
-				baseType := paramType[:len(paramType)-2]
-				if structComponents, exists := structs[baseType]; exists {
-					// Create tuple array type with components
-					result = append(result, map[string]interface{}{
-						"name":         paramName,
-						"type":         "tuple[]",
-						"internalType": "struct " + baseType + "[]",
-						"components":   structComponents,
-						"indexed":      indexed,
-					})
-					continue
-				}
-			}
-			// Check for fixed array types with structs
-			if idx := strings.Index(paramType, "["); idx != -1 && strings.HasSuffix(paramType, "]") {
-				baseType := paramType[:idx]
-				if structComponents, exists := structs[baseType]; exists {
-					// Create tuple fixed array type with components
-					result = append(result, map[string]interface{}{
-						"name":         paramName,
-						"type":         "tuple" + paramType[idx:],
-						"internalType": "struct " + baseType + paramType[idx:],
-						"components":   structComponents,
-						"indexed":      indexed,
-					})
-					continue
-				}
-			}
-			// Check for regular struct reference
-			if structComponents, exists := structs[paramType]; exists {
-				// Create tuple type with components
-				result = append(result, map[string]interface{}{
-					"name":         paramName,
-					"type":         "tuple",
-					"internalType": "struct " + paramType,
-					"components":   structComponents,
-					"indexed":      indexed,
-				})
-				continue
-			}
-		}
-
-		// Validate and normalize type
-		normalizedType, err := normalizeType(paramType)
-		if err != nil {
-			return nil, fmt.Errorf("invalid type '%s': %w", paramType, err)
-		}
-
-		result = append(result, map[string]interface{}{
-			"name":    paramName,
-			"type":    normalizedType,
-			"indexed": indexed,
-		})
-	}
-
-	return result, nil
-}
-
-// parseParameterTypeAndName extracts the type and name from a parameter string
-// Handles both simple types like "uint256 amount" and tuple types like "(uint256, uint256) pair"
-func parseParameterTypeAndName(param string) (string, string) {
-	param = strings.TrimSpace(param)
-	if param == "" {
-		return "", ""
-	}
-
-	// Check if this is a tuple type (starts with '(')
-	if strings.HasPrefix(param, "(") {
-		// Find the matching closing parenthesis for the tuple
-		bracketCount := 0
-		tupleEnd := -1
-		for i, ch := range param {
-			if ch == '(' {
-				bracketCount++
-			} else if ch == ')' {
-				bracketCount--
-				if bracketCount == 0 {
-					tupleEnd = i
-					break
-				}
-			}
-		}
-
-		if tupleEnd == -1 {
-			// Unmatched parentheses, fall back to simple parsing
-			parts := strings.Fields(param)
-			if len(parts) == 0 {
-				return "", ""
-			}
-			paramType := parts[0]
-			paramName := ""
-			if len(parts) > 1 {
-				paramName = parts[1]
-			}
-			return paramType, paramName
-		}
-
-		// Extract tuple type and remaining part for name
-		tupleType := strings.TrimSpace(param[:tupleEnd+1])
-		remaining := strings.TrimSpace(param[tupleEnd+1:])
-
-		// Check for array brackets immediately after the tuple
-		if strings.HasPrefix(remaining, "[]") {
-			tupleType += "[]"
-			remaining = strings.TrimSpace(remaining[2:])
-		} else if strings.HasPrefix(remaining, "[") {
-			// Handle fixed arrays like [10]
-			bracketEnd := strings.Index(remaining, "]")
-			if bracketEnd != -1 {
-				tupleType += remaining[:bracketEnd+1]
-				remaining = strings.TrimSpace(remaining[bracketEnd+1:])
-			}
-		}
-
-		// Parse name from remaining part
-		if remaining == "" {
-			return tupleType, ""
-		}
-
-		parts := strings.Fields(remaining)
-		if len(parts) > 0 {
-			return tupleType, parts[0]
-		}
-		return tupleType, ""
-	}
-
-	// Simple type parsing for non-tuple types
-	parts := strings.Fields(param)
-	if len(parts) == 0 {
-		return "", ""
-	}
-	paramType := parts[0]
-	paramName := ""
-	if len(parts) > 1 {
-		paramName = parts[1]
-	}
-	return paramType, paramName
-}
-
-// parseNestedParameters parses a comma-separated list of parameters that may contain nested parentheses
-func parseNestedParameters(paramsStr string) ([]string, error) {
-	var params []string
-	var current strings.Builder
-	bracketCount := 0
-
-	for _, ch := range paramsStr {
-		if ch == '(' {
-			bracketCount++
-			current.WriteRune(ch)
-		} else if ch == ')' {
-			bracketCount--
-			current.WriteRune(ch)
-		} else if ch == ',' && bracketCount == 0 {
-			// Only split on commas that are not inside parentheses
-			param := strings.TrimSpace(current.String())
-			if param != "" {
-				params = append(params, param)
-			}
-			current.Reset()
-		} else {
-			current.WriteRune(ch)
-		}
-	}
-
-	// Add the last parameter
-	param := strings.TrimSpace(current.String())
-	if param != "" {
-		params = append(params, param)
-	}
-
-	// Validate that all parentheses are balanced
-	if bracketCount != 0 {
-		return nil, fmt.Errorf("unbalanced parentheses in parameter string: %s", paramsStr)
-	}
-
-	return params, nil
-}
-
-// parseNestedTypes parses a comma-separated list of types that may contain nested parentheses
-func parseNestedTypes(typeStr string) ([]string, error) {
-	var parts []string
-	var current strings.Builder
-	bracketCount := 0
-
-	for _, ch := range typeStr {
-		if ch == '(' {
-			bracketCount++
-			current.WriteRune(ch)
-		} else if ch == ')' {
-			bracketCount--
-			current.WriteRune(ch)
-		} else if ch == ',' && bracketCount == 0 {
-			// Only split on commas that are not inside parentheses
-			part := strings.TrimSpace(current.String())
-			if part != "" {
-				parts = append(parts, part)
-			}
-			current.Reset()
-		} else {
-			current.WriteRune(ch)
-		}
-	}
-
-	// Add the last part
-	part := strings.TrimSpace(current.String())
-	if part != "" {
-		parts = append(parts, part)
-	}
-
-	// Validate that all parentheses are balanced
-	if bracketCount != 0 {
-		return nil, fmt.Errorf("unbalanced parentheses in type string: %s", typeStr)
-	}
-
-	return parts, nil
-}
-
-// normalizeType validates and normalizes Solidity type names
-func normalizeType(typeStr string) (string, error) {
-	// Handle direct tuple syntax first (e.g., (uint256, uint256))
-	if strings.HasPrefix(typeStr, "(") && strings.HasSuffix(typeStr, ")") {
-		// Extract inner types from tuple
-		innerTypes := strings.TrimSpace(typeStr[1 : len(typeStr)-1])
-		if innerTypes == "" {
-			return "", fmt.Errorf("empty tuple type: %s", typeStr)
-		}
-
-		// Parse individual types within the tuple using proper nested parsing
-		typeParts, err := parseNestedTypes(innerTypes)
-		if err != nil {
-			return "", fmt.Errorf("failed to parse tuple types: %w", err)
-		}
-
-		normalizedParts := make([]string, 0, len(typeParts))
-
-		for _, part := range typeParts {
-			normalizedPart, err := normalizeType(strings.TrimSpace(part))
-			if err != nil {
-				return "", fmt.Errorf("invalid tuple element type '%s': %w", part, err)
-			}
-			normalizedParts = append(normalizedParts, normalizedPart)
-		}
-
-		return "(" + strings.Join(normalizedParts, ",") + ")", nil
-	}
-
-	// Handle arrays first (they have higher priority)
-	if strings.HasSuffix(typeStr, "[]") {
-		elemType := typeStr[:len(typeStr)-2]
-		normalizedElem, err := normalizeType(elemType)
-		if err != nil {
-			return "", err
-		}
-		return normalizedElem + "[]", nil
-	}
-
-	// Handle fixed arrays
-	if idx := strings.Index(typeStr, "["); idx != -1 && strings.HasSuffix(typeStr, "]") {
-		elemType := typeStr[:idx]
-		sizeStr := typeStr[idx+1 : len(typeStr)-1]
-
-		normalizedElem, err := normalizeType(elemType)
-		if err != nil {
-			return "", err
-		}
-
-		if _, err := strconv.Atoi(sizeStr); err != nil {
-			return "", fmt.Errorf("invalid array size '%s'", sizeStr)
-		}
-
-		return normalizedElem + "[" + sizeStr + "]", nil
-	}
-
-	// Handle basic types
-	basicTypes := map[string]string{
-		"address": "address",
-		"bool":    "bool",
-		"string":  "string",
-		"bytes":   "bytes",
-	}
-
-	if normalized, exists := basicTypes[typeStr]; exists {
-		return normalized, nil
-	}
-
-	// Handle fixed bytes (bytes1 to bytes32)
-	if strings.HasPrefix(typeStr, "bytes") {
-		if len(typeStr) > 5 {
-			sizeStr := typeStr[5:]
-			if size, err := strconv.Atoi(sizeStr); err == nil && size >= 1 && size <= 32 {
-				return typeStr, nil
-			}
-		}
-		return "", fmt.Errorf("invalid bytes type: %s", typeStr)
-	}
-
-	// Handle integers (u)int8 to (u)int256
-	if strings.HasPrefix(typeStr, "uint") || strings.HasPrefix(typeStr, "int") {
-		// Extract size
-		prefix := ""
-		if strings.HasPrefix(typeStr, "uint") {
-			prefix = "uint"
-		} else {
-			prefix = "int"
-		}
-
-		if len(typeStr) == len(prefix) {
-			// No size specified - normalize to 256 bits (Solidity default)
-			return prefix + "256", nil
-		}
-
-		if len(typeStr) > len(prefix) {
-			sizeStr := typeStr[len(prefix):]
-			if size, err := strconv.Atoi(sizeStr); err == nil && size >= 8 && size <= 256 && size%8 == 0 {
-				return typeStr, nil
-			}
-		}
-		return "", fmt.Errorf("invalid integer type: %s", typeStr)
-	}
-
-	// Handle tuples (we'll treat any unrecognized type as a tuple for now)
-	// In a real implementation, you might want more sophisticated tuple detection
-	return typeStr, nil
 }

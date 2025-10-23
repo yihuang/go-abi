@@ -17,6 +17,8 @@ var (
 	BalanceOfSelector = [4]byte{0x70, 0xa0, 0x82, 0x31}
 	// batchProcess((uint256,(bytes32,string))[])
 	BatchProcessSelector = [4]byte{0xb7, 0x78, 0x31, 0x64}
+	// communityPool()
+	CommunityPoolSelector = [4]byte{0x14, 0xd1, 0x40, 0xb0}
 	// getBalances(address[10])
 	GetBalancesSelector = [4]byte{0x51, 0x68, 0x3d, 0x7d}
 	// processUserData((address,string,uint256))
@@ -39,6 +41,7 @@ var (
 const (
 	BalanceOfSelectorInt       = 1889567281
 	BatchProcessSelectorInt    = 3078107492
+	CommunityPoolSelectorInt   = 349257904
 	GetBalancesSelectorInt     = 1365785981
 	ProcessUserDataSelectorInt = 3298499304
 	SetDataSelectorInt         = 2133027084
@@ -48,6 +51,88 @@ const (
 	TransferBatchSelectorInt   = 993945391
 	UpdateProfileSelectorInt   = 1844007425
 )
+
+const Tuple_45c89796StaticSize = 64
+
+// Tuple_45c89796 represents an ABI tuple
+type Tuple_45c89796 struct {
+	Denom  string
+	Amount *big.Int
+}
+
+// EncodedSize returns the total encoded size of Tuple_45c89796
+func (t Tuple_45c89796) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += 32 + abi.Pad32(len(t.Denom)) // length + padded string data
+
+	return Tuple_45c89796StaticSize + dynamicSize
+}
+
+// EncodeTo encodes Tuple_45c89796 to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t Tuple_45c89796) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := Tuple_45c89796StaticSize // Start dynamic data after static section
+
+	// Denom (offset)
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+
+	// Denom (dynamic)
+	// length
+	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Denom)))
+	dynamicOffset += 32
+
+	// data
+	copy(buf[dynamicOffset:], []byte(t.Denom))
+	dynamicOffset += abi.Pad32(len(t.Denom))
+
+	// Amount (static)
+
+	if err := abi.EncodeBigInt(t.Amount, buf[32:64], false); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Tuple_45c89796 to ABI bytes
+func (t Tuple_45c89796) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes Tuple_45c89796 from ABI bytes in the provided buffer
+func (t *Tuple_45c89796) DecodeFrom(data0 []byte) error {
+	if len(data0) < Tuple_45c89796StaticSize {
+		return fmt.Errorf("insufficient data for Tuple_45c89796")
+	}
+
+	// Denom
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Denom (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// string data
+		t.Denom = string(data0[offset : offset+length])
+	}
+	// t.Amount (static)
+	t.Amount = new(big.Int).SetBytes(data0[32:64])
+
+	return nil
+}
+
+// Decode decodes Tuple_45c89796 from ABI bytes
+func (t *Tuple_45c89796) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
 
 const UserStaticSize = 96
 
@@ -591,6 +676,126 @@ func (t *BatchProcessReturn) DecodeFrom(data0 []byte) error {
 
 // Decode decodes BatchProcessReturn from ABI bytes
 func (t *BatchProcessReturn) Decode(data []byte) error {
+	return t.DecodeFrom(data)
+}
+
+const CommunityPoolReturnStaticSize = 32
+
+// CommunityPoolReturn represents an ABI tuple
+type CommunityPoolReturn struct {
+	Coins []Tuple_45c89796
+}
+
+// EncodedSize returns the total encoded size of CommunityPoolReturn
+func (t CommunityPoolReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += 32 + 32*len(t.Coins) // length + offset pointers for dynamic elements
+	for _, elem := range t.Coins {
+		dynamicSize += elem.EncodedSize() // dynamic tuple
+	}
+
+	return CommunityPoolReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes CommunityPoolReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t CommunityPoolReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := CommunityPoolReturnStaticSize // Start dynamic data after static section
+
+	// Coins (offset)
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+
+	// Coins (dynamic)
+	{
+		// length
+		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Coins)))
+		dynamicOffset += 32
+
+		var written int
+
+		// data with dynamic region
+		{
+			buf := buf[dynamicOffset:]
+			dynamicOffset := len(t.Coins) * 32 // start after static region
+
+			var offset int
+			for _, item := range t.Coins {
+				// write offsets
+				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+				offset += 32
+
+				// write data (dynamic)
+
+				n, err := item.EncodeTo(buf[dynamicOffset:])
+				if err != nil {
+					return 0, err
+				}
+				dynamicOffset += n
+
+			}
+			written = dynamicOffset
+		}
+		dynamicOffset += written
+
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes CommunityPoolReturn to ABI bytes
+func (t CommunityPoolReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// DecodeFrom decodes CommunityPoolReturn from ABI bytes in the provided buffer
+func (t *CommunityPoolReturn) DecodeFrom(data0 []byte) error {
+	if len(data0) < CommunityPoolReturnStaticSize {
+		return fmt.Errorf("insufficient data for CommunityPoolReturn")
+	}
+
+	// Coins
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Coins (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Coins = make([]Tuple_45c89796, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Coins[i0] (dynamic)
+			if offset >= len(data1) {
+				return fmt.Errorf("insufficient data for dynamic data, t.Coins[i0]")
+			}
+			if err := t.Coins[i0].DecodeFrom(data1[offset:]); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// Decode decodes CommunityPoolReturn from ABI bytes
+func (t *CommunityPoolReturn) Decode(data []byte) error {
 	return t.DecodeFrom(data)
 }
 

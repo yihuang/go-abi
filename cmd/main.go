@@ -144,6 +144,7 @@ func main() {
 	}
 	formatted, err := imports.Process(*outputFile, []byte(generatedCode), &opt)
 	if err != nil {
+		log.Printf("Raw generated code before formatting:%s\n", generatedCode)
 		log.Fatalf("failed to format generated code: %v", err)
 	}
 

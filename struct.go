@@ -37,7 +37,8 @@ type Struct struct {
 func StructFromInputs(method abi.Method) Struct {
 	fields := make([]StructField, 0, len(method.Inputs))
 	for _, input := range method.Inputs {
-		fields = append(fields, StructFieldFromArgument(input))
+		field := StructFieldFromArgument(input)
+		fields = append(fields, field)
 	}
 	return Struct{
 		Name:   fmt.Sprintf("%sCall", Title.String(method.Name)),
@@ -49,7 +50,6 @@ func StructFromOutputs(method abi.Method) Struct {
 	fields := make([]StructField, 0, len(method.Outputs))
 	for i, output := range method.Outputs {
 		field := StructFieldFromArgument(output)
-		// Ensure output fields have proper names
 		if field.Name == "" {
 			field.Name = fmt.Sprintf("Result%d", i+1)
 		}

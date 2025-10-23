@@ -15,7 +15,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 		hasError bool
 	}{
 		{
-			name: "simple function",
+			name:  "simple function",
 			input: []string{"function transfer(address to, uint256 amount)"},
 			expected: `[
 				{
@@ -31,7 +31,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "function with view and returns",
+			name:  "function with view and returns",
 			input: []string{"function balanceOf(address account) view returns (uint256)"},
 			expected: `[
 				{
@@ -48,7 +48,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "function with payable",
+			name:  "function with payable",
 			input: []string{"function deposit() payable"},
 			expected: `[
 				{
@@ -61,7 +61,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "event with indexed parameters",
+			name:  "event with indexed parameters",
 			input: []string{"event Transfer(address indexed from, address indexed to, uint256 value)"},
 			expected: `[
 				{
@@ -77,7 +77,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "constructor",
+			name:  "constructor",
 			input: []string{"constructor(address owner, uint256 initialSupply)"},
 			expected: `[
 				{
@@ -91,7 +91,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "constructor payable",
+			name:  "constructor payable",
 			input: []string{"constructor(address owner) payable"},
 			expected: `[
 				{
@@ -104,7 +104,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "fallback function",
+			name:  "fallback function",
 			input: []string{"fallback()"},
 			expected: `[
 				{
@@ -114,7 +114,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "receive function",
+			name:  "receive function",
 			input: []string{"receive() payable"},
 			expected: `[
 				{
@@ -154,7 +154,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "function with arrays",
+			name:  "function with arrays",
 			input: []string{"function batchTransfer(address[] recipients, uint256[] amounts)"},
 			expected: `[
 				{
@@ -170,7 +170,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "function with fixed arrays",
+			name:  "function with fixed arrays",
 			input: []string{"function getBalances(address[10] accounts) view returns (uint256[10])"},
 			expected: `[
 				{
@@ -187,7 +187,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "function with bytes types",
+			name:  "function with bytes types",
 			input: []string{"function setData(bytes32 key, bytes value)"},
 			expected: `[
 				{
@@ -203,7 +203,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 			]`,
 		},
 		{
-			name: "function with small integers",
+			name:  "function with small integers",
 			input: []string{"function smallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64)"},
 			expected: `[
 				{
@@ -505,6 +505,30 @@ func TestParseHumanReadableABI(t *testing.T) {
 				}
 			]`,
 		},
+		{
+			name: "nested tuple in return",
+			input: []string{
+				"function communityPool() view returns ((string denom, uint256 amount)[] coins)",
+			},
+			expected: `[
+				{
+					"type": "function",
+					"name": "communityPool",
+					"inputs": [],
+					"outputs": [
+						{
+							"name": "coins",
+							"type": "tuple[]",
+							"components": [
+								{"name": "denom", "type": "string"},
+								{"name": "amount", "type": "uint256"}
+							]
+						}
+					],
+					"stateMutability": "view"
+				}
+			]`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -551,6 +575,10 @@ func TestParseHumanReadableABI_Errors(t *testing.T) {
 		{
 			name:  "unrecognized line",
 			input: []string{"invalid line format"},
+		},
+		{
+			name:  "unprocessed parentheses",
+			input: []string{"function communityPool() view returns (tuple(string denom, uint256 amount)[] coins)"},
 		},
 	}
 
