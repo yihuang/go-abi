@@ -10,7 +10,6 @@ import (
 )
 
 var (
-
 	DefaultImports = []string{
 		"fmt",
 		"encoding/binary",
@@ -697,12 +696,13 @@ dynamicOffset += abi.Pad32(len(%s))
 `, ref, ref, ref)
 
 	case abi.TupleTy:
-		g.L(`n, err := %s.EncodeTo(buf[dynamicOffset:])
-if err != nil {
-	return 0, err
-}
-dynamicOffset += n
-`, ref)
+		g.L(`{
+	n, err := %s.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+}`, ref)
 
 	case abi.SliceTy:
 		g.L(`{

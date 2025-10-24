@@ -24,7 +24,7 @@ var TestABI = []string{
 	"function setData(bytes32 key, bytes value)",
 	"function getBalances(address[10] accounts) view returns (uint256[10])",
 	"struct User { address address; string name; uint256 age }",
-	"function processUserData(User user) returns (bool)",
+	"function processUserData(User user1, User user2) returns (bool)",
 	"struct UserMetadata { bytes32 key; string value }",
 	"struct UserData { uint256 id; UserMetadata data }",
 	"function batchProcess(UserData[] users) returns (bool)",
@@ -124,7 +124,8 @@ func TestProcessUserDataEncoding(t *testing.T) {
 
 	// Get our generated encoding
 	args := &ProcessUserDataCall{
-		User: user,
+		User1: user,
+		User2: user,
 	}
 
 	// Test encoding with selector
@@ -132,7 +133,7 @@ func TestProcessUserDataEncoding(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get go-ethereum encoding
-	goEthEncoded, err := TestABIDef.Pack("processUserData", user)
+	goEthEncoded, err := TestABIDef.Pack("processUserData", user, user)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)

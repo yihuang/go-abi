@@ -21,8 +21,8 @@ var (
 	CommunityPoolSelector = [4]byte{0x14, 0xd1, 0x40, 0xb0}
 	// getBalances(address[10])
 	GetBalancesSelector = [4]byte{0x51, 0x68, 0x3d, 0x7d}
-	// processUserData((address,string,uint256))
-	ProcessUserDataSelector = [4]byte{0xc4, 0x9b, 0x1a, 0xe8}
+	// processUserData((address,string,uint256),(address,string,uint256))
+	ProcessUserDataSelector = [4]byte{0xe0, 0x33, 0x24, 0x04}
 	// setData(bytes32,bytes)
 	SetDataSelector = [4]byte{0x7f, 0x23, 0x69, 0x0c}
 	// setMessage(string)
@@ -43,7 +43,7 @@ const (
 	BatchProcessID    = 3078107492
 	CommunityPoolID   = 349257904
 	GetBalancesID     = 1365785981
-	ProcessUserDataID = 3298499304
+	ProcessUserDataID = 3761447940
 	SetDataID         = 2133027084
 	SetMessageID      = 915113842
 	SmallIntegersID   = 2558787146
@@ -244,11 +244,13 @@ func (t UserData) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Data (dynamic)
-	n, err := t.Data.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := t.Data.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
@@ -513,11 +515,13 @@ func (t BatchProcessCall) EncodeTo(buf []byte) (int, error) {
 
 				// write data (dynamic)
 
-				n, err := item.EncodeTo(buf[dynamicOffset:])
-				if err != nil {
-					return 0, err
+				{
+					n, err := item.EncodeTo(buf[dynamicOffset:])
+					if err != nil {
+						return 0, err
+					}
+					dynamicOffset += n
 				}
-				dynamicOffset += n
 
 			}
 			written = dynamicOffset
@@ -687,11 +691,13 @@ func (t CommunityPoolReturn) EncodeTo(buf []byte) (int, error) {
 
 				// write data (dynamic)
 
-				n, err := item.EncodeTo(buf[dynamicOffset:])
-				if err != nil {
-					return 0, err
+				{
+					n, err := item.EncodeTo(buf[dynamicOffset:])
+					if err != nil {
+						return 0, err
+					}
+					dynamicOffset += n
 				}
-				dynamicOffset += n
 
 			}
 			written = dynamicOffset
@@ -890,18 +896,20 @@ func (t *GetBalancesReturn) Decode(data0 []byte) error {
 	return nil
 }
 
-const ProcessUserDataCallStaticSize = 32
+const ProcessUserDataCallStaticSize = 64
 
 // ProcessUserDataCall represents an ABI tuple
 type ProcessUserDataCall struct {
-	User User
+	User1 User
+	User2 User
 }
 
 // EncodedSize returns the total encoded size of ProcessUserDataCall
 func (t ProcessUserDataCall) EncodedSize() int {
 	dynamicSize := 0
 
-	dynamicSize += t.User.EncodedSize() // dynamic tuple
+	dynamicSize += t.User1.EncodedSize() // dynamic tuple
+	dynamicSize += t.User2.EncodedSize() // dynamic tuple
 
 	return ProcessUserDataCallStaticSize + dynamicSize
 }
@@ -911,15 +919,29 @@ func (t ProcessUserDataCall) EncodedSize() int {
 func (t ProcessUserDataCall) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := ProcessUserDataCallStaticSize // Start dynamic data after static section
 
-	// User (offset)
+	// User1 (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
-	// User (dynamic)
-	n, err := t.User.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	// User1 (dynamic)
+	{
+		n, err := t.User1.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	dynamicOffset += n
+
+	// User2 (offset)
+	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+
+	// User2 (dynamic)
+	{
+		n, err := t.User2.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
 
 	return dynamicOffset, nil
 }
@@ -939,15 +961,27 @@ func (t *ProcessUserDataCall) Decode(data0 []byte) error {
 		return fmt.Errorf("insufficient data for ProcessUserDataCall")
 	}
 
-	// User
+	// User1
 	{
 		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
 
-		// t.User (dynamic)
+		// t.User1 (dynamic)
 		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.User")
+			return fmt.Errorf("insufficient data for dynamic data, t.User1")
 		}
-		if err := t.User.Decode(data0[offset:]); err != nil {
+		if err := t.User1.Decode(data0[offset:]); err != nil {
+			return err
+		}
+	}
+	// User2
+	{
+		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+
+		// t.User2 (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.User2")
+		}
+		if err := t.User2.Decode(data0[offset:]); err != nil {
 			return err
 		}
 	}

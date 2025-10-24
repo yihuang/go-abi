@@ -523,11 +523,13 @@ func (t GetAddressStringPairReturn) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// Result1 (dynamic)
-	n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
@@ -588,11 +590,13 @@ func (t GetComplexNestedReturn) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// Result1 (dynamic)
-	n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
@@ -653,11 +657,13 @@ func (t GetDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// Result1 (dynamic)
-	n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
@@ -726,12 +732,13 @@ func (t GetMultipleReturnsReturn) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// Result2 (dynamic)
-	n, err := t.Result2.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := t.Result2.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	dynamicOffset += n
-
 	// Result3 (static)
 
 	if t.Result3 {
@@ -824,11 +831,13 @@ func (t GetNestedTupleArrayReturn) EncodeTo(buf []byte) (int, error) {
 
 				// write data (dynamic)
 
-				n, err := item.EncodeTo(buf[dynamicOffset:])
-				if err != nil {
-					return 0, err
+				{
+					n, err := item.EncodeTo(buf[dynamicOffset:])
+					if err != nil {
+						return 0, err
+					}
+					dynamicOffset += n
 				}
-				dynamicOffset += n
 
 			}
 			written = dynamicOffset
@@ -1059,11 +1068,13 @@ func (t GetUserWithMetadataReturn) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
 	// Result1 (dynamic)
-	n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
@@ -1147,11 +1158,13 @@ func (t GetUsersArrayReturn) EncodeTo(buf []byte) (int, error) {
 
 				// write data (dynamic)
 
-				n, err := item.EncodeTo(buf[dynamicOffset:])
-				if err != nil {
-					return 0, err
+				{
+					n, err := item.EncodeTo(buf[dynamicOffset:])
+					if err != nil {
+						return 0, err
+					}
+					dynamicOffset += n
 				}
-				dynamicOffset += n
 
 			}
 			written = dynamicOffset
