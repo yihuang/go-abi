@@ -119,7 +119,7 @@ type %s struct {
 `, s.Name, GetTupleSize(s.Types()), s.Name, s.Name)
 
 	for _, f := range s.Fields {
-		goType := abiTypeToGoType(*f.Type)
+		goType := g.abiTypeToGoType(*f.Type)
 		g.L("%s %s", f.Name, goType)
 	}
 	g.L("}")
@@ -166,7 +166,7 @@ func (t %s) EncodeWithSelector() ([]byte, error) {
 }
 
 // abiTypeToGoType converts ABI type to Go type
-func abiTypeToGoType(abiType abi.Type) string {
+func (g *Generator) abiTypeToGoType(abiType abi.Type) string {
 	switch abiType.T {
 	case abi.UintTy:
 		// Use native Go types for common sizes to avoid big.Int allocations
@@ -199,18 +199,23 @@ func abiTypeToGoType(abiType abi.Type) string {
 		if abiType.Elem == nil {
 			panic("invalid slice type: nil element")
 		}
-		elemType := abiTypeToGoType(*abiType.Elem)
+		elemType := g.abiTypeToGoType(*abiType.Elem)
 		return fmt.Sprintf("[]%s", elemType)
 	case abi.ArrayTy:
 		// Fixed-size arrays like uint256[10]
 		if abiType.Elem == nil {
 			panic("invalid array type: nil element")
 		}
-		elemType := abiTypeToGoType(*abiType.Elem)
+		elemType := g.abiTypeToGoType(*abiType.Elem)
 		return fmt.Sprintf("[%d]%s", abiType.Size, elemType)
 	case abi.TupleTy:
 		// Handle tuple types - generate struct type name
-		return TupleStructName(abiType)
+		structName := TupleStructName(abiType)
+		// Check if this tuple has an external implementation
+		if externalName, exists := g.Options.ExternalTuples[structName]; exists {
+			return externalName
+		}
+		return structName
 	default:
 		panic(fmt.Sprintf("unsupported ABI type: %s", abiType.String()))
 	}
@@ -254,6 +259,12 @@ func (g *Generator) genTuples(methods []abi.Method) error {
 
 	// Generate struct definitions for collected tuples
 	for _, name := range SortedMapKeys(tupleTypes) {
+		// Check if this tuple should use an external implementation
+		if _, exists := g.Options.ExternalTuples[name]; exists {
+			// Skip generating this tuple since it uses an external implementation
+			continue
+		}
+
 		s := StructFromTuple(tupleTypes[name])
 		if err := g.genStruct(s); err != nil {
 			return err
@@ -817,7 +828,7 @@ func (t *%s) Decode(data0 []byte) error {
 
 // genStaticDecodeOffset generates decoding logic for static types
 func (g *Generator) genStaticDecodeOffset(ref string, t abi.Type, depth int) {
-	typeName := abiTypeToGoType(t)
+	typeName := g.abiTypeToGoType(t)
 
 	g.L(`// %s (static)`, ref)
 
@@ -880,7 +891,7 @@ offset += %d
 
 // genStaticDecode generates decoding logic for static types
 func (g *Generator) genStaticDecode(ref string, t abi.Type, offset int, depth int) {
-	typeName := abiTypeToGoType(t)
+	typeName := g.abiTypeToGoType(t)
 
 	g.L(`// %s (static)`, ref)
 
@@ -973,7 +984,7 @@ func (g *Generator) genDynamicDecode(ref string, t abi.Type, depth int) {
 
 	case abi.SliceTy:
 		// Dynamic slice
-		typeName := abiTypeToGoType(*t.Elem)
+		typeName := g.abiTypeToGoType(*t.Elem)
 
 		g.L(`// slice data
 		%s = make([]%s, length)

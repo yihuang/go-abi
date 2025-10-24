@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive.abi.go
+//go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive.abi.go --external-tuples User=User
 
 // ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
 var ComprehensiveTestABI = []string{
@@ -30,6 +30,10 @@ var ComprehensiveTestABI = []string{
 	"struct Level2 { Level3 level2 }",
 	"struct Level1 { Level2 level1 }",
 	"function testDeeplyNested(Level1 data) returns (bool)",
+
+	// ref the same User struct from abi_test.go
+	"struct User { address address; string name; uint256 age }",
+	"function testExternalTuple(User user) returns (bool)",
 }
 
 var ComprehensiveTestABIDef ethabi.ABI
@@ -253,6 +257,30 @@ func TestComprehensiveDeeplyNested(t *testing.T) {
 	// Get go-ethereum encoding
 	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testDeeplyNested",
 		args.Data)
+	require.NoError(t, err)
+
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
+}
+
+func TestExternalTuples(t *testing.T) {
+	user := User{
+		Address: common.HexToAddress("0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"),
+		Name:    "External User",
+		Age:     big.NewInt(30),
+	}
+	args := &TestExternalTupleCall{
+		User: user,
+	}
+
+	// Test encoding with selector
+	encoded, err := args.EncodeWithSelector()
+	require.NoError(t, err)
+
+	// Get go-ethereum encoding
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testExternalTuple",
+		args.User)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)

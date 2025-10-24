@@ -6,14 +6,14 @@ type Options struct {
 	ExtraImports []string
 	// Map of tuple definitions to existing struct names,
 	// to avoid generating duplicate structs
-	TupleMap map[string]string
+	ExternalTuples map[string]string
 }
 
 func NewOptions(opts ...Option) *Options {
 	options := &Options{
-		PackageName:  "abi",
-		ExtraImports: []string{},
-		TupleMap:     make(map[string]string),
+		PackageName:    "abi",
+		ExtraImports:   []string{},
+		ExternalTuples: make(map[string]string),
 	}
 	for _, opt := range opts {
 		opt(options)
@@ -35,8 +35,8 @@ func ExtraImports(imports []string) Option {
 	}
 }
 
-func TupleMap(m map[string]string) Option {
+func ExternalTuples(m map[string]string) Option {
 	return func(o *Options) {
-		o.TupleMap = m
+		o.ExternalTuples = m
 	}
 }

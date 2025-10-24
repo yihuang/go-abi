@@ -17,6 +17,8 @@ var (
 	TestComplexDynamicTuplesSelector = [4]byte{0xc0, 0x96, 0x4c, 0x93}
 	// testDeeplyNested(((((uint256,string)))))
 	TestDeeplyNestedSelector = [4]byte{0x21, 0x75, 0xe8, 0x54}
+	// testExternalTuple((address,string,uint256))
+	TestExternalTupleSelector = [4]byte{0x96, 0x39, 0x8b, 0x38}
 	// testFixedArrays(address[5],uint256[3],bytes32[2])
 	TestFixedArraysSelector = [4]byte{0x23, 0xb8, 0x46, 0x5c}
 	// testMixedTypes(bytes32,bytes,bool,uint8,(uint32,bytes,bool)[])
@@ -31,6 +33,7 @@ var (
 const (
 	TestComplexDynamicTuplesID = 3231075475
 	TestDeeplyNestedID         = 561375316
+	TestExternalTupleID        = 2520353592
 	TestFixedArraysID          = 599279196
 	TestMixedTypesID           = 2240472597
 	TestNestedDynamicArraysID  = 1035070982
@@ -1052,6 +1055,130 @@ func (t TestDeeplyNestedReturn) Encode() ([]byte, error) {
 func (t *TestDeeplyNestedReturn) Decode(data0 []byte) error {
 	if len(data0) < TestDeeplyNestedReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestDeeplyNestedReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+const TestExternalTupleCallStaticSize = 32
+
+// TestExternalTupleCall represents an ABI tuple
+type TestExternalTupleCall struct {
+	User User
+}
+
+// EncodedSize returns the total encoded size of TestExternalTupleCall
+func (t TestExternalTupleCall) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += t.User.EncodedSize() // dynamic tuple
+
+	return TestExternalTupleCallStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestExternalTupleCall to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestExternalTupleCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestExternalTupleCallStaticSize // Start dynamic data after static section
+
+	// User (offset)
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+
+	// User (dynamic)
+	n, err := t.User.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestExternalTupleCall to ABI bytes
+func (t TestExternalTupleCall) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestExternalTupleCall from ABI bytes in the provided buffer
+func (t *TestExternalTupleCall) Decode(data0 []byte) error {
+	if len(data0) < TestExternalTupleCallStaticSize {
+		return fmt.Errorf("insufficient data for TestExternalTupleCall")
+	}
+
+	// User
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.User (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.User")
+		}
+		if err := t.User.Decode(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// EncodeWithSelector encodes testExternalTuple arguments to ABI bytes including function selector
+func (t TestExternalTupleCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], TestExternalTupleSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+const TestExternalTupleReturnStaticSize = 32
+
+// TestExternalTupleReturn represents an ABI tuple
+type TestExternalTupleReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestExternalTupleReturn
+func (t TestExternalTupleReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestExternalTupleReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestExternalTupleReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestExternalTupleReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestExternalTupleReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestExternalTupleReturn to ABI bytes
+func (t TestExternalTupleReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestExternalTupleReturn from ABI bytes in the provided buffer
+func (t *TestExternalTupleReturn) Decode(data0 []byte) error {
+	if len(data0) < TestExternalTupleReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestExternalTupleReturn")
 	}
 
 	// t.Result1 (static)
