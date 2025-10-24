@@ -3,7 +3,7 @@ package generator
 // Options allows to customize the code generation process.
 type Options struct {
 	PackageName  string
-	ExtraImports []string
+	ExtraImports []ImportSpec
 	// Map of tuple definitions to existing struct names,
 	// to avoid generating duplicate structs
 	ExternalTuples map[string]string
@@ -12,7 +12,7 @@ type Options struct {
 func NewOptions(opts ...Option) *Options {
 	options := &Options{
 		PackageName:    "abi",
-		ExtraImports:   []string{},
+		ExtraImports:   []ImportSpec{},
 		ExternalTuples: make(map[string]string),
 	}
 	for _, opt := range opts {
@@ -29,7 +29,7 @@ func PackageName(name string) Option {
 	}
 }
 
-func ExtraImports(imports []string) Option {
+func ExtraImports(imports []ImportSpec) Option {
 	return func(o *Options) {
 		o.ExtraImports = imports
 	}

@@ -24,8 +24,12 @@ func main() {
 	}
 
 	if *imports != "" {
-		importPaths := strings.Split(*imports, ",")
-		opts = append(opts, generator.ExtraImports(importPaths))
+		paths := strings.Split(*imports, ",")
+		var importSpecs []generator.ImportSpec
+		for _, imp := range paths {
+			importSpecs = append(importSpecs, parseImport(imp))
+		}
+		opts = append(opts, generator.ExtraImports(importSpecs))
 	}
 
 	// Parse external tuples if provided
@@ -62,4 +66,29 @@ func parseExternalTuples(s string) map[string]string {
 		}
 	}
 	return result
+}
+
+// parseImport parses an import string that may contain an alias
+// Examples:
+//
+//	"github.com/ethereum/go-ethereum/common" -> ImportSpec{Path: "github.com/ethereum/go-ethereum/common", Alias: ""}
+//	"cmn=github.com/ethereum/go-ethereum/common" -> ImportSpec{Path: "github.com/ethereum/go-ethereum/common", Alias: "cmn"}
+func parseImport(imp string) generator.ImportSpec {
+	parts := strings.Split(imp, "=")
+	var spec generator.ImportSpec
+
+	switch len(parts) {
+	case 2:
+		spec = generator.ImportSpec{
+			Alias: parts[0],
+			Path:  parts[1],
+		}
+	case 1:
+		spec = generator.ImportSpec{
+			Path: parts[0],
+		}
+	default:
+		panic("invalid import format " + imp)
+	}
+	return spec
 }

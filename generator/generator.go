@@ -10,23 +10,29 @@ import (
 )
 
 var (
-	DefaultImports = []string{
-		"fmt",
-		"encoding/binary",
-		"math/big",
-		"github.com/ethereum/go-ethereum/common",
-		"github.com/yihuang/go-abi",
+	DefaultImports = []ImportSpec{
+		{Path: "fmt"},
+		{Path: "encoding/binary"},
+		{Path: "math/big"},
+		{Path: "github.com/ethereum/go-ethereum/common"},
+		{Path: "github.com/yihuang/go-abi"},
 	}
 )
 
 type M = map[string]interface{}
+
+// ImportSpec represents a Go import with optional alias
+type ImportSpec struct {
+	Path  string
+	Alias string // empty string means no alias
+}
 
 // Generator handles ABI code generation
 type Generator struct {
 	buf bytes.Buffer
 
 	Options   Options
-	Imports   []string
+	Imports   []ImportSpec
 	Selectors []SelectorInfo
 }
 
@@ -71,7 +77,11 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	if len(g.Imports) > 0 {
 		g.L("import (")
 		for _, imp := range g.Imports {
-			g.L("\"%s\"", imp)
+			if imp.Alias != "" {
+				g.L("%s \"%s\"", imp.Alias, imp.Path)
+			} else {
+				g.L("\"%s\"", imp.Path)
+			}
 		}
 		g.L(")")
 	}
