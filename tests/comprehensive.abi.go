@@ -25,6 +25,8 @@ var (
 	TestMixedTypesSelector = [4]byte{0x85, 0x8a, 0xe6, 0x15}
 	// testNestedDynamicArrays(uint256[][],address[][])
 	TestNestedDynamicArraysSelector = [4]byte{0x3d, 0xb1, 0xee, 0x06}
+	// testNestedStruct(((address,string,uint256)[]))
+	TestNestedStructSelector = [4]byte{0xe8, 0x3b, 0x85, 0x67}
 	// testSmallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
 	TestSmallIntegersSelector = [4]byte{0x29, 0x2b, 0xd2, 0x39}
 )
@@ -37,8 +39,126 @@ const (
 	TestFixedArraysID          = 599279196
 	TestMixedTypesID           = 2240472597
 	TestNestedDynamicArraysID  = 1035070982
+	TestNestedStructID         = 3896214887
 	TestSmallIntegersID        = 690737721
 )
+
+const GroupStaticSize = 32
+
+// Group represents an ABI tuple
+type Group struct {
+	Users []User
+}
+
+// EncodedSize returns the total encoded size of Group
+func (t Group) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += 32 + 32*len(t.Users) // length + offset pointers for dynamic elements
+	for _, elem := range t.Users {
+		dynamicSize += elem.EncodedSize() // dynamic tuple
+	}
+
+	return GroupStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Group to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t Group) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := GroupStaticSize // Start dynamic data after static section
+
+	// Users (offset)
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+
+	// Users (dynamic)
+	{
+		// length
+		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Users)))
+		dynamicOffset += 32
+
+		var written int
+
+		// data with dynamic region
+		{
+			buf := buf[dynamicOffset:]
+			dynamicOffset := len(t.Users) * 32 // start after static region
+
+			var offset int
+			for _, item := range t.Users {
+				// write offsets
+				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+				offset += 32
+
+				// write data (dynamic)
+
+				{
+					n, err := item.EncodeTo(buf[dynamicOffset:])
+					if err != nil {
+						return 0, err
+					}
+					dynamicOffset += n
+				}
+
+			}
+			written = dynamicOffset
+		}
+		dynamicOffset += written
+
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Group to ABI bytes
+func (t Group) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes Group from ABI bytes in the provided buffer
+func (t *Group) Decode(data0 []byte) error {
+	if len(data0) < GroupStaticSize {
+		return fmt.Errorf("insufficient data for Group")
+	}
+
+	// Users
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Users (dynamic)
+		if offset+32 > len(data0) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += 32
+		// slice data
+		t.Users = make([]User, length)
+		data1 := data0[offset:]
+
+		// Dynamic elements with offsets (dynamic array)
+		for i0 := 0; i0 < length; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			if tmp+32 > len(data1) {
+				return fmt.Errorf("insufficient data for element offset")
+			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
+			// Decode dynamic element at offset
+			// t.Users[i0] (dynamic)
+			if offset >= len(data1) {
+				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
+			}
+			if err := t.Users[i0].Decode(data1[offset:]); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 const ItemStaticSize = 96
 
@@ -1878,6 +1998,132 @@ func (t TestNestedDynamicArraysReturn) Encode() ([]byte, error) {
 func (t *TestNestedDynamicArraysReturn) Decode(data0 []byte) error {
 	if len(data0) < TestNestedDynamicArraysReturnStaticSize {
 		return fmt.Errorf("insufficient data for TestNestedDynamicArraysReturn")
+	}
+
+	// t.Result1 (static)
+	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+const TestNestedStructCallStaticSize = 32
+
+// TestNestedStructCall represents an ABI tuple
+type TestNestedStructCall struct {
+	Group Group
+}
+
+// EncodedSize returns the total encoded size of TestNestedStructCall
+func (t TestNestedStructCall) EncodedSize() int {
+	dynamicSize := 0
+
+	dynamicSize += t.Group.EncodedSize() // dynamic tuple
+
+	return TestNestedStructCallStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestNestedStructCall to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestNestedStructCall) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestNestedStructCallStaticSize // Start dynamic data after static section
+
+	// Group (offset)
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+
+	// Group (dynamic)
+	{
+		n, err := t.Group.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestNestedStructCall to ABI bytes
+func (t TestNestedStructCall) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestNestedStructCall from ABI bytes in the provided buffer
+func (t *TestNestedStructCall) Decode(data0 []byte) error {
+	if len(data0) < TestNestedStructCallStaticSize {
+		return fmt.Errorf("insufficient data for TestNestedStructCall")
+	}
+
+	// Group
+	{
+		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+
+		// t.Group (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.Group")
+		}
+		if err := t.Group.Decode(data0[offset:]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// EncodeWithSelector encodes testNestedStruct arguments to ABI bytes including function selector
+func (t TestNestedStructCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], TestNestedStructSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+const TestNestedStructReturnStaticSize = 32
+
+// TestNestedStructReturn represents an ABI tuple
+type TestNestedStructReturn struct {
+	Result1 bool
+}
+
+// EncodedSize returns the total encoded size of TestNestedStructReturn
+func (t TestNestedStructReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestNestedStructReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestNestedStructReturn to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TestNestedStructReturn) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TestNestedStructReturnStaticSize // Start dynamic data after static section
+
+	// Result1 (static)
+
+	if t.Result1 {
+		buf[0+31] = 1
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestNestedStructReturn to ABI bytes
+func (t TestNestedStructReturn) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestNestedStructReturn from ABI bytes in the provided buffer
+func (t *TestNestedStructReturn) Decode(data0 []byte) error {
+	if len(data0) < TestNestedStructReturnStaticSize {
+		return fmt.Errorf("insufficient data for TestNestedStructReturn")
 	}
 
 	// t.Result1 (static)

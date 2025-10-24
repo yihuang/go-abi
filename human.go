@@ -28,6 +28,9 @@ var (
 
 	// Parameter with optional indexed and name: type [indexed] [name]
 	paramRegex = regexp.MustCompile(`^(\S+)(?:\s+(indexed))?(?:\s+(\w+))?$`)
+
+	// Type without tuple: matches types like uint256, address[], bytes32[4], etc.
+	typeWithoutTupleRegex = regexp.MustCompile(`^(\w+)((\[\d*\])+)?$`)
 )
 
 // ParseHumanReadableABI parses human-readable ABI definitions and converts them to JSON ABI format
@@ -711,8 +714,16 @@ func resolveStructComponents(parameters []map[string]interface{}, structs map[st
 			continue
 		}
 
+		matches := typeWithoutTupleRegex.FindStringSubmatch(paramType)
+		if matches == nil {
+			return nil, fmt.Errorf("invalid type format in struct: %s", paramType)
+		}
+
+		baseType := matches[1]
+		arrayPart := matches[2]
+
 		// Check if this is a struct reference
-		if nestedStruct, exists := structs[paramType]; exists {
+		if nestedStruct, exists := structs[baseType]; exists {
 			// Detect circular references
 			if ancestors[paramType] {
 				return nil, fmt.Errorf("circular reference detected: %s", paramType)
@@ -733,8 +744,8 @@ func resolveStructComponents(parameters []map[string]interface{}, structs map[st
 			// Create tuple type with components and internalType
 			tupleParam := map[string]interface{}{
 				"name":         param["name"],
-				"type":         "tuple",
-				"internalType": "struct " + paramType,
+				"type":         "tuple" + arrayPart,
+				"internalType": "struct " + baseType + arrayPart,
 				"components":   resolvedComponents,
 			}
 			components = append(components, tupleParam)

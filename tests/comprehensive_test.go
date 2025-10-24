@@ -34,6 +34,8 @@ var ComprehensiveTestABI = []string{
 	// ref the same User struct from abi_test.go
 	"struct User { address address; string name; uint256 age }",
 	"function testExternalTuple(User user) returns (bool)",
+	"struct Group { User[] users; }",
+	"function testNestedStruct(Group group) returns (bool)",
 }
 
 var ComprehensiveTestABIDef ethabi.ABI
@@ -281,6 +283,40 @@ func TestExternalTuples(t *testing.T) {
 	// Get go-ethereum encoding
 	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testExternalTuple",
 		args.User)
+	require.NoError(t, err)
+
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
+}
+
+func TestNestedStruct(t *testing.T) {
+	group := Group{
+		Users: []User{
+			{
+				Address: common.HexToAddress("0xabcdabcdabcdabcdabcdabcdabcdabcdabcdabcd"),
+				Name:    "Nested User 1",
+				Age:     big.NewInt(25),
+			},
+			{
+				Address: common.HexToAddress("0x1234123412341234123412341234123412341234"),
+				Name:    "Nested User 2",
+				Age:     big.NewInt(28),
+			},
+		},
+	}
+
+	args := &TestNestedStructCall{
+		Group: group,
+	}
+
+	// Test encoding with selector
+	encoded, err := args.EncodeWithSelector()
+	require.NoError(t, err)
+
+	// Get go-ethereum encoding
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testNestedStruct",
+		args.Group)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
