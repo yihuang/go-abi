@@ -1,4 +1,4 @@
-package testdata
+package tests
 
 import (
 	"bytes"
@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/test-go/testify/require"
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd/main.go -var OverloadABI -output overload.abi.go
+//go:generate go run ../cmd -var OverloadABI -output overload.abi.go
 
 var OverloadABI = []string{
 	"function overloaded1(address to, uint256 amount) returns (bool)",
@@ -22,15 +23,11 @@ var OverloadABI = []string{
 func TestOverloadedFunctions(t *testing.T) {
 	// Parse human-readable ABI
 	abiJSON, err := abi.ParseHumanReadableABI(OverloadABI)
-	if err != nil {
-		t.Fatalf("Failed to parse human-readable ABI: %v", err)
-	}
+	require.NoError(t, err, "Failed to parse human-readable ABI with overloaded functions")
 
 	// Parse JSON ABI
 	abiDef, err := ethabi.JSON(bytes.NewReader(abiJSON))
-	if err != nil {
-		t.Fatalf("Failed to parse JSON ABI: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Check that we have multiple overloaded1 functions
 	// Go-ethereum renames overloaded functions with suffixes
@@ -41,9 +38,7 @@ func TestOverloadedFunctions(t *testing.T) {
 		}
 	}
 
-	if overloaded1Count != 3 {
-		t.Errorf("Expected 3 overloaded1 functions, got %d", overloaded1Count)
-	}
+	require.Equal(t, 3, overloaded1Count, "Expected 3 overloaded1 functions")
 
 	// Check that we have multiple overloaded2 functions
 	overloaded2Count := 0
@@ -53,9 +48,7 @@ func TestOverloadedFunctions(t *testing.T) {
 		}
 	}
 
-	if overloaded2Count != 2 {
-		t.Errorf("Expected 2 overloaded2 functions, got %d", overloaded2Count)
-	}
+	require.Equal(t, 2, overloaded2Count, "Expected 2 overloaded2 functions")
 
 	// Verify function signatures are different
 	overloaded1Signatures := make(map[string]bool)
@@ -65,9 +58,7 @@ func TestOverloadedFunctions(t *testing.T) {
 		}
 	}
 
-	if len(overloaded1Signatures) != 3 {
-		t.Errorf("Expected 3 unique overloaded1 signatures, got %d", len(overloaded1Signatures))
-	}
+	require.Equal(t, 3, len(overloaded1Signatures), "Expected 3 unique overloaded1 signatures")
 
 	overloaded2Signatures := make(map[string]bool)
 	for name, method := range abiDef.Methods {
@@ -76,7 +67,5 @@ func TestOverloadedFunctions(t *testing.T) {
 		}
 	}
 
-	if len(overloaded2Signatures) != 2 {
-		t.Errorf("Expected 2 unique overloaded2 signatures, got %d", len(overloaded2Signatures))
-	}
+	require.Equal(t, 2, len(overloaded2Signatures), "Expected 2 unique overloaded2 signatures")
 }

@@ -1,4 +1,4 @@
-package testdata
+package tests
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd/main.go -var NestedTupleReturnsABI -output nested_tuple_returns.abi.go
+//go:generate go run ../cmd -var NestedTupleReturnsABI -output nested_tuple_returns.abi.go
 
 // NestedTupleReturnsABI contains human-readable ABI definitions for testing nested tuples in function returns
 var NestedTupleReturnsABI = []string{

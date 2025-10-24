@@ -1,4 +1,4 @@
-package testdata
+package tests
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd/main.go -var ComprehensiveTestABI -output comprehensive.abi.go
+//go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive.abi.go
 
 // ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
 var ComprehensiveTestABI = []string{

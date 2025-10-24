@@ -1,4 +1,4 @@
-package abi
+package generator
 
 import (
 	"bytes"
@@ -6,13 +6,19 @@ import (
 	"fmt"
 	"text/template"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-var Title = cases.Title(language.English, cases.NoLower)
+var (
+
+	DefaultImports = []string{
+		"fmt",
+		"encoding/binary",
+		"math/big",
+		"github.com/ethereum/go-ethereum/common",
+		"github.com/yihuang/go-abi",
+	}
+)
 
 type M = map[string]interface{}
 
@@ -20,9 +26,9 @@ type M = map[string]interface{}
 type Generator struct {
 	buf bytes.Buffer
 
-	PackageName string
-	Imports     []string
-	Selectors   []SelectorInfo
+	Options   Options
+	Imports   []string
+	Selectors []SelectorInfo
 }
 
 // SelectorInfo holds information about a function selector
@@ -33,16 +39,12 @@ type SelectorInfo struct {
 }
 
 // NewGenerator creates a new ABI code generator
-func NewGenerator(packageName string) *Generator {
+func NewGenerator(opts ...Option) *Generator {
+	opt := NewOptions(opts...)
+
 	return &Generator{
-		PackageName: packageName,
-		Imports: []string{
-			"fmt",
-			"encoding/binary",
-			"math/big",
-			"github.com/ethereum/go-ethereum/common",
-			"github.com/yihuang/go-abi",
-		},
+		Options:   *opt,
+		Imports:   append(DefaultImports, opt.ExtraImports...),
 		Selectors: []SelectorInfo{},
 	}
 }
@@ -64,7 +66,7 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	g.L("")
 
 	// Write package declaration
-	g.L("package %s", g.PackageName)
+	g.L("package %s", g.Options.PackageName)
 
 	// Write imports
 	if len(g.Imports) > 0 {

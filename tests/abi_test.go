@@ -1,4 +1,4 @@
-package testdata
+package tests
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd/main.go -var TestABI -output test.abi.go
+//go:generate go run ../cmd -var TestABI -output test.abi.go
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{

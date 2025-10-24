@@ -1,9 +1,9 @@
-package abi
+package generator
 
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	abi "github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 type StructField struct {
