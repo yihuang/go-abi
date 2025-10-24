@@ -10,16 +10,22 @@ import (
 
 func main() {
 	var (
-		inputFile      = flag.String("input", os.Getenv("GOFILE"), "Input file (JSON ABI or Go source file)")
-		outputFile     = flag.String("output", "", "Output Go file")
-		packageName    = flag.String("package", os.Getenv("GOPACKAGE"), "Package name for generated code")
-		varName        = flag.String("var", "", "Variable name containing human-readable ABI (for Go source files)")
-		extTuplesFlag   = flag.String("external-tuples", "", "External tuple mappings in format 'key1=value1,key2=value2'")
+		inputFile     = flag.String("input", os.Getenv("GOFILE"), "Input file (JSON ABI or Go source file)")
+		outputFile    = flag.String("output", "", "Output Go file")
+		packageName   = flag.String("package", os.Getenv("GOPACKAGE"), "Package name for generated code")
+		varName       = flag.String("var", "", "Variable name containing human-readable ABI (for Go source files)")
+		extTuplesFlag = flag.String("external-tuples", "", "External tuple mappings in format 'key1=value1,key2=value2'")
+		imports       = flag.String("imports", "", "Additional import paths, comma-separated")
 	)
 	flag.Parse()
 
 	opts := []generator.Option{
 		generator.PackageName(*packageName),
+	}
+
+	if *imports != "" {
+		importPaths := strings.Split(*imports, ",")
+		opts = append(opts, generator.ExtraImports(importPaths))
 	}
 
 	// Parse external tuples if provided
