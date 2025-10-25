@@ -46,6 +46,80 @@ const (
 	TransferFromID = 599290589
 )
 
+// Event signatures
+var (
+	// Approval(address,address,uint256)
+	ApprovalTopic = [32]byte{
+		0x8c,
+		0x5b,
+		0xe1,
+		0xe5,
+		0xeb,
+		0xec,
+		0x7d,
+		0x5b,
+		0xd1,
+		0x4f,
+		0x71,
+		0x42,
+		0x7d,
+		0x1e,
+		0x84,
+		0xf3,
+		0xdd,
+		0x03,
+		0x14,
+		0xc0,
+		0xf7,
+		0xb2,
+		0x29,
+		0x1e,
+		0x5b,
+		0x20,
+		0x0a,
+		0xc8,
+		0xc7,
+		0xc3,
+		0xb9,
+		0x25,
+	}
+	// Transfer(address,address,uint256)
+	TransferTopic = [32]byte{
+		0xdd,
+		0xf2,
+		0x52,
+		0xad,
+		0x1b,
+		0xe2,
+		0xc8,
+		0x9b,
+		0x69,
+		0xc2,
+		0xb0,
+		0x68,
+		0xfc,
+		0x37,
+		0x8d,
+		0xaa,
+		0x95,
+		0x2b,
+		0xa7,
+		0xf1,
+		0x63,
+		0xc4,
+		0xa1,
+		0x16,
+		0x28,
+		0xf5,
+		0x5a,
+		0x4d,
+		0xf5,
+		0x23,
+		0xb3,
+		0xef,
+	}
+)
+
 const AllowanceCallStaticSize = 64
 
 // AllowanceCall represents an ABI tuple
@@ -832,6 +906,274 @@ func (t *TransferFromReturn) Decode(data0 []byte) error {
 
 	// t.Result1 (static)
 	t.Result1 = data0[0+31] == 1
+
+	return nil
+}
+
+// Approval represents an ABI event
+type Approval struct {
+	Owner   common.Address
+	Spender common.Address
+	Value   *big.Int
+}
+
+// ApprovalData represents the non-indexed data of Approval event
+type ApprovalData struct {
+	Value *big.Int
+}
+
+const ApprovalDataStaticSize = 32
+
+// EncodedSize returns the total encoded size of ApprovalData
+func (t ApprovalData) EncodedSize() int {
+	dynamicSize := 0
+
+	return ApprovalDataStaticSize + dynamicSize
+}
+
+// EncodeTo encodes ApprovalData to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t ApprovalData) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := ApprovalDataStaticSize // Start dynamic data after static section
+
+	// Value (static)
+
+	if err := abi.EncodeBigInt(t.Value, buf[0:32], false); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes ApprovalData to ABI bytes
+func (t ApprovalData) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes ApprovalData from ABI bytes in the provided buffer
+func (t *ApprovalData) Decode(data0 []byte) error {
+	if len(data0) < ApprovalDataStaticSize {
+		return fmt.Errorf("insufficient data for ApprovalData")
+	}
+
+	// t.Value (static)
+	t.Value = new(big.Int).SetBytes(data0[0:32])
+
+	return nil
+}
+
+// EncodeTopics encodes indexed fields of Approval event to topics
+func (e Approval) EncodeTopics() ([][32]byte, error) {
+	topics := make([][32]byte, 0, 3)
+	topics = append(topics, ApprovalTopic)
+
+	// Encode indexed field Owner
+	{
+		buf := make([]byte, 32)
+		offset := 0
+
+		// Owner (static)
+		copy(buf[offset+12:offset+32], e.Owner[:])
+
+		var topic [32]byte
+		copy(topic[:], buf)
+		topics = append(topics, topic)
+	}
+
+	// Encode indexed field Spender
+	{
+		buf := make([]byte, 32)
+		offset := 0
+
+		// Spender (static)
+		copy(buf[offset+12:offset+32], e.Spender[:])
+
+		var topic [32]byte
+		copy(topic[:], buf)
+		topics = append(topics, topic)
+	}
+
+	return topics, nil
+}
+
+// DecodeTopics decodes indexed fields of Approval event from topics
+func (e *Approval) DecodeTopics(topics [][32]byte) error {
+	if len(topics) < 3 {
+		return fmt.Errorf("insufficient topics for Approval event")
+	}
+
+	// Skip the first topic (event signature)
+	topicIndex := 1
+
+	// Decode indexed field Owner
+	if topicIndex >= len(topics) {
+		return fmt.Errorf("missing topic for field Owner")
+	}
+
+	// Owner (static)
+	{
+		data := topics[topicIndex][:]
+		offset := 0
+
+		// e.Owner (static)
+		copy(e.Owner[:], data[offset+12:offset+32])
+
+	}
+	topicIndex++
+
+	// Decode indexed field Spender
+	if topicIndex >= len(topics) {
+		return fmt.Errorf("missing topic for field Spender")
+	}
+
+	// Spender (static)
+	{
+		data := topics[topicIndex][:]
+		offset := 0
+
+		// e.Spender (static)
+		copy(e.Spender[:], data[offset+12:offset+32])
+
+	}
+	topicIndex++
+
+	return nil
+}
+
+// Transfer represents an ABI event
+type Transfer struct {
+	From  common.Address
+	To    common.Address
+	Value *big.Int
+}
+
+// TransferData represents the non-indexed data of Transfer event
+type TransferData struct {
+	Value *big.Int
+}
+
+const TransferDataStaticSize = 32
+
+// EncodedSize returns the total encoded size of TransferData
+func (t TransferData) EncodedSize() int {
+	dynamicSize := 0
+
+	return TransferDataStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TransferData to ABI bytes in the provided buffer
+// it panics if the buffer is not large enough
+func (t TransferData) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := TransferDataStaticSize // Start dynamic data after static section
+
+	// Value (static)
+
+	if err := abi.EncodeBigInt(t.Value, buf[0:32], false); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TransferData to ABI bytes
+func (t TransferData) Encode() ([]byte, error) {
+	buf := make([]byte, t.EncodedSize())
+	if _, err := t.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TransferData from ABI bytes in the provided buffer
+func (t *TransferData) Decode(data0 []byte) error {
+	if len(data0) < TransferDataStaticSize {
+		return fmt.Errorf("insufficient data for TransferData")
+	}
+
+	// t.Value (static)
+	t.Value = new(big.Int).SetBytes(data0[0:32])
+
+	return nil
+}
+
+// EncodeTopics encodes indexed fields of Transfer event to topics
+func (e Transfer) EncodeTopics() ([][32]byte, error) {
+	topics := make([][32]byte, 0, 3)
+	topics = append(topics, TransferTopic)
+
+	// Encode indexed field From
+	{
+		buf := make([]byte, 32)
+		offset := 0
+
+		// From (static)
+		copy(buf[offset+12:offset+32], e.From[:])
+
+		var topic [32]byte
+		copy(topic[:], buf)
+		topics = append(topics, topic)
+	}
+
+	// Encode indexed field To
+	{
+		buf := make([]byte, 32)
+		offset := 0
+
+		// To (static)
+		copy(buf[offset+12:offset+32], e.To[:])
+
+		var topic [32]byte
+		copy(topic[:], buf)
+		topics = append(topics, topic)
+	}
+
+	return topics, nil
+}
+
+// DecodeTopics decodes indexed fields of Transfer event from topics
+func (e *Transfer) DecodeTopics(topics [][32]byte) error {
+	if len(topics) < 3 {
+		return fmt.Errorf("insufficient topics for Transfer event")
+	}
+
+	// Skip the first topic (event signature)
+	topicIndex := 1
+
+	// Decode indexed field From
+	if topicIndex >= len(topics) {
+		return fmt.Errorf("missing topic for field From")
+	}
+
+	// From (static)
+	{
+		data := topics[topicIndex][:]
+		offset := 0
+
+		// e.From (static)
+		copy(e.From[:], data[offset+12:offset+32])
+
+	}
+	topicIndex++
+
+	// Decode indexed field To
+	if topicIndex >= len(topics) {
+		return fmt.Errorf("missing topic for field To")
+	}
+
+	// To (static)
+	{
+		data := topics[topicIndex][:]
+		offset := 0
+
+		// e.To (static)
+		copy(e.To[:], data[offset+12:offset+32])
+
+	}
+	topicIndex++
 
 	return nil
 }
