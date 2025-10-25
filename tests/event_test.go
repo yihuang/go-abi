@@ -11,13 +11,9 @@ func TestEventEncodingDecoding(t *testing.T) {
 	t.Run("Transfer event", func(t *testing.T) {
 		// Create a Transfer event
 		transfer := TransferEvent{
-			TransferEventIndexed: TransferEventIndexed{
-				From: common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F2"),
-				To:   common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F3"),
-			},
-			TransferEventData: TransferEventData{
-				Value: big.NewInt(1000000000000000000), // 1 ETH
-			},
+			From:  common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F2"),
+			To:    common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F3"),
+			Value: big.NewInt(1000000000000000000), // 1 ETH
 		}
 
 		// Encode topics
