@@ -34,6 +34,7 @@ type Generator struct {
 	Options   Options
 	Imports   []ImportSpec
 	Selectors []SelectorInfo
+	Events    []EventInfo
 }
 
 // SelectorInfo holds information about a function selector
@@ -41,6 +42,14 @@ type SelectorInfo struct {
 	Name  string
 	Sig   string
 	Bytes [4]byte
+}
+
+// EventInfo holds information about an event
+type EventInfo struct {
+	Name      string
+	Sig       string
+	Signature [32]byte
+	Inputs    []abi.Argument
 }
 
 // NewGenerator creates a new ABI code generator
@@ -51,6 +60,7 @@ func NewGenerator(opts ...Option) *Generator {
 		Options:   *opt,
 		Imports:   append(DefaultImports, opt.ExtraImports...),
 		Selectors: []SelectorInfo{},
+		Events:    []EventInfo{},
 	}
 }
 
@@ -101,8 +111,27 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 		})
 	}
 
+	// Collect all events
+	for _, name := range SortedMapKeys(abiDef.Events) {
+		event := abiDef.Events[name]
+		// Calculate event signature hash
+		sigHash := event.ID
+		var signature [32]byte
+		copy(signature[:], sigHash[:])
+
+		g.Events = append(g.Events, EventInfo{
+			Name:      Title.String(event.Name),
+			Sig:       event.Sig,
+			Signature: signature,
+			Inputs:    event.Inputs,
+		})
+	}
+
 	// Generate all selector constants at the beginning
 	g.genAllSelectors()
+
+	// Generate all event constants
+	g.genAllEvents()
 
 	if err := g.genTuples(methods); err != nil {
 		return "", err
@@ -112,6 +141,13 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	for _, method := range methods {
 		if err := g.genFunction(method); err != nil {
 			return "", fmt.Errorf("failed to generate function %s: %w", method.Name, err)
+		}
+	}
+
+	// Generate code for each event
+	for _, event := range g.Events {
+		if err := g.genEvent(event); err != nil {
+			return "", fmt.Errorf("failed to generate event %s: %w", event.Name, err)
 		}
 	}
 
@@ -573,6 +609,191 @@ func (g *Generator) genAllSelectors() {
 		g.L("%sID = %d", selector.Name, selectorInt)
 	}
 	g.L(")")
+}
+
+// genAllEvents generates all event constants at the beginning of the file
+func (g *Generator) genAllEvents() {
+	if len(g.Events) == 0 {
+		return
+	}
+
+	g.L(`
+	// Event signatures
+	var (`)
+	for _, event := range g.Events {
+		g.L("// %s", event.Sig)
+		g.L("%sTopic = [32]byte{", event.Name)
+		for i, b := range event.Signature {
+			if i < len(event.Signature)-1 {
+				g.L("0x%02x,", b)
+			} else {
+				g.L("0x%02x", b)
+			}
+		}
+		g.L("}")
+	}
+	g.L(")")
+}
+
+// genEvent generates Go code for a single event
+func (g *Generator) genEvent(event EventInfo) error {
+	// Separate indexed and non-indexed fields
+	var indexedFields []abi.Argument
+	var nonIndexedFields []abi.Argument
+
+	for _, input := range event.Inputs {
+		if input.Indexed {
+			indexedFields = append(indexedFields, input)
+		} else {
+			nonIndexedFields = append(nonIndexedFields, input)
+		}
+	}
+
+	// Generate main event struct with all fields
+	g.L(`
+// %s represents an ABI event
+type %s struct {`, event.Name, event.Name)
+
+	for _, input := range event.Inputs {
+		goType := g.abiTypeToGoType(input.Type)
+		fieldName := Title.String(input.Name)
+		if fieldName == "" {
+			fieldName = "Field" + fmt.Sprintf("%d", len(event.Inputs))
+		}
+		g.L("%s %s", fieldName, goType)
+	}
+	g.L("}")
+
+	// Generate data struct for non-indexed fields
+	if len(nonIndexedFields) > 0 {
+		dataStructName := event.Name + "Data"
+		g.L(`
+// %s represents the non-indexed data of %s event
+type %s struct {`, dataStructName, event.Name, dataStructName)
+
+		for _, input := range nonIndexedFields {
+			goType := g.abiTypeToGoType(input.Type)
+			fieldName := Title.String(input.Name)
+			if fieldName == "" {
+				fieldName = "Field" + fmt.Sprintf("%d", len(nonIndexedFields))
+			}
+			g.L("%s %s", fieldName, goType)
+		}
+		g.L("}")
+
+		// Generate encoding/decoding methods for data struct
+		s := Struct{
+			Name: dataStructName,
+			Fields: make([]StructField, len(nonIndexedFields)),
+		}
+		for i, input := range nonIndexedFields {
+			s.Fields[i] = StructField{
+				Type: &input.Type,
+				Name: Title.String(input.Name),
+			}
+		}
+
+		// Generate struct methods for data
+		g.genStructMethods(s)
+	}
+
+	// Generate methods for indexed fields
+	if len(indexedFields) > 0 {
+		g.L(`
+// EncodeTopics encodes indexed fields of %s event to topics
+func (e %s) EncodeTopics() ([][32]byte, error) {
+	topics := make([][32]byte, 0, %d)
+	topics = append(topics, %sTopic)`, event.Name, event.Name, len(indexedFields)+1, event.Name)
+
+		for _, input := range indexedFields {
+			fieldName := Title.String(input.Name)
+			if fieldName == "" {
+				fieldName = "Field" + fmt.Sprintf("%d", len(indexedFields))
+			}
+
+			g.L(`
+	// Encode indexed field %s
+	{
+		buf := make([]byte, 32)
+		offset := 0
+		`, fieldName)
+
+			// Generate encoding for indexed field
+			ref := fmt.Sprintf("e.%s", fieldName)
+			if !IsDynamicType(input.Type) {
+				g.L("// %s (static)", fieldName)
+				g.genStaticItemOffset(ref, input.Type)
+			} else {
+				g.L("// %s (dynamic)", fieldName)
+				g.genDynamicItem(ref, input.Type)
+			}
+
+			g.L(`
+		var topic [32]byte
+		copy(topic[:], buf)
+		topics = append(topics, topic)
+	}`)
+		}
+
+		g.L(`
+	return topics, nil
+}`)
+
+		// Generate method to decode indexed fields from topics
+		g.L(`
+// DecodeTopics decodes indexed fields of %s event from topics
+func (e *%s) DecodeTopics(topics [][32]byte) error {
+	if len(topics) < %d {
+		return fmt.Errorf("insufficient topics for %s event")
+	}
+
+	// Skip the first topic (event signature)
+	topicIndex := 1`, event.Name, event.Name, len(indexedFields)+1, event.Name)
+
+		for _, input := range indexedFields {
+			fieldName := Title.String(input.Name)
+			if fieldName == "" {
+				fieldName = "Field" + fmt.Sprintf("%d", len(indexedFields))
+			}
+
+			g.L(`
+	// Decode indexed field %s
+	if topicIndex >= len(topics) {
+		return fmt.Errorf("missing topic for field %s")
+	}
+	`, fieldName, fieldName)
+
+			ref := fmt.Sprintf("e.%s", fieldName)
+			if !IsDynamicType(input.Type) {
+				g.L(`
+	// %s (static)
+	{
+		data := topics[topicIndex][:]
+			offset := 0
+		`, fieldName)
+				g.genStaticDecodeOffset(ref, input.Type, 0)
+				g.L(`
+	}
+	topicIndex++`)
+			} else {
+				g.L(`
+	// %s (dynamic)
+	{
+		data := topics[topicIndex][:]
+		`, fieldName)
+				g.genDynamicDecode(ref, input.Type, 0)
+				g.L(`
+	}
+	topicIndex++`)
+			}
+		}
+
+		g.L(`
+	return nil
+}`)
+	}
+
+	return nil
 }
 
 // genStaticItemOffset generates encoding for a single tuple element in tuple Encode method
