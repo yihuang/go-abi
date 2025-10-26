@@ -388,7 +388,7 @@ func (t %s) EncodeTo(buf []byte) (int, error) {
 	for _, f := range s.Fields {
 		if !IsDynamicType(*f.Type) {
 			g.L("// %s (static)", f.Name)
-			offset = g.genStaticItem("t."+f.Name, *f.Type, offset)
+			offset = g.genStaticItem("buf", "t."+f.Name, *f.Type, offset)
 			continue
 		}
 
@@ -399,7 +399,7 @@ func (t %s) EncodeTo(buf []byte) (int, error) {
 
 		// Generate encoding for dynamic element
 		g.L("// %s (dynamic)", f.Name)
-		g.genDynamicItem(fmt.Sprintf("t.%s", f.Name), *f.Type)
+		g.genDynamicItem("buf", fmt.Sprintf("t.%s", f.Name), *f.Type)
 
 		offset += 32
 	}
@@ -428,7 +428,7 @@ func (t %s) Encode() ([]byte, error) {
 	g.genDecode(s)
 }
 
-func (g *Generator) genIntOffset(ref string, t abi.Type) {
+func (g *Generator) genInt(bufRef, ref string, t abi.Type, offset int) int {
 	// Check if we can use native Go types for optimization
 	switch t.Size {
 	case 8:
@@ -436,82 +436,13 @@ func (g *Generator) genIntOffset(ref string, t abi.Type) {
 			// int8 - sign extend to 32 bytes
 			g.L(`
 if %s < 0 {
-	for i := 0; i < 31; i++ { buf[offset+i] = 0xff }
+	for i := 0; i < 31; i++ { %s[%d+i] = 0xff }
 }
-buf[offset+31] = byte(%s)
-`, ref, ref)
+%s[%d+31] = byte(%s)
+`, ref, bufRef, offset, bufRef, offset, ref)
 		} else {
 			// uint8 - zero extend to 32 bytes
-			g.L("buf[offset+31] = byte(%s)", ref)
-		}
-	case 16:
-		if t.T == abi.IntTy {
-			// int16 - sign extend to 32 bytes
-			g.L(`
-if %s < 0 {
-	for i := 0; i < 30; i++ { buf[offset+i] = 0xff }
-}
-binary.BigEndian.PutUint16(buf[offset+30:offset+32], uint16(%s))
-`, ref, ref)
-		} else {
-			// uint16 - zero extend to 32 bytes
-			g.L("binary.BigEndian.PutUint16(buf[offset+30:offset+32], uint16(%s))", ref)
-		}
-	case 24, 32:
-		if t.T == abi.IntTy {
-			// int32 - sign extend to 32 bytes
-			g.L(`
-if %s < 0 {
-	for i := 0; i < 28; i++ { buf[offset+i] = 0xff }
-}
-binary.BigEndian.PutUint32(buf[offset+28:offset+32], uint32(%s))
-`, ref, ref)
-		} else {
-			// uint32 - zero extend to 32 bytes
-			g.L("binary.BigEndian.PutUint32(buf[offset+28:offset+32], uint32(%s))", ref)
-		}
-	case 40, 48, 56, 64:
-		if t.T == abi.IntTy {
-			// int64 - sign extend to 32 bytes
-			g.L(`
-if %s < 0 {
-	for i := 0; i < 24; i++ { buf[offset+i] = 0xff }
-}
-binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(%s))
-`, ref, ref)
-		} else {
-			// uint64 - zero extend to 32 bytes
-			g.L("binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(%s))", ref)
-		}
-	default:
-		signed := "false"
-		if t.T == abi.IntTy {
-			signed = "true"
-		}
-
-		g.L(`
-if err := abi.EncodeBigInt(%s, buf[offset:offset+32], %s); err != nil {
-	return 0, err
-}
-`, ref, signed)
-	}
-}
-
-func (g *Generator) genInt(ref string, t abi.Type, offset int) int {
-	// Check if we can use native Go types for optimization
-	switch t.Size {
-	case 8:
-		if t.T == abi.IntTy {
-			// int8 - sign extend to 32 bytes
-			g.L(`
-if %s < 0 {
-	for i := 0; i < 31; i++ { buf[%d+i] = 0xff }
-}
-buf[%d+31] = byte(%s)
-`, ref, offset, offset, ref)
-		} else {
-			// uint8 - zero extend to 32 bytes
-			g.L("buf[%d+31] = byte(%s)", offset, ref)
+			g.L("%s[%d+31] = byte(%s)", bufRef, offset, ref)
 		}
 
 	case 16:
@@ -519,13 +450,13 @@ buf[%d+31] = byte(%s)
 			// int16 - sign extend to 32 bytes
 			g.L(`
 if %s < 0 {
-	for i := 0; i < 30; i++ { buf[%d+i] = 0xff }
+	for i := 0; i < 30; i++ { %s[%d+i] = 0xff }
 }
-binary.BigEndian.PutUint16(buf[%d+30:%d+32], uint16(%s))
-`, ref, offset, offset, offset, ref)
+binary.BigEndian.PutUint16(%s[%d+30:%d+32], uint16(%s))
+`, ref, bufRef, offset, bufRef, offset, offset, ref)
 		} else {
 			// uint16 - zero extend to 32 bytes
-			g.L("binary.BigEndian.PutUint16(buf[%d+30:%d+32], uint16(%s))", offset, offset, ref)
+			g.L("binary.BigEndian.PutUint16(%s[%d+30:%d+32], uint16(%s))", bufRef, offset, offset, ref)
 		}
 
 	case 24, 32:
@@ -533,13 +464,13 @@ binary.BigEndian.PutUint16(buf[%d+30:%d+32], uint16(%s))
 			// int32 - sign extend to 32 bytes
 			g.L(`
 if %s < 0 {
-	for i := 0; i < 28; i++ { buf[%d+i] = 0xff }
+	for i := 0; i < 28; i++ { %s[%d+i] = 0xff }
 }
-binary.BigEndian.PutUint32(buf[%d+28:%d+32], uint32(%s))
-`, ref, offset, offset, offset, ref)
+binary.BigEndian.PutUint32(%s[%d+28:%d+32], uint32(%s))
+`, ref, bufRef, offset, bufRef, offset, offset, ref)
 		} else {
 			// uint32 - zero extend to 32 bytes
-			g.L("binary.BigEndian.PutUint32(buf[%d+28:%d+32], uint32(%s))", offset, offset, ref)
+			g.L("binary.BigEndian.PutUint32(%s[%d+28:%d+32], uint32(%s))", bufRef, offset, offset, ref)
 		}
 
 	case 40, 48, 56, 64:
@@ -547,13 +478,13 @@ binary.BigEndian.PutUint32(buf[%d+28:%d+32], uint32(%s))
 			// int64 - sign extend to 32 bytes
 			g.L(`
 if %s < 0 {
-	for i := 0; i < 24; i++ { buf[%d+i] = 0xff }
+	for i := 0; i < 24; i++ { %s[%d+i] = 0xff }
 }
-binary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(%s))
-`, ref, offset, offset, offset, ref)
+binary.BigEndian.PutUint64(%s[%d+24:%d+32], uint64(%s))
+`, ref, bufRef, offset, bufRef, offset, offset, ref)
 		} else {
 			// uint64 - zero extend to 32 bytes
-			g.L("binary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(%s))", offset, offset, ref)
+			g.L("binary.BigEndian.PutUint64(%s[%d+24:%d+32], uint64(%s))", bufRef, offset, offset, ref)
 		}
 
 	default:
@@ -562,10 +493,10 @@ binary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(%s))
 			signed = "true"
 		}
 		g.L(`
-if err := abi.EncodeBigInt(%s, buf[%d:%d], %s); err != nil {
+if err := abi.EncodeBigInt(%s, %s[%d:%d], %s); err != nil {
 	return 0, err
 }
-`, ref, offset, offset+32, signed)
+`, ref, bufRef, offset, offset+32, signed)
 
 	}
 
@@ -732,17 +663,16 @@ func (e %sEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field %s
 	{
 		var buf common.Hash
-		offset := 0
 		`, fieldName)
 
 		// Generate encoding for indexed field
 		ref := fmt.Sprintf("e.%s", fieldName)
 		if !IsDynamicType(input.Type) {
 			g.L("// %s (static)", fieldName)
-			g.genStaticItemOffset(ref, input.Type)
+			g.genStaticItem("buf", ref, input.Type, 0)
 		} else {
 			g.L("// %s (dynamic)", fieldName)
-			g.genDynamicItem(ref, input.Type)
+			g.genDynamicItem("buf", ref, input.Type)
 		}
 
 		g.L(`
@@ -798,105 +728,44 @@ func (e *{{.Name}}EventIndexed) DecodeTopics(topics []common.Hash) error {
 }`)
 }
 
-// genStaticItemOffset generates encoding for a single tuple element in tuple Encode method
-func (g *Generator) genStaticItemOffset(ref string, t abi.Type) {
+// genStaticItem generates encoding for a single tuple element in tuple Encode method
+func (g *Generator) genStaticItem(bufRef, ref string, t abi.Type, offset int) int {
 	switch t.T {
 	case abi.AddressTy:
-		g.L("copy(buf[offset+12:offset+32], %s[:])", ref)
+		g.L("copy(%s[%d+12:%d+32], %s[:])", bufRef, offset, offset, ref)
+		offset += 32
 
 	case abi.UintTy, abi.IntTy:
-		g.genIntOffset(ref, t)
+		offset = g.genInt(bufRef, ref, t, offset)
 
 	case abi.BoolTy:
-		g.L(`
-if %s {
-	buf[offset+31] = 1
-}
-`, ref)
+		g.L(`if %s { %s[%d+31] = 1 } `, ref, bufRef, offset)
+		offset += 32
 
 	case abi.FixedBytesTy:
-		g.L("copy(buf[offset:offset+32], %s[:])", ref)
+		g.L("copy(%s[%d:%d+32], %s[:])", bufRef, offset, offset, ref)
+		offset += 32
 
 	case abi.ArrayTy:
 		// Fixed-size array with static elements
 		elemSize := GetTypeSize(*t.Elem)
-		g.L(`
-// Encode fixed-size array %s
-for _, item := range %s {
-`, ref, ref)
-
-		g.genStaticItemOffset("item", *t.Elem)
-
-		g.L(`
-	offset += %d
-}
-`, elemSize)
+		g.L(`// Encode fixed-size array %s`, ref)
+		g.L(`{`)
+		for i := 0; i < t.Size; i++ {
+			g.genStaticItem(bufRef, fmt.Sprintf("%s[%d]", ref, i), *t.Elem, offset+i*elemSize)
+		}
+		g.L(`}`)
+		offset += t.Size * elemSize
 
 	case abi.TupleTy:
 		// Nested static tuple - use the generated EncodeTo method
-		g.L(`
-// Encode nested tuple %s
-if _, err := %s.EncodeTo(buf[offset:]); err != nil {
+		g.L(`// Encode nested tuple %s
+if _, err := %s.EncodeTo(%s[%d:]); err != nil {
 	return 0, err
 }
-`, ref, ref)
+`, ref, ref, bufRef, offset)
 
-	default:
-		panic("unknown static type")
-	}
-}
-
-// genStaticItem generates encoding for a single tuple element in tuple Encode method
-func (g *Generator) genStaticItem(ref string, elemType abi.Type, offset int) int {
-	switch elemType.T {
-	case abi.AddressTy:
-		g.L("copy(buf[%d+12:%d+32], %s[:])", offset, offset, ref)
-		offset += 32
-
-	case abi.UintTy, abi.IntTy:
-		offset = g.genInt(ref, elemType, offset)
-
-	case abi.BoolTy:
-		g.L(`
-if %s {
-	buf[%d+31] = 1
-}
-`, ref, offset)
-		offset += 32
-
-	case abi.FixedBytesTy:
-		g.L("copy(buf[%d:%d+32], %s[:])", offset, offset, ref)
-		offset += 32
-
-	case abi.ArrayTy:
-		// Fixed-size array with static elements
-		g.L(`
-// Encode fixed-size array %s
-{
-	offset := %d
-	for _, item := range %s {
-`, ref, offset, ref)
-
-		g.genStaticItemOffset("item", *elemType.Elem)
-
-		g.L(`
-	offset += %d
-	}
-}
-`, GetTypeSize(*elemType.Elem))
-
-		offset += elemType.Size * GetTypeSize(*elemType.Elem)
-
-	case abi.TupleTy:
-		// Nested static tuple - use the generated EncodeTo method
-		g.L(`
-// Encode nested tuple %s
-if _, err := %s.EncodeTo(buf[%d:]); err != nil {
-	return 0, err
-}
-`, ref, ref, offset)
-
-		offset += GetTypeSize(elemType)
+		offset += GetTypeSize(t)
 
 	default:
 		panic("unknown static type")
@@ -906,43 +775,43 @@ if _, err := %s.EncodeTo(buf[%d:]); err != nil {
 }
 
 // genDynamicItem generate code to write element into the dynamic section
-func (g *Generator) genDynamicItem(ref string, t abi.Type) {
+func (g *Generator) genDynamicItem(bufRef, ref string, t abi.Type) {
 	switch t.T {
 	case abi.StringTy:
 		g.L(`// length
-binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
+binary.BigEndian.PutUint64(%s[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
 dynamicOffset += 32
 
 // data
-copy(buf[dynamicOffset:], []byte(%s))
+copy(%s[dynamicOffset:], []byte(%s))
 dynamicOffset += abi.Pad32(len(%s))
-`, ref, ref, ref)
+`, bufRef, ref, bufRef, ref, ref)
 
 	case abi.BytesTy:
 		g.L(`// length
-binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
+binary.BigEndian.PutUint64(%s[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
 dynamicOffset += 32
 
 // data
-copy(buf[dynamicOffset:], %s)
+copy(%s[dynamicOffset:], %s)
 dynamicOffset += abi.Pad32(len(%s))
-`, ref, ref, ref)
+`, bufRef, ref, bufRef, ref, ref)
 
 	case abi.TupleTy:
 		g.L(`{
-	n, err := %s.EncodeTo(buf[dynamicOffset:])
+	n, err := %s.EncodeTo(%s[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
-}`, ref)
+}`, ref, bufRef)
 
 	case abi.SliceTy:
 		g.L(`{
 	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
+	binary.BigEndian.PutUint64(%s[dynamicOffset+24:dynamicOffset+32], uint64(len(%s)))
 	dynamicOffset += 32
-`, ref)
+`, bufRef, ref)
 
 		if IsDynamicType(*t.Elem) {
 			g.L(`
@@ -950,7 +819,7 @@ dynamicOffset += abi.Pad32(len(%s))
 
 	// data with dynamic region
 	{
-		buf := buf[dynamicOffset:]
+		buf := %s[dynamicOffset:]
 		dynamicOffset := len(%s) * 32 // start after static region
 
 		var offset int
@@ -960,9 +829,9 @@ dynamicOffset += abi.Pad32(len(%s))
 			offset += 32
 
 			// write data (dynamic)
-`, ref, ref)
+`, bufRef, ref, ref)
 
-			g.genDynamicItem("item", *t.Elem)
+			g.genDynamicItem("buf", "item", *t.Elem)
 
 			g.L(`
 		}
@@ -974,11 +843,12 @@ dynamicOffset += abi.Pad32(len(%s))
 			elemSize := GetTypeSize(*t.Elem)
 			g.L(`
 	// data without dynamic region
-	buf := buf[dynamicOffset:]
+	buf := %s[dynamicOffset:]
 	var offset int
 	for _, item := range %s {
-`, ref)
-			g.genStaticItemOffset("item", *t.Elem)
+		tmpBuf := buf[offset:]
+`, bufRef, ref)
+			g.genStaticItem("tmpBuf", "item", *t.Elem, 0)
 			g.L(`
 		offset += %d
 	}
@@ -995,7 +865,7 @@ dynamicOffset += abi.Pad32(len(%s))
 
 	// data with dynamic region
 	{
-		buf := buf[dynamicOffset:]
+		buf := %s[dynamicOffset:]
 		dynamicOffset := %d * 32 // start after static region
 
 		var offset int
@@ -1005,9 +875,9 @@ dynamicOffset += abi.Pad32(len(%s))
 			offset += 32
 
 			// write data (dynamic)
-`, t.Size, ref)
+`, bufRef, t.Size, ref)
 
-		g.genDynamicItem("item", *t.Elem)
+		g.genDynamicItem("buf", "item", *t.Elem)
 
 		g.L(`
 		}

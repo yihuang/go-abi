@@ -274,11 +274,9 @@ func (t DeeplyNested) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset += abi.Pad32(len(t.Str))
 
 	// Flag (static)
-
 	if t.Flag {
 		buf[64+31] = 1
 	}
-
 	// Addr (static)
 	copy(buf[96+12:96+32], t.Addr[:])
 	// Hash (static)
@@ -740,7 +738,6 @@ func (t GetMultipleReturnsReturn) EncodeTo(buf []byte) (int, error) {
 		dynamicOffset += n
 	}
 	// Result3 (static)
-
 	if t.Result3 {
 		buf[64+31] = 1
 	}
@@ -921,7 +918,6 @@ func (t GetSimplePairReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := GetSimplePairReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	// Encode nested tuple t.Result1
 	if _, err := t.Result1.EncodeTo(buf[0:]); err != nil {
 		return 0, err
@@ -987,9 +983,10 @@ func (t GetTupleArrayReturn) EncodeTo(buf []byte) (int, error) {
 		buf := buf[dynamicOffset:]
 		var offset int
 		for _, item := range t.Result1 {
+			tmpBuf := buf[offset:]
 
 			// Encode nested tuple item
-			if _, err := item.EncodeTo(buf[offset:]); err != nil {
+			if _, err := item.EncodeTo(tmpBuf[0:]); err != nil {
 				return 0, err
 			}
 

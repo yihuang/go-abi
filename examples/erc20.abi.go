@@ -248,7 +248,6 @@ func (t ApproveReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := ApproveReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -697,7 +696,6 @@ func (t TransferReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TransferReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -815,7 +813,6 @@ func (t TransferFromReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TransferFromReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -881,10 +878,9 @@ func (e ApprovalEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field Owner
 	{
 		var buf common.Hash
-		offset := 0
 
 		// Owner (static)
-		copy(buf[offset+12:offset+32], e.Owner[:])
+		copy(buf[0+12:0+32], e.Owner[:])
 
 		topics = append(topics, buf)
 	}
@@ -892,10 +888,9 @@ func (e ApprovalEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field Spender
 	{
 		var buf common.Hash
-		offset := 0
 
 		// Spender (static)
-		copy(buf[offset+12:offset+32], e.Spender[:])
+		copy(buf[0+12:0+32], e.Spender[:])
 
 		topics = append(topics, buf)
 	}
@@ -1023,10 +1018,9 @@ func (e TransferEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field From
 	{
 		var buf common.Hash
-		offset := 0
 
 		// From (static)
-		copy(buf[offset+12:offset+32], e.From[:])
+		copy(buf[0+12:0+32], e.From[:])
 
 		topics = append(topics, buf)
 	}
@@ -1034,10 +1028,9 @@ func (e TransferEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field To
 	{
 		var buf common.Hash
-		offset := 0
 
 		// To (static)
-		copy(buf[offset+12:offset+32], e.To[:])
+		copy(buf[0+12:0+32], e.To[:])
 
 		topics = append(topics, buf)
 	}

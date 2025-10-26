@@ -363,49 +363,21 @@ func parseParameterWithStructs(paramStr string, isEvent bool, structs map[string
 	indexed := matches[2] == "indexed"
 	name := matches[3]
 
+	matches = typeWithoutTupleRegex.FindStringSubmatch(typeStr)
+	if matches == nil {
+		return nil, fmt.Errorf("invalid type format: %s", typeStr)
+	}
+	baseType := matches[1]
+	arrayPart := matches[2]
+
 	// Check if this is a struct reference
 	if structs != nil {
-		// Handle array types with structs
-		if strings.HasSuffix(typeStr, "[]") {
-			baseType := typeStr[:len(typeStr)-2]
-			if structComponents, exists := structs[baseType]; exists {
-				// Create tuple array type with components
-				result := map[string]interface{}{
-					"name":         name,
-					"type":         "tuple[]",
-					"internalType": "struct " + baseType + "[]",
-					"components":   structComponents,
-				}
-				if isEvent {
-					result["indexed"] = indexed
-				}
-				return result, nil
-			}
-		}
-		// Handle fixed array types with structs
-		if idx := strings.Index(typeStr, "["); idx != -1 && strings.HasSuffix(typeStr, "]") {
-			baseType := typeStr[:idx]
-			if structComponents, exists := structs[baseType]; exists {
-				// Create tuple fixed array type with components
-				result := map[string]interface{}{
-					"name":         name,
-					"type":         "tuple" + typeStr[idx:],
-					"internalType": "struct " + baseType + typeStr[idx:],
-					"components":   structComponents,
-				}
-				if isEvent {
-					result["indexed"] = indexed
-				}
-				return result, nil
-			}
-		}
-		// Handle regular struct reference
-		if structComponents, exists := structs[typeStr]; exists {
-			// Create tuple type with components
+		if structComponents, exists := structs[baseType]; exists {
+			// Create tuple array type with components
 			result := map[string]interface{}{
 				"name":         name,
-				"type":         "tuple",
-				"internalType": "struct " + typeStr,
+				"type":         "tuple" + arrayPart,
+				"internalType": "struct " + baseType + arrayPart,
 				"components":   structComponents,
 			}
 			if isEvent {
@@ -416,14 +388,15 @@ func parseParameterWithStructs(paramStr string, isEvent bool, structs map[string
 	}
 
 	// Validate and normalize type
-	normalizedType, err := normalizeType(typeStr)
+	var err error
+	baseType, err = normalizeType(baseType)
 	if err != nil {
 		return nil, err
 	}
 
 	paramMap := map[string]interface{}{
 		"name": name,
-		"type": normalizedType,
+		"type": baseType + arrayPart,
 	}
 
 	if isEvent {

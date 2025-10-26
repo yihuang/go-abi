@@ -23,8 +23,8 @@ var (
 	TestFixedArraysSelector = [4]byte{0x23, 0xb8, 0x46, 0x5c}
 	// testMixedTypes(bytes32,bytes,bool,uint8,(uint32,bytes,bool)[])
 	TestMixedTypesSelector = [4]byte{0x85, 0x8a, 0xe6, 0x15}
-	// testNestedDynamicArrays(uint256[][],address[][])
-	TestNestedDynamicArraysSelector = [4]byte{0x3d, 0xb1, 0xee, 0x06}
+	// testNestedDynamicArrays(uint256[][],address[][2],string[][])
+	TestNestedDynamicArraysSelector = [4]byte{0xea, 0x7d, 0x53, 0xca}
 	// testNestedStruct(((address,string,uint256)[]))
 	TestNestedStructSelector = [4]byte{0xe8, 0x3b, 0x85, 0x67}
 	// testSmallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
@@ -38,7 +38,7 @@ const (
 	TestExternalTupleID        = 2520353592
 	TestFixedArraysID          = 599279196
 	TestMixedTypesID           = 2240472597
-	TestNestedDynamicArraysID  = 1035070982
+	TestNestedDynamicArraysID  = 3934081994
 	TestNestedStructID         = 3896214887
 	TestSmallIntegersID        = 690737721
 )
@@ -212,7 +212,6 @@ func (t Item) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset += abi.Pad32(len(t.Data))
 
 	// Active (static)
-
 	if t.Active {
 		buf[64+31] = 1
 	}
@@ -1058,7 +1057,6 @@ func (t TestComplexDynamicTuplesReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestComplexDynamicTuplesReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1184,7 +1182,6 @@ func (t TestDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestDeeplyNestedReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1310,7 +1307,6 @@ func (t TestExternalTupleReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestExternalTupleReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1361,44 +1357,36 @@ func (t TestFixedArraysCall) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestFixedArraysCallStaticSize // Start dynamic data after static section
 
 	// Addresses (static)
-
 	// Encode fixed-size array t.Addresses
 	{
-		offset := 0
-		for _, item := range t.Addresses {
-
-			copy(buf[offset+12:offset+32], item[:])
-
-			offset += 32
-		}
+		copy(buf[0+12:0+32], t.Addresses[0][:])
+		copy(buf[32+12:32+32], t.Addresses[1][:])
+		copy(buf[64+12:64+32], t.Addresses[2][:])
+		copy(buf[96+12:96+32], t.Addresses[3][:])
+		copy(buf[128+12:128+32], t.Addresses[4][:])
 	}
-
 	// Uints (static)
-
 	// Encode fixed-size array t.Uints
 	{
-		offset := 160
-		for _, item := range t.Uints {
 
-			if err := abi.EncodeBigInt(item, buf[offset:offset+32], false); err != nil {
-				return 0, err
-			}
-
-			offset += 32
+		if err := abi.EncodeBigInt(t.Uints[0], buf[160:192], false); err != nil {
+			return 0, err
 		}
+
+		if err := abi.EncodeBigInt(t.Uints[1], buf[192:224], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Uints[2], buf[224:256], false); err != nil {
+			return 0, err
+		}
+
 	}
-
 	// Bytes32s (static)
-
 	// Encode fixed-size array t.Bytes32s
 	{
-		offset := 256
-		for _, item := range t.Bytes32s {
-
-			copy(buf[offset:offset+32], item[:])
-
-			offset += 32
-		}
+		copy(buf[256:256+32], t.Bytes32s[0][:])
+		copy(buf[288:288+32], t.Bytes32s[1][:])
 	}
 
 	return dynamicOffset, nil
@@ -1480,7 +1468,6 @@ func (t TestFixedArraysReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestFixedArraysReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1554,11 +1541,9 @@ func (t TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset += abi.Pad32(len(t.DynamicData))
 
 	// Flag (static)
-
 	if t.Flag {
 		buf[64+31] = 1
 	}
-
 	// Count (static)
 	buf[96+31] = byte(t.Count)
 
@@ -1705,7 +1690,6 @@ func (t TestMixedTypesReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestMixedTypesReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1734,12 +1718,13 @@ func (t *TestMixedTypesReturn) Decode(data0 []byte) error {
 	return nil
 }
 
-const TestNestedDynamicArraysCallStaticSize = 64
+const TestNestedDynamicArraysCallStaticSize = 96
 
 // TestNestedDynamicArraysCall represents an ABI tuple
 type TestNestedDynamicArraysCall struct {
 	Matrix        [][]*big.Int
-	AddressMatrix [][]common.Address
+	AddressMatrix [2][]common.Address
+	DymMatrix     [][]string
 }
 
 // EncodedSize returns the total encoded size of TestNestedDynamicArraysCall
@@ -1750,9 +1735,15 @@ func (t TestNestedDynamicArraysCall) EncodedSize() int {
 	for _, elem := range t.Matrix {
 		dynamicSize += 32 + 32*len(elem) // length + static elements
 	}
-	dynamicSize += 32 + 32*len(t.AddressMatrix) // length + offset pointers for dynamic elements
 	for _, elem := range t.AddressMatrix {
 		dynamicSize += 32 + 32*len(elem) // length + static elements
+	}
+	dynamicSize += 32 + 32*len(t.DymMatrix) // length + offset pointers for dynamic elements
+	for _, elem := range t.DymMatrix {
+		dynamicSize += 32 + 32*len(elem) // length + offset pointers for dynamic elements
+		for _, elem := range elem {
+			dynamicSize += 32 + abi.Pad32(len(elem)) // length + padded string data
+		}
 	}
 
 	return TestNestedDynamicArraysCallStaticSize + dynamicSize
@@ -1796,8 +1787,9 @@ func (t TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
 					buf := buf[dynamicOffset:]
 					var offset int
 					for _, item := range item {
+						tmpBuf := buf[offset:]
 
-						if err := abi.EncodeBigInt(item, buf[offset:offset+32], false); err != nil {
+						if err := abi.EncodeBigInt(item, tmpBuf[0:32], false); err != nil {
 							return 0, err
 						}
 
@@ -1818,17 +1810,14 @@ func (t TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 
 	// AddressMatrix (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.AddressMatrix)))
-		dynamicOffset += 32
 
+	{
 		var written int
 
 		// data with dynamic region
 		{
 			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.AddressMatrix) * 32 // start after static region
+			dynamicOffset := 2 * 32 // start after static region
 
 			var offset int
 			for _, item := range t.AddressMatrix {
@@ -1847,12 +1836,78 @@ func (t TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
 					buf := buf[dynamicOffset:]
 					var offset int
 					for _, item := range item {
+						tmpBuf := buf[offset:]
 
-						copy(buf[offset+12:offset+32], item[:])
+						copy(tmpBuf[0+12:0+32], item[:])
 
 						offset += 32
 					}
 					dynamicOffset += offset
+
+				}
+
+			}
+			written = dynamicOffset
+		}
+		dynamicOffset += written
+	}
+
+	// DymMatrix (offset)
+	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
+
+	// DymMatrix (dynamic)
+	{
+		// length
+		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.DymMatrix)))
+		dynamicOffset += 32
+
+		var written int
+
+		// data with dynamic region
+		{
+			buf := buf[dynamicOffset:]
+			dynamicOffset := len(t.DymMatrix) * 32 // start after static region
+
+			var offset int
+			for _, item := range t.DymMatrix {
+				// write offsets
+				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+				offset += 32
+
+				// write data (dynamic)
+
+				{
+					// length
+					binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
+					dynamicOffset += 32
+
+					var written int
+
+					// data with dynamic region
+					{
+						buf := buf[dynamicOffset:]
+						dynamicOffset := len(item) * 32 // start after static region
+
+						var offset int
+						for _, item := range item {
+							// write offsets
+							binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+							offset += 32
+
+							// write data (dynamic)
+
+							// length
+							binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
+							dynamicOffset += 32
+
+							// data
+							copy(buf[dynamicOffset:], []byte(item))
+							dynamicOffset += abi.Pad32(len(item))
+
+						}
+						written = dynamicOffset
+					}
+					dynamicOffset += written
 
 				}
 
@@ -1928,13 +1983,54 @@ func (t *TestNestedDynamicArraysCall) Decode(data0 []byte) error {
 		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
 
 		// t.AddressMatrix (dynamic)
+		if offset >= len(data0) {
+			return fmt.Errorf("insufficient data for dynamic data, t.AddressMatrix")
+		}
+		// Fixed-size array t.AddressMatrix
+
+		// Dynamic elements with offsets
+		for i0 := 0; i0 < 2; i0++ {
+			// Read element offset
+			tmp := i0 * 32
+			offset := int(binary.BigEndian.Uint64(data0[tmp+24 : tmp+32]))
+			if offset >= len(data0) {
+				return fmt.Errorf("invalid element offset")
+			}
+			// Decode dynamic element at offset
+			{
+				data1 := data0[offset:]
+
+				// t.AddressMatrix[i0] (dynamic)
+				if offset+32 > len(data1) {
+					return fmt.Errorf("insufficient data for length prefix")
+				}
+				length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
+				offset += 32
+				// slice data
+				t.AddressMatrix[i0] = make([]common.Address, length)
+				data2 := data1[offset:]
+
+				offset = 0
+				for i1 := 0; i1 < length; i1++ {
+					// t.AddressMatrix[i0][i1] (static)
+					copy(t.AddressMatrix[i0][i1][:], data2[offset+12:offset+32])
+					offset += 32
+				}
+			}
+		}
+	}
+	// DymMatrix
+	{
+		offset := int(binary.BigEndian.Uint64(data0[64+24 : 64+32]))
+
+		// t.DymMatrix (dynamic)
 		if offset+32 > len(data0) {
 			return fmt.Errorf("insufficient data for length prefix")
 		}
 		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
 		offset += 32
 		// slice data
-		t.AddressMatrix = make([][]common.Address, length)
+		t.DymMatrix = make([][]string, length)
 		data1 := data0[offset:]
 
 		// Dynamic elements with offsets (dynamic array)
@@ -1947,21 +2043,34 @@ func (t *TestNestedDynamicArraysCall) Decode(data0 []byte) error {
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
 
-			// t.AddressMatrix[i0] (dynamic)
+			// t.DymMatrix[i0] (dynamic)
 			if offset+32 > len(data1) {
 				return fmt.Errorf("insufficient data for length prefix")
 			}
 			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
 			offset += 32
 			// slice data
-			t.AddressMatrix[i0] = make([]common.Address, length)
+			t.DymMatrix[i0] = make([]string, length)
 			data2 := data1[offset:]
 
-			offset = 0
+			// Dynamic elements with offsets (dynamic array)
 			for i1 := 0; i1 < length; i1++ {
-				// t.AddressMatrix[i0][i1] (static)
-				copy(t.AddressMatrix[i0][i1][:], data2[offset+12:offset+32])
+				// Read element offset
+				tmp := i1 * 32
+				if tmp+32 > len(data2) {
+					return fmt.Errorf("insufficient data for element offset")
+				}
+				offset := int(binary.BigEndian.Uint64(data2[tmp+24 : tmp+32]))
+				// Decode dynamic element at offset
+
+				// t.DymMatrix[i0][i1] (dynamic)
+				if offset+32 > len(data2) {
+					return fmt.Errorf("insufficient data for length prefix")
+				}
+				length := int(binary.BigEndian.Uint64(data2[offset+24 : offset+32]))
 				offset += 32
+				// string data
+				t.DymMatrix[i0][i1] = string(data2[offset : offset+length])
 			}
 		}
 	}
@@ -1999,7 +2108,6 @@ func (t TestNestedDynamicArraysReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestNestedDynamicArraysReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -2125,7 +2233,6 @@ func (t TestNestedStructReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestNestedStructReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -2292,7 +2399,6 @@ func (t TestSmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TestSmallIntegersReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -2357,10 +2463,9 @@ func (e ComplexEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field Sender
 	{
 		var buf common.Hash
-		offset := 0
 
 		// Sender (static)
-		copy(buf[offset+12:offset+32], e.Sender[:])
+		copy(buf[0+12:0+32], e.Sender[:])
 
 		topics = append(topics, buf)
 	}
@@ -2440,8 +2545,9 @@ func (t ComplexEventData) EncodeTo(buf []byte) (int, error) {
 		buf := buf[dynamicOffset:]
 		var offset int
 		for _, item := range t.Numbers {
+			tmpBuf := buf[offset:]
 
-			if err := abi.EncodeBigInt(item, buf[offset:offset+32], false); err != nil {
+			if err := abi.EncodeBigInt(item, tmpBuf[0:32], false); err != nil {
 				return 0, err
 			}
 
@@ -2538,10 +2644,9 @@ func (e IndexOnlyEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field Sender
 	{
 		var buf common.Hash
-		offset := 0
 
 		// Sender (static)
-		copy(buf[offset+12:offset+32], e.Sender[:])
+		copy(buf[0+12:0+32], e.Sender[:])
 
 		topics = append(topics, buf)
 	}
@@ -2612,10 +2717,9 @@ func (e TransferEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field From
 	{
 		var buf common.Hash
-		offset := 0
 
 		// From (static)
-		copy(buf[offset+12:offset+32], e.From[:])
+		copy(buf[0+12:0+32], e.From[:])
 
 		topics = append(topics, buf)
 	}
@@ -2623,10 +2727,9 @@ func (e TransferEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field To
 	{
 		var buf common.Hash
-		offset := 0
 
 		// To (static)
-		copy(buf[offset+12:offset+32], e.To[:])
+		copy(buf[0+12:0+32], e.To[:])
 
 		topics = append(topics, buf)
 	}
@@ -2751,10 +2854,9 @@ func (e UserCreatedEventIndexed) EncodeTopics() []common.Hash {
 	// Encode indexed field Creator
 	{
 		var buf common.Hash
-		offset := 0
 
 		// Creator (static)
-		copy(buf[offset+12:offset+32], e.Creator[:])
+		copy(buf[0+12:0+32], e.Creator[:])
 
 		topics = append(topics, buf)
 	}

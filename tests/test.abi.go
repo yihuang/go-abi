@@ -615,7 +615,6 @@ func (t BatchProcessReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := BatchProcessReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -782,16 +781,18 @@ func (t GetBalancesCall) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := GetBalancesCallStaticSize // Start dynamic data after static section
 
 	// Accounts (static)
-
 	// Encode fixed-size array t.Accounts
 	{
-		offset := 0
-		for _, item := range t.Accounts {
-
-			copy(buf[offset+12:offset+32], item[:])
-
-			offset += 32
-		}
+		copy(buf[0+12:0+32], t.Accounts[0][:])
+		copy(buf[32+12:32+32], t.Accounts[1][:])
+		copy(buf[64+12:64+32], t.Accounts[2][:])
+		copy(buf[96+12:96+32], t.Accounts[3][:])
+		copy(buf[128+12:128+32], t.Accounts[4][:])
+		copy(buf[160+12:160+32], t.Accounts[5][:])
+		copy(buf[192+12:192+32], t.Accounts[6][:])
+		copy(buf[224+12:224+32], t.Accounts[7][:])
+		copy(buf[256+12:256+32], t.Accounts[8][:])
+		copy(buf[288+12:288+32], t.Accounts[9][:])
 	}
 
 	return dynamicOffset, nil
@@ -855,18 +856,49 @@ func (t GetBalancesReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := GetBalancesReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	// Encode fixed-size array t.Result1
 	{
-		offset := 0
-		for _, item := range t.Result1 {
 
-			if err := abi.EncodeBigInt(item, buf[offset:offset+32], false); err != nil {
-				return 0, err
-			}
-
-			offset += 32
+		if err := abi.EncodeBigInt(t.Result1[0], buf[0:32], false); err != nil {
+			return 0, err
 		}
+
+		if err := abi.EncodeBigInt(t.Result1[1], buf[32:64], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[2], buf[64:96], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[3], buf[96:128], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[4], buf[128:160], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[5], buf[160:192], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[6], buf[192:224], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[7], buf[224:256], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[8], buf[256:288], false); err != nil {
+			return 0, err
+		}
+
+		if err := abi.EncodeBigInt(t.Result1[9], buf[288:320], false); err != nil {
+			return 0, err
+		}
+
 	}
 
 	return dynamicOffset, nil
@@ -1023,7 +1055,6 @@ func (t ProcessUserDataReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := ProcessUserDataReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1234,7 +1265,6 @@ func (t SetMessageReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := SetMessageReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1401,7 +1431,6 @@ func (t SmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := SmallIntegersReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1514,7 +1543,6 @@ func (t TransferReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TransferReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1579,8 +1607,9 @@ func (t TransferBatchCall) EncodeTo(buf []byte) (int, error) {
 		buf := buf[dynamicOffset:]
 		var offset int
 		for _, item := range t.Recipients {
+			tmpBuf := buf[offset:]
 
-			copy(buf[offset+12:offset+32], item[:])
+			copy(tmpBuf[0+12:0+32], item[:])
 
 			offset += 32
 		}
@@ -1601,8 +1630,9 @@ func (t TransferBatchCall) EncodeTo(buf []byte) (int, error) {
 		buf := buf[dynamicOffset:]
 		var offset int
 		for _, item := range t.Amounts {
+			tmpBuf := buf[offset:]
 
-			if err := abi.EncodeBigInt(item, buf[offset:offset+32], false); err != nil {
+			if err := abi.EncodeBigInt(item, tmpBuf[0:32], false); err != nil {
 				return 0, err
 			}
 
@@ -1706,7 +1736,6 @@ func (t TransferBatchReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := TransferBatchReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -1848,7 +1877,6 @@ func (t UpdateProfileReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := UpdateProfileReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}

@@ -118,7 +118,6 @@ func (t Overloaded1Return) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := Overloaded1ReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -236,7 +235,6 @@ func (t Overloaded10Return) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := Overloaded10ReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}
@@ -382,7 +380,6 @@ func (t Overloaded11Return) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset := Overloaded11ReturnStaticSize // Start dynamic data after static section
 
 	// Result1 (static)
-
 	if t.Result1 {
 		buf[0+31] = 1
 	}

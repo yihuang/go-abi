@@ -56,18 +56,18 @@ func createNestedDynamicArraysData() TestNestedDynamicArraysCall {
 			{big.NewInt(9), big.NewInt(10)},
 			{big.NewInt(11)},
 		},
-		AddressMatrix: [][]common.Address{
+		AddressMatrix: [][2]common.Address{
 			{
 				common.HexToAddress("0x1111111111111111111111111111111111111111"),
 				common.HexToAddress("0x2222222222222222222222222222222222222222"),
-				common.HexToAddress("0x3333333333333333333333333333333333333333"),
 			},
 			{
 				common.HexToAddress("0x4444444444444444444444444444444444444444"),
 				common.HexToAddress("0x5555555555555555555555555555555555555555"),
 			},
 			{
-				common.HexToAddress("0x6666666666666666666666666666666666666666"),
+				common.HexToAddress("0x4444444444444444444444444444444444444444"),
+				common.HexToAddress("0x5555555555555555555555555555555555555555"),
 			},
 		},
 	}

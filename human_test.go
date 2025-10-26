@@ -376,7 +376,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 		{
 			name: "function with nested dynamic arrays",
 			input: []string{
-				"function processNestedArrays(uint256[][] matrix, address[][][] deepArray)",
+				"function processNestedArrays(uint256[][] matrix, address[][2][] deepArray)",
 			},
 			expected: `[
 				{
@@ -384,7 +384,7 @@ func TestParseHumanReadableABI(t *testing.T) {
 					"name": "processNestedArrays",
 					"inputs": [
 						{"name": "matrix", "type": "uint256[][]"},
-						{"name": "deepArray", "type": "address[][][]"}
+						{"name": "deepArray", "type": "address[][2][]"}
 					],
 					"outputs": [],
 					"stateMutability": "nonpayable"
