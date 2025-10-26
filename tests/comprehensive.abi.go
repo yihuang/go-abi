@@ -23,8 +23,8 @@ var (
 	TestFixedArraysSelector = [4]byte{0x23, 0xb8, 0x46, 0x5c}
 	// testMixedTypes(bytes32,bytes,bool,uint8,(uint32,bytes,bool)[])
 	TestMixedTypesSelector = [4]byte{0x85, 0x8a, 0xe6, 0x15}
-	// testNestedDynamicArrays(uint256[][],address[][2],string[][])
-	TestNestedDynamicArraysSelector = [4]byte{0xea, 0x7d, 0x53, 0xca}
+	// testNestedDynamicArrays(uint256[][],address[][3],string[][])
+	TestNestedDynamicArraysSelector = [4]byte{0x7e, 0x8a, 0xfc, 0x98}
 	// testNestedStruct(((address,string,uint256)[]))
 	TestNestedStructSelector = [4]byte{0xe8, 0x3b, 0x85, 0x67}
 	// testSmallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
@@ -38,7 +38,7 @@ const (
 	TestExternalTupleID        = 2520353592
 	TestFixedArraysID          = 599279196
 	TestMixedTypesID           = 2240472597
-	TestNestedDynamicArraysID  = 3934081994
+	TestNestedDynamicArraysID  = 2123037848
 	TestNestedStructID         = 3896214887
 	TestSmallIntegersID        = 690737721
 )
@@ -1723,7 +1723,7 @@ const TestNestedDynamicArraysCallStaticSize = 96
 // TestNestedDynamicArraysCall represents an ABI tuple
 type TestNestedDynamicArraysCall struct {
 	Matrix        [][]*big.Int
-	AddressMatrix [2][]common.Address
+	AddressMatrix [3][]common.Address
 	DymMatrix     [][]string
 }
 
@@ -1735,10 +1735,11 @@ func (t TestNestedDynamicArraysCall) EncodedSize() int {
 	for _, elem := range t.Matrix {
 		dynamicSize += 32 + 32*len(elem) // length + static elements
 	}
-	for _, elem := range t.AddressMatrix {
-		dynamicSize += 32 + 32*len(elem) // length + static elements
-	}
-	dynamicSize += 32 + 32*len(t.DymMatrix) // length + offset pointers for dynamic elements
+	dynamicSize += 32 * 3                          // offset pointers for dynamic elements
+	dynamicSize += 32 + 32*len(t.AddressMatrix[0]) // length + static elements
+	dynamicSize += 32 + 32*len(t.AddressMatrix[1]) // length + static elements
+	dynamicSize += 32 + 32*len(t.AddressMatrix[2]) // length + static elements
+	dynamicSize += 32 + 32*len(t.DymMatrix)        // length + offset pointers for dynamic elements
 	for _, elem := range t.DymMatrix {
 		dynamicSize += 32 + 32*len(elem) // length + offset pointers for dynamic elements
 		for _, elem := range elem {
@@ -1817,34 +1818,75 @@ func (t TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
 		// data with dynamic region
 		{
 			buf := buf[dynamicOffset:]
-			dynamicOffset := 2 * 32 // start after static region
+			dynamicOffset := 3 * 32 // start after static region
 
-			var offset int
-			for _, item := range t.AddressMatrix {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
+			// write offsets
+			binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 
-				// write data (dynamic)
+			// write data (dynamic)
 
-				{
-					// length
-					binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
-					dynamicOffset += 32
+			{
+				// length
+				binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.AddressMatrix[0])))
+				dynamicOffset += 32
 
-					// data without dynamic region
-					buf := buf[dynamicOffset:]
-					var offset int
-					for _, item := range item {
-						tmpBuf := buf[offset:]
+				// data without dynamic region
+				buf := buf[dynamicOffset:]
+				var offset int
+				for _, item := range t.AddressMatrix[0] {
+					tmpBuf := buf[offset:]
 
-						copy(tmpBuf[0+12:0+32], item[:])
+					copy(tmpBuf[0+12:0+32], item[:])
 
-						offset += 32
-					}
-					dynamicOffset += offset
-
+					offset += 32
 				}
+				dynamicOffset += offset
+
+			}
+			// write offsets
+			binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+
+			// write data (dynamic)
+
+			{
+				// length
+				binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.AddressMatrix[1])))
+				dynamicOffset += 32
+
+				// data without dynamic region
+				buf := buf[dynamicOffset:]
+				var offset int
+				for _, item := range t.AddressMatrix[1] {
+					tmpBuf := buf[offset:]
+
+					copy(tmpBuf[0+12:0+32], item[:])
+
+					offset += 32
+				}
+				dynamicOffset += offset
+
+			}
+			// write offsets
+			binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
+
+			// write data (dynamic)
+
+			{
+				// length
+				binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.AddressMatrix[2])))
+				dynamicOffset += 32
+
+				// data without dynamic region
+				buf := buf[dynamicOffset:]
+				var offset int
+				for _, item := range t.AddressMatrix[2] {
+					tmpBuf := buf[offset:]
+
+					copy(tmpBuf[0+12:0+32], item[:])
+
+					offset += 32
+				}
+				dynamicOffset += offset
 
 			}
 			written = dynamicOffset
@@ -1987,35 +2029,30 @@ func (t *TestNestedDynamicArraysCall) Decode(data0 []byte) error {
 			return fmt.Errorf("insufficient data for dynamic data, t.AddressMatrix")
 		}
 		// Fixed-size array t.AddressMatrix
+		data1 := data0[offset:]
 
 		// Dynamic elements with offsets
-		for i0 := 0; i0 < 2; i0++ {
+		for i0 := 0; i0 < 3; i0++ {
 			// Read element offset
 			tmp := i0 * 32
-			offset := int(binary.BigEndian.Uint64(data0[tmp+24 : tmp+32]))
-			if offset >= len(data0) {
-				return fmt.Errorf("invalid element offset")
-			}
+			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
-			{
-				data1 := data0[offset:]
 
-				// t.AddressMatrix[i0] (dynamic)
-				if offset+32 > len(data1) {
-					return fmt.Errorf("insufficient data for length prefix")
-				}
-				length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
+			// t.AddressMatrix[i0] (dynamic)
+			if offset+32 > len(data1) {
+				return fmt.Errorf("insufficient data for length prefix")
+			}
+			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
+			offset += 32
+			// slice data
+			t.AddressMatrix[i0] = make([]common.Address, length)
+			data2 := data1[offset:]
+
+			offset = 0
+			for i1 := 0; i1 < length; i1++ {
+				// t.AddressMatrix[i0][i1] (static)
+				copy(t.AddressMatrix[i0][i1][:], data2[offset+12:offset+32])
 				offset += 32
-				// slice data
-				t.AddressMatrix[i0] = make([]common.Address, length)
-				data2 := data1[offset:]
-
-				offset = 0
-				for i1 := 0; i1 < length; i1++ {
-					// t.AddressMatrix[i0][i1] (static)
-					copy(t.AddressMatrix[i0][i1][:], data2[offset+12:offset+32])
-					offset += 32
-				}
 			}
 		}
 	}

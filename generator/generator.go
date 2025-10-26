@@ -342,9 +342,10 @@ func (g *Generator) genSize(t abi.Type, acc string, ref string) {
 
 	case abi.ArrayTy:
 		// Fixed size array of dynamic element types
-		g.L("for _, elem := range %s {", ref)
-		g.genSize(*t.Elem, acc, "elem")
-		g.L("}")
+		g.L("%s += 32 * %d // offset pointers for dynamic elements", acc, t.Size)
+		for i := 0; i < t.Size; i++ {
+			g.genSize(*t.Elem, acc, fmt.Sprintf("%s[%d]", ref, i))
+		}
 
 	case abi.TupleTy:
 		// Dynamic tuple, just call tuple struct method
@@ -867,21 +868,20 @@ dynamicOffset += abi.Pad32(len(%s))
 	{
 		buf := %s[dynamicOffset:]
 		dynamicOffset := %d * 32 // start after static region
+		`, bufRef, t.Size)
 
-		var offset int
-		for _, item := range %s {
-			// write offsets
-			binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-			offset += 32
+		for i := 0; i < t.Size; i++ {
+			offset := i * 32
+			g.L(`// write offsets
+			binary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(dynamicOffset))
 
 			// write data (dynamic)
-`, bufRef, t.Size, ref)
+`, offset, offset)
 
-		g.genDynamicItem("buf", "item", *t.Elem)
-
-		g.L(`
+			g.genDynamicItem("buf", fmt.Sprintf("%s[%d]", ref, i), *t.Elem)
 		}
-		written = dynamicOffset
+
+		g.L(`written = dynamicOffset
 	}
 	dynamicOffset += written
 }
@@ -1188,26 +1188,23 @@ func (g *Generator) genDynamicDecode(ref string, t abi.Type, depth int) {
 	case abi.ArrayTy:
 		// Fixed-size array with dynamic elements
 		g.L(`// Fixed-size array %s
-		`, ref)
+		data%d := data%d[offset:]
+		`, ref, depth+1, depth)
+
+		newRef := fmt.Sprintf("%s[i%d]", ref, depth)
 
 		// Dynamic elements - each element has an offset
 		g.T(`// Dynamic elements with offsets
 		for i{{.depth}} := 0; i{{.depth}} < {{.size}}; i{{.depth}}++ {
 			// Read element offset
 			tmp := i{{.depth}} * 32
-			offset := int(binary.BigEndian.Uint64(data{{.depth}}[tmp+24:tmp+32]))
-			if offset >= len(data{{.depth}}) {
-				return fmt.Errorf("invalid element offset")
-			}
+			offset := int(binary.BigEndian.Uint64(data{{.depth_plus}}[tmp+24:tmp+32]))
 			// Decode dynamic element at offset
-			{
-				data{{.depth_plus}} := data{{.depth}}[offset:]
 			`, M{"depth": depth, "depth_plus": depth + 1, "size": t.Size})
 
-		g.genDynamicDecode(fmt.Sprintf("%s[i%d]", ref, depth), *t.Elem, depth+1)
+		g.genDynamicDecode(newRef, *t.Elem, depth+1)
 
-		g.L(`}
-		}`)
+		g.L(`}`)
 
 	default:
 		panic("unknown dynamic type")
