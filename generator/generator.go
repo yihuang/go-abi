@@ -649,9 +649,13 @@ func (g *Generator) genEvent(event abi.Event) error {
 	// Generate main event struct with all fields
 	g.L(`
 // %s represents an ABI event
-type %sEvent struct {`, event.Name, event.Name)
+type %sEventIndexed struct {`, event.Name, event.Name)
 
 	for i, input := range event.Inputs {
+		if !input.Indexed {
+			continue
+		}
+
 		goType := g.abiTypeToGoType(input.Type)
 		fieldName := Title.String(input.Name)
 		if fieldName == "" {
@@ -664,7 +668,7 @@ type %sEvent struct {`, event.Name, event.Name)
 	// Generate methods for indexed fields
 	g.L(`
 // EncodeTopics encodes indexed fields of %s event to topics
-func (e %sEvent) EncodeTopics() []common.Hash {
+func (e %sEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, %d)
 	topics = append(topics, %sEventTopic)`, event.Name, event.Name, len(indexedFields)+1, event.Name)
 
@@ -703,7 +707,7 @@ func (e %sEvent) EncodeTopics() []common.Hash {
 	// Generate method to decode indexed fields from topics
 	g.T(`
 // DecodeTopics decodes indexed fields of {{.Name}} event from topics
-func (e *{{.Name}}Event) DecodeTopics(topics []common.Hash) error {
+func (e *{{.Name}}EventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < {{.Size}} {
 		return fmt.Errorf("insufficient topics for {{.Name}} event")
 	}

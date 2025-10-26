@@ -40,10 +40,9 @@ func TestEventTopicComparison(t *testing.T) {
 		address := common.HexToAddress("0x1234567890123456789012345678901234567890")
 
 		// Create a simple event with just one indexed address
-		event := TransferEvent{
-			From:  address,
-			To:    common.Address{}, // Zero address
-			Value: big.NewInt(0),
+		event := TransferEventIndexed{
+			From: address,
+			To:   common.Address{}, // Zero address
 		}
 
 		// Encode topics

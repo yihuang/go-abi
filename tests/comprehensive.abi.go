@@ -2310,14 +2310,12 @@ func (t *TestSmallIntegersReturn) Decode(data0 []byte) error {
 }
 
 // ComplexEvent represents an ABI event
-type ComplexEventEvent struct {
-	Message string
-	Numbers []*big.Int
-	Sender  common.Address
+type ComplexEventEventIndexed struct {
+	Sender common.Address
 }
 
 // EncodeTopics encodes indexed fields of ComplexEvent event to topics
-func (e ComplexEventEvent) EncodeTopics() []common.Hash {
+func (e ComplexEventEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, 2)
 	topics = append(topics, ComplexEventEventTopic)
 
@@ -2336,7 +2334,7 @@ func (e ComplexEventEvent) EncodeTopics() []common.Hash {
 }
 
 // DecodeTopics decodes indexed fields of ComplexEvent event from topics
-func (e *ComplexEventEvent) DecodeTopics(topics []common.Hash) error {
+func (e *ComplexEventEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 2 {
 		return fmt.Errorf("insufficient topics for ComplexEvent event")
 	}
@@ -2474,14 +2472,13 @@ func (t *ComplexEventEventData) Decode(data0 []byte) error {
 }
 
 // Transfer represents an ABI event
-type TransferEvent struct {
-	From  common.Address
-	To    common.Address
-	Value *big.Int
+type TransferEventIndexed struct {
+	From common.Address
+	To   common.Address
 }
 
 // EncodeTopics encodes indexed fields of Transfer event to topics
-func (e TransferEvent) EncodeTopics() []common.Hash {
+func (e TransferEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, 3)
 	topics = append(topics, TransferEventTopic)
 
@@ -2511,7 +2508,7 @@ func (e TransferEvent) EncodeTopics() []common.Hash {
 }
 
 // DecodeTopics decodes indexed fields of Transfer event from topics
-func (e *TransferEvent) DecodeTopics(topics []common.Hash) error {
+func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 3 {
 		return fmt.Errorf("insufficient topics for Transfer event")
 	}
@@ -2593,13 +2590,12 @@ func (t *TransferEventData) Decode(data0 []byte) error {
 }
 
 // UserCreated represents an ABI event
-type UserCreatedEvent struct {
-	User    User
+type UserCreatedEventIndexed struct {
 	Creator common.Address
 }
 
 // EncodeTopics encodes indexed fields of UserCreated event to topics
-func (e UserCreatedEvent) EncodeTopics() []common.Hash {
+func (e UserCreatedEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, 2)
 	topics = append(topics, UserCreatedEventTopic)
 
@@ -2618,7 +2614,7 @@ func (e UserCreatedEvent) EncodeTopics() []common.Hash {
 }
 
 // DecodeTopics decodes indexed fields of UserCreated event from topics
-func (e *UserCreatedEvent) DecodeTopics(topics []common.Hash) error {
+func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 2 {
 		return fmt.Errorf("insufficient topics for UserCreated event")
 	}

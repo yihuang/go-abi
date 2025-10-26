@@ -7,13 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func TestEventEncodingDecoding(t *testing.T) {
+func TestEventIndexedEncodingDecoding(t *testing.T) {
 	t.Run("Transfer event", func(t *testing.T) {
 		// Create a Transfer event
-		transfer := TransferEvent{
-			From:  common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F2"),
-			To:    common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F3"),
-			Value: big.NewInt(1000000000000000000), // 1 ETH
+		transfer := TransferEventIndexed{
+			From: common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F2"),
+			To:   common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F3"),
 		}
 
 		// Encode topics
@@ -30,7 +29,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Decode topics back
-		var decodedTransfer TransferEvent
+		var decodedTransfer TransferEventIndexed
 		if err := decodedTransfer.DecodeTopics(topics); err != nil {
 			t.Fatalf("Failed to decode topics: %v", err)
 		}
@@ -47,10 +46,8 @@ func TestEventEncodingDecoding(t *testing.T) {
 
 	t.Run("ComplexEvent event", func(t *testing.T) {
 		// Create a ComplexEvent
-		complexEvent := ComplexEventEvent{
-			Message: "Test message",
-			Numbers: []*big.Int{big.NewInt(100), big.NewInt(200), big.NewInt(300)},
-			Sender:  common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F4"),
+		complexEvent := ComplexEventEventIndexed{
+			Sender: common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F4"),
 		}
 
 		// Encode topics
@@ -67,7 +64,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Decode topics back
-		var decodedComplexEvent ComplexEventEvent
+		var decodedComplexEvent ComplexEventEventIndexed
 		if err := decodedComplexEvent.DecodeTopics(topics); err != nil {
 			t.Fatalf("Failed to decode topics: %v", err)
 		}
@@ -80,12 +77,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 
 	t.Run("UserCreated event", func(t *testing.T) {
 		// Create a UserCreated event
-		userCreated := UserCreatedEvent{
-			User: User{
-				Address: common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F5"),
-				Name:    "Test User",
-				Age:     big.NewInt(25),
-			},
+		userCreated := UserCreatedEventIndexed{
 			Creator: common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F6"),
 		}
 
@@ -103,7 +95,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Decode topics back
-		var decodedUserCreated UserCreatedEvent
+		var decodedUserCreated UserCreatedEventIndexed
 		if err := decodedUserCreated.DecodeTopics(topics); err != nil {
 			t.Fatalf("Failed to decode topics: %v", err)
 		}

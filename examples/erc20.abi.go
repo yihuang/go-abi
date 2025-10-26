@@ -845,14 +845,13 @@ func (t *TransferFromReturn) Decode(data0 []byte) error {
 }
 
 // Approval represents an ABI event
-type ApprovalEvent struct {
+type ApprovalEventIndexed struct {
 	Owner   common.Address
 	Spender common.Address
-	Value   *big.Int
 }
 
 // EncodeTopics encodes indexed fields of Approval event to topics
-func (e ApprovalEvent) EncodeTopics() []common.Hash {
+func (e ApprovalEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, 3)
 	topics = append(topics, ApprovalEventTopic)
 
@@ -882,7 +881,7 @@ func (e ApprovalEvent) EncodeTopics() []common.Hash {
 }
 
 // DecodeTopics decodes indexed fields of Approval event from topics
-func (e *ApprovalEvent) DecodeTopics(topics []common.Hash) error {
+func (e *ApprovalEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 3 {
 		return fmt.Errorf("insufficient topics for Approval event")
 	}
@@ -964,14 +963,13 @@ func (t *ApprovalEventData) Decode(data0 []byte) error {
 }
 
 // Transfer represents an ABI event
-type TransferEvent struct {
-	From  common.Address
-	To    common.Address
-	Value *big.Int
+type TransferEventIndexed struct {
+	From common.Address
+	To   common.Address
 }
 
 // EncodeTopics encodes indexed fields of Transfer event to topics
-func (e TransferEvent) EncodeTopics() []common.Hash {
+func (e TransferEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, 3)
 	topics = append(topics, TransferEventTopic)
 
@@ -1001,7 +999,7 @@ func (e TransferEvent) EncodeTopics() []common.Hash {
 }
 
 // DecodeTopics decodes indexed fields of Transfer event from topics
-func (e *TransferEvent) DecodeTopics(topics []common.Hash) error {
+func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 3 {
 		return fmt.Errorf("insufficient topics for Transfer event")
 	}
