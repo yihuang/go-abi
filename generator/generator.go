@@ -34,6 +34,7 @@ type Generator struct {
 	Options   Options
 	Imports   []ImportSpec
 	Selectors []SelectorInfo
+	Events    []EventInfo
 }
 
 // SelectorInfo holds information about a function selector
@@ -41,6 +42,14 @@ type SelectorInfo struct {
 	Name  string
 	Sig   string
 	Bytes [4]byte
+}
+
+// EventInfo holds information about an event
+type EventInfo struct {
+	Name      string
+	Sig       string
+	Signature [32]byte
+	Inputs    []abi.Argument
 }
 
 // NewGenerator creates a new ABI code generator
@@ -51,6 +60,7 @@ func NewGenerator(opts ...Option) *Generator {
 		Options:   *opt,
 		Imports:   append(DefaultImports, opt.ExtraImports...),
 		Selectors: []SelectorInfo{},
+		Events:    []EventInfo{},
 	}
 }
 
@@ -72,18 +82,20 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 
 	// Write package declaration
 	g.L("package %s", g.Options.PackageName)
+	g.L("")
 
 	// Write imports
 	if len(g.Imports) > 0 {
 		g.L("import (")
 		for _, imp := range g.Imports {
 			if imp.Alias != "" {
-				g.L("%s \"%s\"", imp.Alias, imp.Path)
+				g.L("\t%s \"%s\"", imp.Alias, imp.Path)
 			} else {
-				g.L("\"%s\"", imp.Path)
+				g.L("\t\"%s\"", imp.Path)
 			}
 		}
 		g.L(")")
+		g.L("")
 	}
 
 	// First, generate all tuple structs needed for this function
@@ -101,8 +113,27 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 		})
 	}
 
+	// Collect all events
+	for _, name := range SortedMapKeys(abiDef.Events) {
+		event := abiDef.Events[name]
+		// Calculate event signature hash
+		sigHash := event.ID
+		var signature [32]byte
+		copy(signature[:], sigHash[:])
+
+		g.Events = append(g.Events, EventInfo{
+			Name:      Title.String(event.Name),
+			Sig:       event.Sig,
+			Signature: signature,
+			Inputs:    event.Inputs,
+		})
+	}
+
 	// Generate all selector constants at the beginning
 	g.genAllSelectors()
+
+	// Generate all event constants
+	g.genAllEvents()
 
 	if err := g.genTuples(methods); err != nil {
 		return "", err
@@ -112,6 +143,14 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	for _, method := range methods {
 		if err := g.genFunction(method); err != nil {
 			return "", fmt.Errorf("failed to generate function %s: %w", method.Name, err)
+		}
+	}
+
+	// Generate code for each event
+	for _, name := range SortedMapKeys(abiDef.Events) {
+		event := abiDef.Events[name]
+		if err := g.genEvent(event); err != nil {
+			return "", fmt.Errorf("failed to generate event %s: %w", event.Name, err)
 		}
 	}
 
@@ -132,6 +171,9 @@ type %s struct {
 		g.L("%s %s", f.Name, goType)
 	}
 	g.L("}")
+
+	g.genStructMethods(s)
+
 	return nil
 }
 
@@ -145,8 +187,6 @@ func (g *Generator) genFunction(method abi.Method) error {
 		if err := g.genStruct(s); err != nil {
 			return err
 		}
-
-		g.genStructMethods(s)
 
 		g.L(`
 // EncodeWithSelector encodes %s arguments to ABI bytes including function selector
@@ -167,8 +207,6 @@ func (t %s) EncodeWithSelector() ([]byte, error) {
 		if err := g.genStruct(s); err != nil {
 			return err
 		}
-
-		g.genStructMethods(s)
 	}
 
 	return nil
@@ -278,9 +316,6 @@ func (g *Generator) genTuples(methods []abi.Method) error {
 		if err := g.genStruct(s); err != nil {
 			return err
 		}
-
-		// Generate encode method for the tuple struct
-		g.genStructMethods(s)
 	}
 
 	return nil
@@ -550,12 +585,12 @@ func (g *Generator) genAllSelectors() {
 		return
 	}
 
-	g.L(`
-	// Function selectors
-	var (`)
+	g.L("")
+	g.L("// Function selectors")
+	g.L("var (")
 	for _, selector := range g.Selectors {
-		g.L("// %s", selector.Sig)
-		g.L("%sSelector = [4]byte{0x%02x, 0x%02x, 0x%02x, 0x%02x}",
+		g.L("\t// %s", selector.Sig)
+		g.L("\t%sSelector = [4]byte{0x%02x, 0x%02x, 0x%02x, 0x%02x}",
 			selector.Name,
 			selector.Bytes[0],
 			selector.Bytes[1],
@@ -564,15 +599,172 @@ func (g *Generator) genAllSelectors() {
 	}
 	g.L(")")
 
-	g.L(`
-	// Big endian integer versions of function selectors
-	const (`)
+	g.L("")
+	g.L("// Big endian integer versions of function selectors")
+	g.L("const (")
 	for _, selector := range g.Selectors {
 		// Generate integer version of selector
 		selectorInt := binary.BigEndian.Uint32(selector.Bytes[:])
-		g.L("%sID = %d", selector.Name, selectorInt)
+		g.L("\t%sID = %d", selector.Name, selectorInt)
 	}
 	g.L(")")
+}
+
+// genAllEvents generates all event constants at the beginning of the file
+func (g *Generator) genAllEvents() {
+	if len(g.Events) == 0 {
+		return
+	}
+
+	g.L("")
+	g.L("// Event signatures")
+	g.L("var (")
+	for _, event := range g.Events {
+		g.L("\t// %s", event.Sig)
+		g.L("\t%sTopic = [32]byte{", event.Name)
+		for i, b := range event.Signature {
+			if i < len(event.Signature)-1 {
+				g.L("\t\t0x%02x,", b)
+			} else {
+				g.L("\t\t0x%02x,", b)
+			}
+		}
+		g.L("\t}")
+	}
+	g.L(")")
+}
+
+// genEvent generates Go code for a single event
+func (g *Generator) genEvent(event abi.Event) error {
+	// Separate indexed and non-indexed fields
+	var indexedFields []abi.Argument
+	var nonIndexedFields []abi.Argument
+
+	for _, input := range event.Inputs {
+		if input.Indexed {
+			indexedFields = append(indexedFields, input)
+		} else {
+			nonIndexedFields = append(nonIndexedFields, input)
+		}
+	}
+
+	// Generate main event struct with all fields
+	g.L(`
+// %s represents an ABI event
+type %sEvent struct {`, event.Name, event.Name)
+
+	for i, input := range event.Inputs {
+		goType := g.abiTypeToGoType(input.Type)
+		fieldName := Title.String(input.Name)
+		if fieldName == "" {
+			panic(fmt.Sprintf("event %s input %d has no name", event.Name, i))
+		}
+		g.L("%s %s", fieldName, goType)
+	}
+	g.L("}")
+
+	// Generate methods for indexed fields
+	g.L(`
+// EncodeTopics encodes indexed fields of %s event to topics
+func (e %sEvent) EncodeTopics() ([][32]byte, error) {
+	topics := make([][32]byte, 0, %d)
+	topics = append(topics, %sTopic)`, event.Name, event.Name, len(indexedFields)+1, event.Name)
+
+	for _, input := range indexedFields {
+		fieldName := Title.String(input.Name)
+		if fieldName == "" {
+			fieldName = "Field" + fmt.Sprintf("%d", len(indexedFields))
+		}
+
+		g.L(`
+	// Encode indexed field %s
+	{
+		buf := make([]byte, 32)
+		offset := 0
+		`, fieldName)
+
+		// Generate encoding for indexed field
+		ref := fmt.Sprintf("e.%s", fieldName)
+		if !IsDynamicType(input.Type) {
+			g.L("// %s (static)", fieldName)
+			g.genStaticItemOffset(ref, input.Type)
+		} else {
+			g.L("// %s (dynamic)", fieldName)
+			g.genDynamicItem(ref, input.Type)
+		}
+
+		g.L(`
+		var topic [32]byte
+		copy(topic[:], buf)
+		topics = append(topics, topic)
+	}`)
+	}
+
+	g.L(`
+	return topics, nil
+}`)
+
+	// Generate method to decode indexed fields from topics
+	g.L(`
+// DecodeTopics decodes indexed fields of %s event from topics
+func (e *%sEvent) DecodeTopics(topics [][32]byte) error {
+	if len(topics) < %d {
+		return fmt.Errorf("insufficient topics for %s event")
+	}
+
+	// Skip the first topic (event signature)
+	topicIndex := 1`, event.Name, event.Name, len(indexedFields)+1, event.Name)
+
+	for _, input := range indexedFields {
+		fieldName := Title.String(input.Name)
+		if fieldName == "" {
+			fieldName = "Field" + fmt.Sprintf("%d", len(indexedFields))
+		}
+
+		g.L(`
+	// Decode indexed field %s
+	if topicIndex >= len(topics) {
+		return fmt.Errorf("missing topic for field %s")
+	}
+	`, fieldName, fieldName)
+
+		ref := fmt.Sprintf("e.%s", fieldName)
+		if !IsDynamicType(input.Type) {
+			g.L(`
+	// %s (static)
+	{
+		data := topics[topicIndex][:]
+			offset := 0
+		`, fieldName)
+			g.genStaticDecodeOffsetEventTopic(ref, input.Type, 0)
+			g.L(`
+	}
+	topicIndex++`)
+		} else {
+			g.L(`
+	// %s (dynamic)
+	{
+		data := topics[topicIndex][:]
+		`, fieldName)
+			g.genDynamicDecodeEventTopic(ref, input.Type, 0)
+			g.L(`
+	}
+	topicIndex++`)
+		}
+	}
+
+	g.L(`
+	return nil
+}`)
+
+	dataStruct := StructFromEvent(event)
+	if len(dataStruct.Fields) > 0 {
+		if err := g.genStruct(dataStruct); err != nil {
+			return fmt.Errorf("failed to generate event data struct for event %s: %w", event.Name, err)
+		}
+	}
+
+	return nil
 }
 
 // genStaticItemOffset generates encoding for a single tuple element in tuple Encode method
@@ -899,6 +1091,69 @@ offset += %d
 	}
 }
 
+// genStaticDecodeOffsetEventTopic generates decoding logic for static types in event topics
+func (g *Generator) genStaticDecodeOffsetEventTopic(ref string, t abi.Type, depth int) {
+	typeName := g.abiTypeToGoType(t)
+
+	g.L(`// %s (static)`, ref)
+
+	switch t.T {
+	case abi.AddressTy:
+		g.L(`copy(%s[:], data[offset+12:offset+32])`, ref)
+
+	case abi.UintTy, abi.IntTy:
+		if t.Size == 8 || t.Size == 16 || t.Size == 32 || t.Size == 64 {
+			// Native Go types
+			if t.Size == 8 {
+				// uint8/int8 - read single byte
+				if t.T == abi.IntTy {
+					g.L(`%s = %s(data[offset+31])`, ref, typeName)
+				} else {
+					g.L(`%s = %s(data[offset+31])`, ref, typeName)
+				}
+			} else {
+				// uint16/32/64 - use binary.BigEndian
+				if t.T == abi.IntTy {
+					g.L(`%s = %s(binary.BigEndian.Uint%d(data[offset+%d:offset+%d]))`, ref, typeName, t.Size, 32-t.Size/8, 32)
+				} else {
+					g.L(`%s = %s(binary.BigEndian.Uint%d(data[offset+%d:offset+%d]))`, ref, typeName, t.Size, 32-t.Size/8, 32)
+				}
+			}
+		} else {
+			// big.Int types
+			g.L(`%s = new(big.Int).SetBytes(data[offset:offset+32])`, ref)
+		}
+
+	case abi.BoolTy:
+		g.L(`%s = data[offset+31] == 1`, ref)
+
+	case abi.FixedBytesTy:
+		g.L(`copy(%s[:], data[offset:offset+%d])`, ref, t.Size)
+
+	case abi.ArrayTy:
+		// Fixed-size array with static elements
+		g.T(`// Decode fixed-size array {{.ref}}
+for i{{.depth}} := 0; i{{.depth}} < {{.size}}; i{{.depth}}++ {
+`, M{"ref": ref, "size": t.Size, "depth": depth})
+
+		elemRef := fmt.Sprintf("%s[i%d]", ref, depth)
+		g.genStaticDecodeOffsetEventTopic(elemRef, *t.Elem, depth+1)
+
+		g.L(`
+offset += %d
+	}`, GetTypeSize(*t.Elem))
+
+	case abi.TupleTy:
+		// Nested static tuple
+		g.L(`if err := %s.Decode(data[offset:offset+%d]); err != nil {
+		return err
+	}`, ref, GetTypeSize(t))
+
+	default:
+		panic("unknown static type")
+	}
+}
+
 // genStaticDecode generates decoding logic for static types
 func (g *Generator) genStaticDecode(ref string, t abi.Type, offset int, depth int) {
 	typeName := g.abiTypeToGoType(t)
@@ -1052,6 +1307,99 @@ func (g *Generator) genDynamicDecode(ref string, t abi.Type, depth int) {
 
 		g.L(`}
 		}`)
+
+	default:
+		panic("unknown dynamic type")
+	}
+}
+
+// genDynamicDecodeEventTopic generates decoding logic for dynamic types in event topics
+func (g *Generator) genDynamicDecodeEventTopic(ref string, t abi.Type, depth int) {
+	g.L(`// %s (dynamic)`, ref)
+
+	if RequiresLengthPrefix(t) {
+		g.L(`if offset+32 > len(data) {
+			return fmt.Errorf("insufficient data for length prefix")
+		}
+		length := int(binary.BigEndian.Uint64(data[offset+24:offset+32]))
+		offset += 32`)
+	} else {
+		g.L(`if offset >= len(data) {
+			return fmt.Errorf("insufficient data for dynamic data, %s")
+		}`, ref)
+	}
+
+	switch t.T {
+	case abi.StringTy:
+		g.L(`// string data
+		%s = string(data[offset:offset+length])`, ref)
+
+	case abi.BytesTy:
+		g.L(`// bytes data
+		%s = data[offset:offset+length]`, ref)
+
+	case abi.TupleTy:
+		// Dynamic tuple
+		g.L(`if err := %s.Decode(data[offset:]); err != nil {
+			return err
+		}`, ref)
+
+	case abi.SliceTy:
+		// Dynamic slice
+		typeName := g.abiTypeToGoType(*t.Elem)
+
+		g.L(`// slice data
+		%s = make([]%s, length)
+		`, ref, typeName)
+
+		newRef := fmt.Sprintf("%s[i%d]", ref, depth)
+		if !IsDynamicType(*t.Elem) {
+			// Static elements - direct decoding
+			g.L(`offset = 0
+			for i%d := 0; i%[1]d < length; i%[1]d++ {`, depth)
+
+			g.genStaticDecodeOffsetEventTopic(newRef, *t.Elem, depth+1)
+
+			g.L(`offset += %d }`, GetTypeSize(*t.Elem))
+		} else {
+			// Dynamic elements - each element has an offset
+			g.T(`// Dynamic elements with offsets (dynamic array)
+			for i{{.depth}} := 0; i{{.depth}} < length; i{{.depth}}++ {
+				// Read element offset
+				tmp := i{{.depth}} * 32
+				if tmp + 32 > len(data) {
+					return fmt.Errorf("insufficient data for element offset")
+				}
+				offset := int(binary.BigEndian.Uint64(data[tmp+24: tmp+32]))
+				// Decode dynamic element at offset
+			`, M{"depth": depth})
+
+			// Generate decoding for dynamic element directly - inline the logic
+			g.genDynamicDecodeEventTopic(newRef, *t.Elem, depth+1)
+
+			g.L("}")
+		}
+
+	case abi.ArrayTy:
+		// Fixed-size array with dynamic elements
+		g.L(`// Fixed-size array %s
+		`, ref)
+
+		// Dynamic elements - each element has an offset
+		g.T(`// Dynamic elements with offsets
+		for i{{.depth}} := 0; i{{.depth}} < {{.size}}; i{{.depth}}++ {
+			// Read element offset
+			tmp := i{{.depth}} * 32
+			offset := int(binary.BigEndian.Uint64(data[tmp+24:tmp+32]))
+			if offset >= len(data) {
+				return fmt.Errorf("invalid element offset")
+			}
+			// Decode dynamic element at offset
+			`, M{"depth": depth, "size": t.Size})
+
+		g.genDynamicDecodeEventTopic(fmt.Sprintf("%s[i%d]", ref, depth), *t.Elem, depth+1)
+
+		g.L(`}`)
 
 	default:
 		panic("unknown dynamic type")

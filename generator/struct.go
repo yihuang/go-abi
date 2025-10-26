@@ -72,6 +72,20 @@ func StructFromTuple(t abi.Type) Struct {
 	}
 }
 
+func StructFromEvent(event abi.Event) Struct {
+	fields := make([]StructField, 0)
+	for _, input := range event.Inputs {
+		if input.Indexed {
+			continue
+		}
+		fields = append(fields, StructFieldFromArgument(input))
+	}
+	return Struct{
+		Name:   fmt.Sprintf("%sEventData", Title.String(event.Name)),
+		Fields: fields,
+	}
+}
+
 func (s Struct) Types() []*abi.Type {
 	types := make([]*abi.Type, len(s.Fields))
 	for i, field := range s.Fields {

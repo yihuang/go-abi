@@ -36,6 +36,11 @@ var ComprehensiveTestABI = []string{
 	"function testExternalTuple(User user) returns (bool)",
 	"struct Group { User[] users; }",
 	"function testNestedStruct(Group group) returns (bool)",
+
+	// Event definitions for testing
+	"event Transfer(address indexed from, address indexed to, uint256 value)",
+	"event UserCreated(User user, address indexed creator)",
+	"event ComplexEvent(string message, uint256[] numbers, address indexed sender)",
 }
 
 var ComprehensiveTestABIDef ethabi.ABI
