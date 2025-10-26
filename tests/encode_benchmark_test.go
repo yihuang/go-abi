@@ -56,7 +56,7 @@ func createNestedDynamicArraysData() TestNestedDynamicArraysCall {
 			{big.NewInt(9), big.NewInt(10)},
 			{big.NewInt(11)},
 		},
-		AddressMatrix: [3][]common.Address{
+		AddressMatrix: [][3][]common.Address{{
 			{
 				common.HexToAddress("0x1111111111111111111111111111111111111111"),
 				common.HexToAddress("0x2222222222222222222222222222222222222222"),
@@ -70,7 +70,7 @@ func createNestedDynamicArraysData() TestNestedDynamicArraysCall {
 				common.HexToAddress("0x1111111111111111111111111111111111111111"),
 				common.HexToAddress("0x2222222222222222222222222222222222222222"),
 			},
-		},
+		}},
 	}
 }
 
@@ -156,7 +156,7 @@ func BenchmarkGoEthereum_NestedDynamicArrays(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		_, err := ComprehensiveTestABIDef.Pack("testNestedDynamicArrays",
-			args.Matrix, args.AddressMatrix)
+			args.Matrix, args.AddressMatrix, args.DymMatrix)
 		if err != nil {
 			b.Fatal(err)
 		}

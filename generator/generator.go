@@ -1187,24 +1187,29 @@ func (g *Generator) genDynamicDecode(ref string, t abi.Type, depth int) {
 
 	case abi.ArrayTy:
 		// Fixed-size array with dynamic elements
-		g.L(`// Fixed-size array %s
+		g.L(`// Fixed-size array %s with dynamic elements
 		data%d := data%d[offset:]
-		`, ref, depth+1, depth)
 
-		newRef := fmt.Sprintf("%s[i%d]", ref, depth)
+		if len(data%d) < %d * 32 {
+			return fmt.Errorf("insufficient data for offsets, %s")
+		}
+		`, ref, depth+1, depth, depth+1, t.Size, ref)
 
-		// Dynamic elements - each element has an offset
-		g.T(`// Dynamic elements with offsets
-		for i{{.depth}} := 0; i{{.depth}} < {{.size}}; i{{.depth}}++ {
+		for i := 0; i < t.Size; i++ {
+			newRef := fmt.Sprintf("%s[%d]", ref, i)
+			// Dynamic elements - each element has an offset
+			g.T(`{
+			// Dynamic elements with offsets
 			// Read element offset
-			tmp := i{{.depth}} * 32
-			offset := int(binary.BigEndian.Uint64(data{{.depth_plus}}[tmp+24:tmp+32]))
+			offset := int(binary.BigEndian.Uint64(data{{.depth_plus}}[{{.offset}}+24:{{.offset}}+32]))
 			// Decode dynamic element at offset
-			`, M{"depth": depth, "depth_plus": depth + 1, "size": t.Size})
+			`, M{"depth_plus": depth + 1, "size": t.Size, "offset": i * 32})
 
-		g.genDynamicDecode(newRef, *t.Elem, depth+1)
+			g.genDynamicDecode(newRef, *t.Elem, depth+1)
 
-		g.L(`}`)
+			g.L("}")
+
+		}
 
 	default:
 		panic("unknown dynamic type")

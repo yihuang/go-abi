@@ -19,7 +19,7 @@ import (
 var ComprehensiveTestABI = []string{
 	"function testSmallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
 	"function testFixedArrays(address[5] addresses, uint256[3] uints, bytes32[2] bytes32s) returns (bool)",
-	"function testNestedDynamicArrays(uint256[][] matrix, address[][3] addressMatrix, string[][] dymMatrix) returns (bool)",
+	"function testNestedDynamicArrays(uint256[][] matrix, address[][3][] addressMatrix, string[][] dymMatrix) returns (bool)",
 	"struct UserMetadata2 { uint256 createdAt; string[] tags }",
 	"struct UserProfile { string name; string[] emails; UserMetadata2 metadata }",
 	"struct User2 { uint256 id; UserProfile profile }",
@@ -130,7 +130,7 @@ func TestComprehensiveNestedDynamicArrays(t *testing.T) {
 		{big.NewInt(4), big.NewInt(5)},
 		{big.NewInt(6)},
 	}
-	addressMatrix := [3][]common.Address{
+	addressMatrix := [][3][]common.Address{{
 		{
 			common.HexToAddress("0x1111111111111111111111111111111111111111"),
 			common.HexToAddress("0x2222222222222222222222222222222222222222"),
@@ -144,11 +144,12 @@ func TestComprehensiveNestedDynamicArrays(t *testing.T) {
 			common.HexToAddress("0x1111111111111111111111111111111111111111"),
 			common.HexToAddress("0x2222222222222222222222222222222222222222"),
 		},
-	}
+	}}
 
 	args := &TestNestedDynamicArraysCall{
 		Matrix:        matrix,
 		AddressMatrix: addressMatrix,
+		DymMatrix:     [][]string{}, // make equality check happy
 	}
 
 	// Get go-ethereum encoding
