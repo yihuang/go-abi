@@ -49,75 +49,9 @@ const (
 // Event signatures
 var (
 	// Approval(address,address,uint256)
-	ApprovalTopic = [32]byte{
-		0x8c,
-		0x5b,
-		0xe1,
-		0xe5,
-		0xeb,
-		0xec,
-		0x7d,
-		0x5b,
-		0xd1,
-		0x4f,
-		0x71,
-		0x42,
-		0x7d,
-		0x1e,
-		0x84,
-		0xf3,
-		0xdd,
-		0x03,
-		0x14,
-		0xc0,
-		0xf7,
-		0xb2,
-		0x29,
-		0x1e,
-		0x5b,
-		0x20,
-		0x0a,
-		0xc8,
-		0xc7,
-		0xc3,
-		0xb9,
-		0x25,
-	}
+	ApprovalEventTopic = common.Hash{0x8c, 0x5b, 0xe1, 0xe5, 0xeb, 0xec, 0x7d, 0x5b, 0xd1, 0x4f, 0x71, 0x42, 0x7d, 0x1e, 0x84, 0xf3, 0xdd, 0x03, 0x14, 0xc0, 0xf7, 0xb2, 0x29, 0x1e, 0x5b, 0x20, 0x0a, 0xc8, 0xc7, 0xc3, 0xb9, 0x25}
 	// Transfer(address,address,uint256)
-	TransferTopic = [32]byte{
-		0xdd,
-		0xf2,
-		0x52,
-		0xad,
-		0x1b,
-		0xe2,
-		0xc8,
-		0x9b,
-		0x69,
-		0xc2,
-		0xb0,
-		0x68,
-		0xfc,
-		0x37,
-		0x8d,
-		0xaa,
-		0x95,
-		0x2b,
-		0xa7,
-		0xf1,
-		0x63,
-		0xc4,
-		0xa1,
-		0x16,
-		0x28,
-		0xf5,
-		0x5a,
-		0x4d,
-		0xf5,
-		0x23,
-		0xb3,
-		0xef,
-	}
+	TransferEventTopic = common.Hash{0xdd, 0xf2, 0x52, 0xad, 0x1b, 0xe2, 0xc8, 0x9b, 0x69, 0xc2, 0xb0, 0x68, 0xfc, 0x37, 0x8d, 0xaa, 0x95, 0x2b, 0xa7, 0xf1, 0x63, 0xc4, 0xa1, 0x16, 0x28, 0xf5, 0x5a, 0x4d, 0xf5, 0x23, 0xb3, 0xef}
 )
 
 const AllowanceCallStaticSize = 64
@@ -918,79 +852,64 @@ type ApprovalEvent struct {
 }
 
 // EncodeTopics encodes indexed fields of Approval event to topics
-func (e ApprovalEvent) EncodeTopics() ([][32]byte, error) {
-	topics := make([][32]byte, 0, 3)
-	topics = append(topics, ApprovalTopic)
+func (e ApprovalEvent) EncodeTopics() []common.Hash {
+	topics := make([]common.Hash, 0, 3)
+	topics = append(topics, ApprovalEventTopic)
 
 	// Encode indexed field Owner
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// Owner (static)
 		copy(buf[offset+12:offset+32], e.Owner[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
 	// Encode indexed field Spender
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// Spender (static)
 		copy(buf[offset+12:offset+32], e.Spender[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
-	return topics, nil
+	return topics
 }
 
 // DecodeTopics decodes indexed fields of Approval event from topics
-func (e *ApprovalEvent) DecodeTopics(topics [][32]byte) error {
+func (e *ApprovalEvent) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 3 {
 		return fmt.Errorf("insufficient topics for Approval event")
 	}
 
-	// Skip the first topic (event signature)
-	topicIndex := 1
-
-	// Decode indexed field Owner
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field Owner")
+	// Check event signature
+	if topics[0] != ApprovalEventTopic {
+		return fmt.Errorf("invalid event signature for Approval event")
 	}
-
 	// Owner (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[1][:]
 		offset := 0
 
 		// e.Owner (static)
 		copy(e.Owner[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
-
-	// Decode indexed field Spender
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field Spender")
-	}
 
 	// Spender (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[2][:]
 		offset := 0
 
 		// e.Spender (static)
 		copy(e.Spender[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
 
 	return nil
 }
@@ -1052,79 +971,64 @@ type TransferEvent struct {
 }
 
 // EncodeTopics encodes indexed fields of Transfer event to topics
-func (e TransferEvent) EncodeTopics() ([][32]byte, error) {
-	topics := make([][32]byte, 0, 3)
-	topics = append(topics, TransferTopic)
+func (e TransferEvent) EncodeTopics() []common.Hash {
+	topics := make([]common.Hash, 0, 3)
+	topics = append(topics, TransferEventTopic)
 
 	// Encode indexed field From
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// From (static)
 		copy(buf[offset+12:offset+32], e.From[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
 	// Encode indexed field To
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// To (static)
 		copy(buf[offset+12:offset+32], e.To[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
-	return topics, nil
+	return topics
 }
 
 // DecodeTopics decodes indexed fields of Transfer event from topics
-func (e *TransferEvent) DecodeTopics(topics [][32]byte) error {
+func (e *TransferEvent) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 3 {
 		return fmt.Errorf("insufficient topics for Transfer event")
 	}
 
-	// Skip the first topic (event signature)
-	topicIndex := 1
-
-	// Decode indexed field From
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field From")
+	// Check event signature
+	if topics[0] != TransferEventTopic {
+		return fmt.Errorf("invalid event signature for Transfer event")
 	}
-
 	// From (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[1][:]
 		offset := 0
 
 		// e.From (static)
 		copy(e.From[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
-
-	// Decode indexed field To
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field To")
-	}
 
 	// To (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[2][:]
 		offset := 0
 
 		// e.To (static)
 		copy(e.To[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
 
 	return nil
 }

@@ -22,16 +22,16 @@ func TestEventTopicComparison(t *testing.T) {
 		expectedUserCreatedTopic := crypto.Keccak256Hash([]byte(userCreatedSig))
 
 		// Compare with our generated topics
-		if TransferTopic != expectedTransferTopic {
-			t.Errorf("Transfer topic mismatch:\nGot:  %x\nWant: %x", TransferTopic, expectedTransferTopic)
+		if TransferEventTopic != expectedTransferTopic {
+			t.Errorf("Transfer topic mismatch:\nGot:  %x\nWant: %x", TransferEventTopic, expectedTransferTopic)
 		}
 
-		if ComplexEventTopic != expectedComplexEventTopic {
-			t.Errorf("ComplexEvent topic mismatch:\nGot:  %x\nWant: %x", ComplexEventTopic, expectedComplexEventTopic)
+		if ComplexEventEventTopic != expectedComplexEventTopic {
+			t.Errorf("ComplexEvent topic mismatch:\nGot:  %x\nWant: %x", ComplexEventEventTopic, expectedComplexEventTopic)
 		}
 
-		if UserCreatedTopic != expectedUserCreatedTopic {
-			t.Errorf("UserCreated topic mismatch:\nGot:  %x\nWant: %x", UserCreatedTopic, expectedUserCreatedTopic)
+		if UserCreatedEventTopic != expectedUserCreatedTopic {
+			t.Errorf("UserCreated topic mismatch:\nGot:  %x\nWant: %x", UserCreatedEventTopic, expectedUserCreatedTopic)
 		}
 	})
 
@@ -47,10 +47,7 @@ func TestEventTopicComparison(t *testing.T) {
 		}
 
 		// Encode topics
-		topics, err := event.EncodeTopics()
-		if err != nil {
-			t.Fatalf("Failed to encode topics: %v", err)
-		}
+		topics := event.EncodeTopics()
 
 		// Check that the address is properly padded (12 bytes of zeros + 20 bytes of address)
 		fromTopic := topics[1]

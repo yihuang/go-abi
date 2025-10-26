@@ -17,10 +17,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Encode topics
-		topics, err := transfer.EncodeTopics()
-		if err != nil {
-			t.Fatalf("Failed to encode topics: %v", err)
-		}
+		topics := transfer.EncodeTopics()
 
 		// Verify topics count
 		if len(topics) != 3 {
@@ -28,7 +25,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Verify first topic is event signature
-		if topics[0] != TransferTopic {
+		if topics[0] != TransferEventTopic {
 			t.Fatalf("First topic should be event signature")
 		}
 
@@ -57,10 +54,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Encode topics
-		topics, err := complexEvent.EncodeTopics()
-		if err != nil {
-			t.Fatalf("Failed to encode topics: %v", err)
-		}
+		topics := complexEvent.EncodeTopics()
 
 		// Verify topics count
 		if len(topics) != 2 {
@@ -68,7 +62,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Verify first topic is event signature
-		if topics[0] != ComplexEventTopic {
+		if topics[0] != ComplexEventEventTopic {
 			t.Fatalf("First topic should be event signature")
 		}
 
@@ -96,10 +90,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Encode topics
-		topics, err := userCreated.EncodeTopics()
-		if err != nil {
-			t.Fatalf("Failed to encode topics: %v", err)
-		}
+		topics := userCreated.EncodeTopics()
 
 		// Verify topics count
 		if len(topics) != 2 {
@@ -107,7 +98,7 @@ func TestEventEncodingDecoding(t *testing.T) {
 		}
 
 		// Verify first topic is event signature
-		if topics[0] != UserCreatedTopic {
+		if topics[0] != UserCreatedEventTopic {
 			t.Fatalf("First topic should be event signature")
 		}
 

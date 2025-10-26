@@ -46,110 +46,11 @@ const (
 // Event signatures
 var (
 	// ComplexEvent(string,uint256[],address)
-	ComplexEventTopic = [32]byte{
-		0x6b,
-		0x62,
-		0x75,
-		0x21,
-		0x0a,
-		0x10,
-		0xf8,
-		0x21,
-		0xc4,
-		0x09,
-		0xb1,
-		0x02,
-		0xd6,
-		0x28,
-		0x35,
-		0x36,
-		0x43,
-		0x16,
-		0x49,
-		0x69,
-		0xa5,
-		0x92,
-		0x4f,
-		0xe5,
-		0x99,
-		0x39,
-		0xef,
-		0x3a,
-		0x59,
-		0x1e,
-		0x6a,
-		0xe2,
-	}
+	ComplexEventEventTopic = common.Hash{0x6b, 0x62, 0x75, 0x21, 0x0a, 0x10, 0xf8, 0x21, 0xc4, 0x09, 0xb1, 0x02, 0xd6, 0x28, 0x35, 0x36, 0x43, 0x16, 0x49, 0x69, 0xa5, 0x92, 0x4f, 0xe5, 0x99, 0x39, 0xef, 0x3a, 0x59, 0x1e, 0x6a, 0xe2}
 	// Transfer(address,address,uint256)
-	TransferTopic = [32]byte{
-		0xdd,
-		0xf2,
-		0x52,
-		0xad,
-		0x1b,
-		0xe2,
-		0xc8,
-		0x9b,
-		0x69,
-		0xc2,
-		0xb0,
-		0x68,
-		0xfc,
-		0x37,
-		0x8d,
-		0xaa,
-		0x95,
-		0x2b,
-		0xa7,
-		0xf1,
-		0x63,
-		0xc4,
-		0xa1,
-		0x16,
-		0x28,
-		0xf5,
-		0x5a,
-		0x4d,
-		0xf5,
-		0x23,
-		0xb3,
-		0xef,
-	}
+	TransferEventTopic = common.Hash{0xdd, 0xf2, 0x52, 0xad, 0x1b, 0xe2, 0xc8, 0x9b, 0x69, 0xc2, 0xb0, 0x68, 0xfc, 0x37, 0x8d, 0xaa, 0x95, 0x2b, 0xa7, 0xf1, 0x63, 0xc4, 0xa1, 0x16, 0x28, 0xf5, 0x5a, 0x4d, 0xf5, 0x23, 0xb3, 0xef}
 	// UserCreated((address,string,uint256),address)
-	UserCreatedTopic = [32]byte{
-		0x34,
-		0xd6,
-		0x8f,
-		0x2d,
-		0xec,
-		0x91,
-		0xef,
-		0x13,
-		0x0d,
-		0xe9,
-		0x21,
-		0x4e,
-		0x8e,
-		0xa8,
-		0x6e,
-		0x02,
-		0x29,
-		0xf7,
-		0x22,
-		0xee,
-		0x89,
-		0x41,
-		0xc9,
-		0x9f,
-		0x75,
-		0xbf,
-		0xa5,
-		0x38,
-		0x17,
-		0xd9,
-		0x97,
-		0x82,
-	}
+	UserCreatedEventTopic = common.Hash{0x34, 0xd6, 0x8f, 0x2d, 0xec, 0x91, 0xef, 0x13, 0x0d, 0xe9, 0x21, 0x4e, 0x8e, 0xa8, 0x6e, 0x02, 0x29, 0xf7, 0x22, 0xee, 0x89, 0x41, 0xc9, 0x9f, 0x75, 0xbf, 0xa5, 0x38, 0x17, 0xd9, 0x97, 0x82}
 )
 
 const GroupStaticSize = 32
@@ -2416,50 +2317,43 @@ type ComplexEventEvent struct {
 }
 
 // EncodeTopics encodes indexed fields of ComplexEvent event to topics
-func (e ComplexEventEvent) EncodeTopics() ([][32]byte, error) {
-	topics := make([][32]byte, 0, 2)
-	topics = append(topics, ComplexEventTopic)
+func (e ComplexEventEvent) EncodeTopics() []common.Hash {
+	topics := make([]common.Hash, 0, 2)
+	topics = append(topics, ComplexEventEventTopic)
 
 	// Encode indexed field Sender
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// Sender (static)
 		copy(buf[offset+12:offset+32], e.Sender[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
-	return topics, nil
+	return topics
 }
 
 // DecodeTopics decodes indexed fields of ComplexEvent event from topics
-func (e *ComplexEventEvent) DecodeTopics(topics [][32]byte) error {
+func (e *ComplexEventEvent) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 2 {
 		return fmt.Errorf("insufficient topics for ComplexEvent event")
 	}
 
-	// Skip the first topic (event signature)
-	topicIndex := 1
-
-	// Decode indexed field Sender
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field Sender")
+	// Check event signature
+	if topics[0] != ComplexEventEventTopic {
+		return fmt.Errorf("invalid event signature for ComplexEvent event")
 	}
-
 	// Sender (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[1][:]
 		offset := 0
 
 		// e.Sender (static)
 		copy(e.Sender[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
 
 	return nil
 }
@@ -2587,79 +2481,64 @@ type TransferEvent struct {
 }
 
 // EncodeTopics encodes indexed fields of Transfer event to topics
-func (e TransferEvent) EncodeTopics() ([][32]byte, error) {
-	topics := make([][32]byte, 0, 3)
-	topics = append(topics, TransferTopic)
+func (e TransferEvent) EncodeTopics() []common.Hash {
+	topics := make([]common.Hash, 0, 3)
+	topics = append(topics, TransferEventTopic)
 
 	// Encode indexed field From
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// From (static)
 		copy(buf[offset+12:offset+32], e.From[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
 	// Encode indexed field To
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// To (static)
 		copy(buf[offset+12:offset+32], e.To[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
-	return topics, nil
+	return topics
 }
 
 // DecodeTopics decodes indexed fields of Transfer event from topics
-func (e *TransferEvent) DecodeTopics(topics [][32]byte) error {
+func (e *TransferEvent) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 3 {
 		return fmt.Errorf("insufficient topics for Transfer event")
 	}
 
-	// Skip the first topic (event signature)
-	topicIndex := 1
-
-	// Decode indexed field From
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field From")
+	// Check event signature
+	if topics[0] != TransferEventTopic {
+		return fmt.Errorf("invalid event signature for Transfer event")
 	}
-
 	// From (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[1][:]
 		offset := 0
 
 		// e.From (static)
 		copy(e.From[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
-
-	// Decode indexed field To
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field To")
-	}
 
 	// To (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[2][:]
 		offset := 0
 
 		// e.To (static)
 		copy(e.To[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
 
 	return nil
 }
@@ -2720,50 +2599,43 @@ type UserCreatedEvent struct {
 }
 
 // EncodeTopics encodes indexed fields of UserCreated event to topics
-func (e UserCreatedEvent) EncodeTopics() ([][32]byte, error) {
-	topics := make([][32]byte, 0, 2)
-	topics = append(topics, UserCreatedTopic)
+func (e UserCreatedEvent) EncodeTopics() []common.Hash {
+	topics := make([]common.Hash, 0, 2)
+	topics = append(topics, UserCreatedEventTopic)
 
 	// Encode indexed field Creator
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 
 		// Creator (static)
 		copy(buf[offset+12:offset+32], e.Creator[:])
 
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}
 
-	return topics, nil
+	return topics
 }
 
 // DecodeTopics decodes indexed fields of UserCreated event from topics
-func (e *UserCreatedEvent) DecodeTopics(topics [][32]byte) error {
+func (e *UserCreatedEvent) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 2 {
 		return fmt.Errorf("insufficient topics for UserCreated event")
 	}
 
-	// Skip the first topic (event signature)
-	topicIndex := 1
-
-	// Decode indexed field Creator
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field Creator")
+	// Check event signature
+	if topics[0] != UserCreatedEventTopic {
+		return fmt.Errorf("invalid event signature for UserCreated event")
 	}
-
 	// Creator (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[1][:]
 		offset := 0
 
 		// e.Creator (static)
 		copy(e.Creator[:], data[offset+12:offset+32])
 
 	}
-	topicIndex++
 
 	return nil
 }

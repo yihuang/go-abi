@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -621,15 +622,12 @@ func (g *Generator) genAllEvents() {
 	g.L("var (")
 	for _, event := range g.Events {
 		g.L("\t// %s", event.Sig)
-		g.L("\t%sTopic = [32]byte{", event.Name)
-		for i, b := range event.Signature {
-			if i < len(event.Signature)-1 {
-				g.L("\t\t0x%02x,", b)
-			} else {
-				g.L("\t\t0x%02x,", b)
-			}
+
+		var parts []string
+		for _, b := range event.Signature {
+			parts = append(parts, fmt.Sprintf("0x%02x", b))
 		}
-		g.L("\t}")
+		g.L("\t%sEventTopic = common.Hash{%s}", event.Name, strings.Join(parts, ", "))
 	}
 	g.L(")")
 }
@@ -666,9 +664,9 @@ type %sEvent struct {`, event.Name, event.Name)
 	// Generate methods for indexed fields
 	g.L(`
 // EncodeTopics encodes indexed fields of %s event to topics
-func (e %sEvent) EncodeTopics() ([][32]byte, error) {
-	topics := make([][32]byte, 0, %d)
-	topics = append(topics, %sTopic)`, event.Name, event.Name, len(indexedFields)+1, event.Name)
+func (e %sEvent) EncodeTopics() []common.Hash {
+	topics := make([]common.Hash, 0, %d)
+	topics = append(topics, %sEventTopic)`, event.Name, event.Name, len(indexedFields)+1, event.Name)
 
 	for _, input := range indexedFields {
 		fieldName := Title.String(input.Name)
@@ -679,7 +677,7 @@ func (e %sEvent) EncodeTopics() ([][32]byte, error) {
 		g.L(`
 	// Encode indexed field %s
 	{
-		buf := make([]byte, 32)
+		var buf common.Hash
 		offset := 0
 		`, fieldName)
 
@@ -694,62 +692,50 @@ func (e %sEvent) EncodeTopics() ([][32]byte, error) {
 		}
 
 		g.L(`
-		var topic [32]byte
-		copy(topic[:], buf)
-		topics = append(topics, topic)
+		topics = append(topics, buf)
 	}`)
 	}
 
 	g.L(`
-	return topics, nil
+	return topics
 }`)
 
 	// Generate method to decode indexed fields from topics
-	g.L(`
-// DecodeTopics decodes indexed fields of %s event from topics
-func (e *%sEvent) DecodeTopics(topics [][32]byte) error {
-	if len(topics) < %d {
-		return fmt.Errorf("insufficient topics for %s event")
+	g.T(`
+// DecodeTopics decodes indexed fields of {{.Name}} event from topics
+func (e *{{.Name}}Event) DecodeTopics(topics []common.Hash) error {
+	if len(topics) < {{.Size}} {
+		return fmt.Errorf("insufficient topics for {{.Name}} event")
 	}
 
-	// Skip the first topic (event signature)
-	topicIndex := 1`, event.Name, event.Name, len(indexedFields)+1, event.Name)
+	// Check event signature
+	if topics[0] != {{.Name}}EventTopic {
+		return fmt.Errorf("invalid event signature for {{.Name}} event")
+	}`, M{"Name": event.Name, "Size": len(indexedFields) + 1})
 
-	for _, input := range indexedFields {
+	for i, input := range indexedFields {
 		fieldName := Title.String(input.Name)
-		if fieldName == "" {
-			fieldName = "Field" + fmt.Sprintf("%d", len(indexedFields))
-		}
-
-		g.L(`
-	// Decode indexed field %s
-	if topicIndex >= len(topics) {
-		return fmt.Errorf("missing topic for field %s")
-	}
-	`, fieldName, fieldName)
 
 		ref := fmt.Sprintf("e.%s", fieldName)
 		if !IsDynamicType(input.Type) {
 			g.L(`
 	// %s (static)
 	{
-		data := topics[topicIndex][:]
+		data := topics[%d][:]
 			offset := 0
-		`, fieldName)
+		`, fieldName, i+1)
 			g.genStaticDecodeOffsetEventTopic(ref, input.Type, 0)
 			g.L(`
-	}
-	topicIndex++`)
+	}`)
 		} else {
 			g.L(`
 	// %s (dynamic)
 	{
-		data := topics[topicIndex][:]
-		`, fieldName)
+		data := topics[%d][:]
+		`, fieldName, i+1)
 			g.genDynamicDecodeEventTopic(ref, input.Type, 0)
 			g.L(`
-	}
-	topicIndex++`)
+	}`)
 		}
 	}
 
