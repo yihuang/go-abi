@@ -844,6 +844,29 @@ func (t *TransferFromReturn) Decode(data0 []byte) error {
 	return nil
 }
 
+// ApprovalEvent represents an ABI event
+type ApprovalEvent struct {
+	ApprovalEventIndexed
+	ApprovalEventData
+}
+
+// NewApprovalEvent constructs a new Approval event
+func NewApprovalEvent(
+	owner common.Address,
+	spender common.Address,
+	value *big.Int,
+) ApprovalEvent {
+	return ApprovalEvent{
+		ApprovalEventIndexed: ApprovalEventIndexed{
+			Owner:   owner,
+			Spender: spender,
+		},
+		ApprovalEventData: ApprovalEventData{
+			Value: value,
+		},
+	}
+}
+
 // Approval represents an ABI event
 type ApprovalEventIndexed struct {
 	Owner   common.Address
@@ -890,6 +913,7 @@ func (e *ApprovalEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if topics[0] != ApprovalEventTopic {
 		return fmt.Errorf("invalid event signature for Approval event")
 	}
+
 	// Owner (static)
 	{
 		data := topics[1][:]
@@ -962,6 +986,29 @@ func (t *ApprovalEventData) Decode(data0 []byte) error {
 	return nil
 }
 
+// TransferEvent represents an ABI event
+type TransferEvent struct {
+	TransferEventIndexed
+	TransferEventData
+}
+
+// NewTransferEvent constructs a new Transfer event
+func NewTransferEvent(
+	from common.Address,
+	to common.Address,
+	value *big.Int,
+) TransferEvent {
+	return TransferEvent{
+		TransferEventIndexed: TransferEventIndexed{
+			From: from,
+			To:   to,
+		},
+		TransferEventData: TransferEventData{
+			Value: value,
+		},
+	}
+}
+
 // Transfer represents an ABI event
 type TransferEventIndexed struct {
 	From common.Address
@@ -1008,6 +1055,7 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if topics[0] != TransferEventTopic {
 		return fmt.Errorf("invalid event signature for Transfer event")
 	}
+
 	// From (static)
 	{
 		data := topics[1][:]

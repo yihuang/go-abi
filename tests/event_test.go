@@ -10,10 +10,11 @@ import (
 func TestEventIndexedEncodingDecoding(t *testing.T) {
 	t.Run("Transfer event", func(t *testing.T) {
 		// Create a Transfer event
-		transfer := TransferEventIndexed{
-			From: common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F2"),
-			To:   common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F3"),
-		}
+		transfer := NewTransferEvent(
+			common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F2"),
+			common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F3"),
+			big.NewInt(1000000000000000000),
+		)
 
 		// Encode topics
 		topics := transfer.EncodeTopics()
@@ -46,7 +47,7 @@ func TestEventIndexedEncodingDecoding(t *testing.T) {
 
 	t.Run("ComplexEvent event", func(t *testing.T) {
 		// Create a ComplexEvent
-		complexEvent := ComplexEventEventIndexed{
+		complexEvent := ComplexEventIndexed{
 			Sender: common.HexToAddress("0x742d35Cc6634C0532925a3b8Dc9F2a5C3B8Dc9F4"),
 		}
 
@@ -59,12 +60,12 @@ func TestEventIndexedEncodingDecoding(t *testing.T) {
 		}
 
 		// Verify first topic is event signature
-		if topics[0] != ComplexEventEventTopic {
+		if topics[0] != ComplexEventTopic {
 			t.Fatalf("First topic should be event signature")
 		}
 
 		// Decode topics back
-		var decodedComplexEvent ComplexEventEventIndexed
+		var decodedComplexEvent ComplexEventIndexed
 		if err := decodedComplexEvent.DecodeTopics(topics); err != nil {
 			t.Fatalf("Failed to decode topics: %v", err)
 		}
@@ -114,7 +115,7 @@ func TestEventDataEncoding(t *testing.T) {
 	})
 
 	// Create ComplexEventData
-	DecodeRoundTrip(t, &ComplexEventEventData{
+	DecodeRoundTrip(t, &ComplexEventData{
 		Message: "Test message for encoding",
 		Numbers: []*big.Int{big.NewInt(100), big.NewInt(200), big.NewInt(300)},
 	})

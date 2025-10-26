@@ -13,7 +13,7 @@ func TestEventTopicComparison(t *testing.T) {
 	t.Run("Event signature calculation", func(t *testing.T) {
 		// Calculate event signatures using go-ethereum
 		transferSig := "Transfer(address,address,uint256)"
-		complexEventSig := "ComplexEvent(string,uint256[],address)"
+		complexEventSig := "Complex(string,uint256[],address)"
 		userCreatedSig := "UserCreated((address,string,uint256),address)"
 
 		// Calculate expected topic hashes
@@ -26,8 +26,8 @@ func TestEventTopicComparison(t *testing.T) {
 			t.Errorf("Transfer topic mismatch:\nGot:  %x\nWant: %x", TransferEventTopic, expectedTransferTopic)
 		}
 
-		if ComplexEventEventTopic != expectedComplexEventTopic {
-			t.Errorf("ComplexEvent topic mismatch:\nGot:  %x\nWant: %x", ComplexEventEventTopic, expectedComplexEventTopic)
+		if ComplexEventTopic != expectedComplexEventTopic {
+			t.Errorf("ComplexEvent topic mismatch:\nGot:  %x\nWant: %x", ComplexEventTopic, expectedComplexEventTopic)
 		}
 
 		if UserCreatedEventTopic != expectedUserCreatedTopic {

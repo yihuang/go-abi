@@ -571,6 +571,7 @@ func (t *BatchProcessCall) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Users[i0] (dynamic)
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
@@ -747,6 +748,7 @@ func (t *CommunityPoolReturn) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Coins[i0] (dynamic)
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Coins[i0]")
@@ -815,6 +817,7 @@ func (t *GetBalancesCall) Decode(data0 []byte) error {
 	for i0 := 0; i0 < 10; i0++ {
 		offset := 0 + i0*32
 		data1 := data0
+
 		// t.Accounts[i0] (static)
 		copy(t.Accounts[i0][:], data1[offset+12:offset+32])
 	}
@@ -889,6 +892,7 @@ func (t *GetBalancesReturn) Decode(data0 []byte) error {
 	for i0 := 0; i0 < 10; i0++ {
 		offset := 0 + i0*32
 		data1 := data0
+
 		// t.Result1[i0] (static)
 		t.Result1[i0] = new(big.Int).SetBytes(data1[offset : offset+32])
 	}

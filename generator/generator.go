@@ -71,7 +71,7 @@ func (g *Generator) L(format string, args ...any) {
 }
 
 func (g *Generator) T(tpl string, m map[string]interface{}) {
-	t := template.Must(template.New("").Parse(tpl))
+	t := template.Must(template.New("").Parse(tpl + "\n"))
 	t.Execute(&g.buf, m)
 }
 
@@ -159,7 +159,7 @@ func (g *Generator) GenerateFromABI(abiDef abi.ABI) (string, error) {
 	return string(g.buf.Bytes()), nil
 }
 
-func (g *Generator) genStruct(s Struct) error {
+func (g *Generator) genStruct(s Struct) {
 	g.L(`
 const %sStaticSize = %d
 
@@ -174,8 +174,6 @@ type %s struct {
 	g.L("}")
 
 	g.genStructMethods(s)
-
-	return nil
 }
 
 // genFunction generates Go code for a single function
@@ -185,9 +183,7 @@ func (g *Generator) genFunction(method abi.Method) error {
 	// Generate struct and methods for functions with inputs
 	if len(method.Inputs) > 0 {
 		s := StructFromInputs(method)
-		if err := g.genStruct(s); err != nil {
-			return err
-		}
+		g.genStruct(s)
 
 		g.L(`
 // EncodeWithSelector encodes %s arguments to ABI bytes including function selector
@@ -205,9 +201,7 @@ func (t %s) EncodeWithSelector() ([]byte, error) {
 	// Generate struct and methods for functions with outputs
 	if len(method.Outputs) > 0 {
 		s := StructFromOutputs(method)
-		if err := g.genStruct(s); err != nil {
-			return err
-		}
+		g.genStruct(s)
 	}
 
 	return nil
@@ -314,9 +308,7 @@ func (g *Generator) genTuples(methods []abi.Method) error {
 		}
 
 		s := StructFromTuple(tupleTypes[name])
-		if err := g.genStruct(s); err != nil {
-			return err
-		}
+		g.genStruct(s)
 	}
 
 	return nil
@@ -634,32 +626,90 @@ func (g *Generator) genAllEvents() {
 
 // genEvent generates Go code for a single event
 func (g *Generator) genEvent(event abi.Event) error {
-	// Separate indexed and non-indexed fields
-	var indexedFields []abi.Argument
-	var nonIndexedFields []abi.Argument
+	// gen top level struct NameEvent
+	g.genEventTopLevel(event)
 
-	for _, input := range event.Inputs {
-		if input.Indexed {
-			indexedFields = append(indexedFields, input)
-		} else {
-			nonIndexedFields = append(nonIndexedFields, input)
-		}
+	// gen struct NameEventIndexed
+	g.genEventIndexed(event)
+
+	// gen struct NameEventData
+	dataStruct := StructFromEvent(event)
+	if len(dataStruct.Fields) > 0 {
+		g.genStruct(dataStruct)
+	} else {
+		g.L(`type %sEventData abi.EmptyTuple`, event.Name)
 	}
 
-	// Generate main event struct with all fields
-	g.L(`
-// %s represents an ABI event
-type %sEventIndexed struct {`, event.Name, event.Name)
+	return nil
+}
 
-	for i, input := range event.Inputs {
+func (g *Generator) genEventTopLevel(event abi.Event) {
+	g.T(`// {{.Name}}Event represents an ABI event
+	type {{.Name}}Event struct {
+		{{.Name}}EventIndexed
+		{{.Name}}EventData
+	}`, M{"Name": event.Name})
+
+	// gen constructor
+	g.T(`// New{{.Name}}Event constructs a new {{.Name}} event
+	func New{{.Name}}Event(`, M{"Name": event.Name})
+
+	for _, input := range event.Inputs {
+		goType := g.abiTypeToGoType(input.Type)
+		g.L("%s %s,", input.Name, goType)
+	}
+
+	g.T(`) {{.Name}}Event {
+		return {{.Name}}Event{
+			{{.Name}}EventIndexed: {{.Name}}EventIndexed{`, M{"Name": event.Name})
+
+	for _, input := range event.Inputs {
 		if !input.Indexed {
 			continue
 		}
+		g.L("%s: %s,", Title.String(input.Name), input.Name)
+	}
 
+	g.L(`	},`)
+	g.T(`	{{.Name}}EventData: {{.Name}}EventData{`, M{"Name": event.Name})
+
+	for _, input := range event.Inputs {
+		if input.Indexed {
+			continue
+		}
+		g.L("%s: %s,", Title.String(input.Name), input.Name)
+	}
+
+	g.L(`	},`)
+	g.L(`}`)
+	g.L(`}`)
+}
+
+func (g *Generator) genEventIndexed(event abi.Event) {
+	name := event.Name
+
+	var fields []abi.Argument
+	for _, input := range event.Inputs {
+		if !input.Indexed {
+			continue
+		}
+		fields = append(fields, input)
+	}
+
+	if len(fields) == 0 {
+		g.L(`type %sEventIndexed abi.EmptyIndexed`, event.Name)
+		return
+	}
+
+	g.L(`
+// %s represents an ABI event
+type %sEventIndexed struct {`, name, name)
+
+	for i, input := range fields {
 		goType := g.abiTypeToGoType(input.Type)
 		fieldName := Title.String(input.Name)
 		if fieldName == "" {
-			panic(fmt.Sprintf("event %s input %d has no name", event.Name, i))
+			panic(fmt.Sprintf("event %s input %d has no name", name, i))
 		}
 		g.L("%s %s", fieldName, goType)
 	}
@@ -670,12 +720,12 @@ type %sEventIndexed struct {`, event.Name, event.Name)
 // EncodeTopics encodes indexed fields of %s event to topics
 func (e %sEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, %d)
-	topics = append(topics, %sEventTopic)`, event.Name, event.Name, len(indexedFields)+1, event.Name)
+	topics = append(topics, %sEventTopic)`, name, name, len(fields)+1, name)
 
-	for _, input := range indexedFields {
+	for _, input := range fields {
 		fieldName := Title.String(input.Name)
 		if fieldName == "" {
-			fieldName = "Field" + fmt.Sprintf("%d", len(indexedFields))
+			fieldName = "Field" + fmt.Sprintf("%d", len(fields))
 		}
 
 		g.L(`
@@ -715,9 +765,9 @@ func (e *{{.Name}}EventIndexed) DecodeTopics(topics []common.Hash) error {
 	// Check event signature
 	if topics[0] != {{.Name}}EventTopic {
 		return fmt.Errorf("invalid event signature for {{.Name}} event")
-	}`, M{"Name": event.Name, "Size": len(indexedFields) + 1})
+	}`, M{"Name": name, "Size": len(fields) + 1})
 
-	for i, input := range indexedFields {
+	for i, input := range fields {
 		fieldName := Title.String(input.Name)
 
 		ref := fmt.Sprintf("e.%s", fieldName)
@@ -746,15 +796,6 @@ func (e *{{.Name}}EventIndexed) DecodeTopics(topics []common.Hash) error {
 	g.L(`
 	return nil
 }`)
-
-	dataStruct := StructFromEvent(event)
-	if len(dataStruct.Fields) > 0 {
-		if err := g.genStruct(dataStruct); err != nil {
-			return fmt.Errorf("failed to generate event data struct for event %s: %w", event.Name, err)
-		}
-	}
-
-	return nil
 }
 
 // genStaticItemOffset generates encoding for a single tuple element in tuple Encode method

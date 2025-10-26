@@ -45,8 +45,10 @@ const (
 
 // Event signatures
 var (
-	// ComplexEvent(string,uint256[],address)
-	ComplexEventEventTopic = common.Hash{0x6b, 0x62, 0x75, 0x21, 0x0a, 0x10, 0xf8, 0x21, 0xc4, 0x09, 0xb1, 0x02, 0xd6, 0x28, 0x35, 0x36, 0x43, 0x16, 0x49, 0x69, 0xa5, 0x92, 0x4f, 0xe5, 0x99, 0x39, 0xef, 0x3a, 0x59, 0x1e, 0x6a, 0xe2}
+	// Complex(string,uint256[],address)
+	ComplexEventTopic = common.Hash{0x56, 0x22, 0xe4, 0xd3, 0x12, 0xf8, 0xdd, 0x97, 0xbb, 0x32, 0x6c, 0x82, 0x99, 0x40, 0xc0, 0x6e, 0x5f, 0x3f, 0xf7, 0x2b, 0x31, 0x1a, 0x4d, 0xee, 0x95, 0x97, 0x35, 0x15, 0x88, 0x7d, 0x0d, 0xc7}
+	// IndexOnly(address)
+	IndexOnlyEventTopic = common.Hash{0x97, 0x3c, 0xfd, 0x69, 0xe6, 0x55, 0xa7, 0xff, 0xc7, 0x50, 0xd3, 0x74, 0x5d, 0x6c, 0xd2, 0xb0, 0xef, 0x78, 0xe9, 0x8c, 0x28, 0x84, 0x0b, 0xa3, 0xc7, 0x16, 0x3a, 0x5a, 0xe6, 0x37, 0x1f, 0x27}
 	// Transfer(address,address,uint256)
 	TransferEventTopic = common.Hash{0xdd, 0xf2, 0x52, 0xad, 0x1b, 0xe2, 0xc8, 0x9b, 0x69, 0xc2, 0xb0, 0x68, 0xfc, 0x37, 0x8d, 0xaa, 0x95, 0x2b, 0xa7, 0xf1, 0x63, 0xc4, 0xa1, 0x16, 0x28, 0xf5, 0x5a, 0x4d, 0xf5, 0x23, 0xb3, 0xef}
 	// UserCreated((address,string,uint256),address)
@@ -157,6 +159,7 @@ func (t *Group) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Users[i0] (dynamic)
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
@@ -720,6 +723,7 @@ func (t *UserMetadata2) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Tags[i0] (dynamic)
 			if offset+32 > len(data1) {
 				return fmt.Errorf("insufficient data for length prefix")
@@ -879,6 +883,7 @@ func (t *UserProfile) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Emails[i0] (dynamic)
 			if offset+32 > len(data1) {
 				return fmt.Errorf("insufficient data for length prefix")
@@ -1009,6 +1014,7 @@ func (t *TestComplexDynamicTuplesCall) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Users[i0] (dynamic)
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
@@ -1418,6 +1424,7 @@ func (t *TestFixedArraysCall) Decode(data0 []byte) error {
 	for i0 := 0; i0 < 5; i0++ {
 		offset := 0 + i0*32
 		data1 := data0
+
 		// t.Addresses[i0] (static)
 		copy(t.Addresses[i0][:], data1[offset+12:offset+32])
 	}
@@ -1426,6 +1433,7 @@ func (t *TestFixedArraysCall) Decode(data0 []byte) error {
 	for i0 := 0; i0 < 3; i0++ {
 		offset := 160 + i0*32
 		data1 := data0
+
 		// t.Uints[i0] (static)
 		t.Uints[i0] = new(big.Int).SetBytes(data1[offset : offset+32])
 	}
@@ -1434,6 +1442,7 @@ func (t *TestFixedArraysCall) Decode(data0 []byte) error {
 	for i0 := 0; i0 < 2; i0++ {
 		offset := 256 + i0*32
 		data1 := data0
+
 		// t.Bytes32s[i0] (static)
 		copy(t.Bytes32s[i0][:], data1[offset:offset+32])
 	}
@@ -1652,6 +1661,7 @@ func (t *TestMixedTypesCall) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Items[i0] (dynamic)
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Items[i0]")
@@ -1894,6 +1904,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Matrix[i0] (dynamic)
 			if offset+32 > len(data1) {
 				return fmt.Errorf("insufficient data for length prefix")
@@ -1935,6 +1946,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.AddressMatrix[i0] (dynamic)
 			if offset+32 > len(data1) {
 				return fmt.Errorf("insufficient data for length prefix")
@@ -2310,14 +2322,37 @@ func (t *TestSmallIntegersReturn) Decode(data0 []byte) error {
 }
 
 // ComplexEvent represents an ABI event
-type ComplexEventEventIndexed struct {
+type ComplexEvent struct {
+	ComplexEventIndexed
+	ComplexEventData
+}
+
+// NewComplexEvent constructs a new Complex event
+func NewComplexEvent(
+	message string,
+	numbers []*big.Int,
+	sender common.Address,
+) ComplexEvent {
+	return ComplexEvent{
+		ComplexEventIndexed: ComplexEventIndexed{
+			Sender: sender,
+		},
+		ComplexEventData: ComplexEventData{
+			Message: message,
+			Numbers: numbers,
+		},
+	}
+}
+
+// Complex represents an ABI event
+type ComplexEventIndexed struct {
 	Sender common.Address
 }
 
-// EncodeTopics encodes indexed fields of ComplexEvent event to topics
-func (e ComplexEventEventIndexed) EncodeTopics() []common.Hash {
+// EncodeTopics encodes indexed fields of Complex event to topics
+func (e ComplexEventIndexed) EncodeTopics() []common.Hash {
 	topics := make([]common.Hash, 0, 2)
-	topics = append(topics, ComplexEventEventTopic)
+	topics = append(topics, ComplexEventTopic)
 
 	// Encode indexed field Sender
 	{
@@ -2333,16 +2368,17 @@ func (e ComplexEventEventIndexed) EncodeTopics() []common.Hash {
 	return topics
 }
 
-// DecodeTopics decodes indexed fields of ComplexEvent event from topics
-func (e *ComplexEventEventIndexed) DecodeTopics(topics []common.Hash) error {
+// DecodeTopics decodes indexed fields of Complex event from topics
+func (e *ComplexEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) < 2 {
-		return fmt.Errorf("insufficient topics for ComplexEvent event")
+		return fmt.Errorf("insufficient topics for Complex event")
 	}
 
 	// Check event signature
-	if topics[0] != ComplexEventEventTopic {
-		return fmt.Errorf("invalid event signature for ComplexEvent event")
+	if topics[0] != ComplexEventTopic {
+		return fmt.Errorf("invalid event signature for Complex event")
 	}
+
 	// Sender (static)
 	{
 		data := topics[1][:]
@@ -2356,28 +2392,28 @@ func (e *ComplexEventEventIndexed) DecodeTopics(topics []common.Hash) error {
 	return nil
 }
 
-const ComplexEventEventDataStaticSize = 64
+const ComplexEventDataStaticSize = 64
 
-// ComplexEventEventData represents an ABI tuple
-type ComplexEventEventData struct {
+// ComplexEventData represents an ABI tuple
+type ComplexEventData struct {
 	Message string
 	Numbers []*big.Int
 }
 
-// EncodedSize returns the total encoded size of ComplexEventEventData
-func (t ComplexEventEventData) EncodedSize() int {
+// EncodedSize returns the total encoded size of ComplexEventData
+func (t ComplexEventData) EncodedSize() int {
 	dynamicSize := 0
 
 	dynamicSize += 32 + abi.Pad32(len(t.Message)) // length + padded string data
 	dynamicSize += 32 + 32*len(t.Numbers)         // length + static elements
 
-	return ComplexEventEventDataStaticSize + dynamicSize
+	return ComplexEventDataStaticSize + dynamicSize
 }
 
-// EncodeTo encodes ComplexEventEventData to ABI bytes in the provided buffer
+// EncodeTo encodes ComplexEventData to ABI bytes in the provided buffer
 // it panics if the buffer is not large enough
-func (t ComplexEventEventData) EncodeTo(buf []byte) (int, error) {
-	dynamicOffset := ComplexEventEventDataStaticSize // Start dynamic data after static section
+func (t ComplexEventData) EncodeTo(buf []byte) (int, error) {
+	dynamicOffset := ComplexEventDataStaticSize // Start dynamic data after static section
 
 	// Message (offset)
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
@@ -2418,8 +2454,8 @@ func (t ComplexEventEventData) EncodeTo(buf []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// Encode encodes ComplexEventEventData to ABI bytes
-func (t ComplexEventEventData) Encode() ([]byte, error) {
+// Encode encodes ComplexEventData to ABI bytes
+func (t ComplexEventData) Encode() ([]byte, error) {
 	buf := make([]byte, t.EncodedSize())
 	if _, err := t.EncodeTo(buf); err != nil {
 		return nil, err
@@ -2427,10 +2463,10 @@ func (t ComplexEventEventData) Encode() ([]byte, error) {
 	return buf, nil
 }
 
-// Decode decodes ComplexEventEventData from ABI bytes in the provided buffer
-func (t *ComplexEventEventData) Decode(data0 []byte) error {
-	if len(data0) < ComplexEventEventDataStaticSize {
-		return fmt.Errorf("insufficient data for ComplexEventEventData")
+// Decode decodes ComplexEventData from ABI bytes in the provided buffer
+func (t *ComplexEventData) Decode(data0 []byte) error {
+	if len(data0) < ComplexEventDataStaticSize {
+		return fmt.Errorf("insufficient data for ComplexEventData")
 	}
 
 	// Message
@@ -2469,6 +2505,97 @@ func (t *ComplexEventEventData) Decode(data0 []byte) error {
 	}
 
 	return nil
+}
+
+// IndexOnlyEvent represents an ABI event
+type IndexOnlyEvent struct {
+	IndexOnlyEventIndexed
+	IndexOnlyEventData
+}
+
+// NewIndexOnlyEvent constructs a new IndexOnly event
+func NewIndexOnlyEvent(
+	sender common.Address,
+) IndexOnlyEvent {
+	return IndexOnlyEvent{
+		IndexOnlyEventIndexed: IndexOnlyEventIndexed{
+			Sender: sender,
+		},
+		IndexOnlyEventData: IndexOnlyEventData{},
+	}
+}
+
+// IndexOnly represents an ABI event
+type IndexOnlyEventIndexed struct {
+	Sender common.Address
+}
+
+// EncodeTopics encodes indexed fields of IndexOnly event to topics
+func (e IndexOnlyEventIndexed) EncodeTopics() []common.Hash {
+	topics := make([]common.Hash, 0, 2)
+	topics = append(topics, IndexOnlyEventTopic)
+
+	// Encode indexed field Sender
+	{
+		var buf common.Hash
+		offset := 0
+
+		// Sender (static)
+		copy(buf[offset+12:offset+32], e.Sender[:])
+
+		topics = append(topics, buf)
+	}
+
+	return topics
+}
+
+// DecodeTopics decodes indexed fields of IndexOnly event from topics
+func (e *IndexOnlyEventIndexed) DecodeTopics(topics []common.Hash) error {
+	if len(topics) < 2 {
+		return fmt.Errorf("insufficient topics for IndexOnly event")
+	}
+
+	// Check event signature
+	if topics[0] != IndexOnlyEventTopic {
+		return fmt.Errorf("invalid event signature for IndexOnly event")
+	}
+
+	// Sender (static)
+	{
+		data := topics[1][:]
+		offset := 0
+
+		// e.Sender (static)
+		copy(e.Sender[:], data[offset+12:offset+32])
+
+	}
+
+	return nil
+}
+
+type IndexOnlyEventData abi.EmptyTuple
+
+// TransferEvent represents an ABI event
+type TransferEvent struct {
+	TransferEventIndexed
+	TransferEventData
+}
+
+// NewTransferEvent constructs a new Transfer event
+func NewTransferEvent(
+	from common.Address,
+	to common.Address,
+	value *big.Int,
+) TransferEvent {
+	return TransferEvent{
+		TransferEventIndexed: TransferEventIndexed{
+			From: from,
+			To:   to,
+		},
+		TransferEventData: TransferEventData{
+			Value: value,
+		},
+	}
 }
 
 // Transfer represents an ABI event
@@ -2517,6 +2644,7 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if topics[0] != TransferEventTopic {
 		return fmt.Errorf("invalid event signature for Transfer event")
 	}
+
 	// From (static)
 	{
 		data := topics[1][:]
@@ -2589,6 +2717,27 @@ func (t *TransferEventData) Decode(data0 []byte) error {
 	return nil
 }
 
+// UserCreatedEvent represents an ABI event
+type UserCreatedEvent struct {
+	UserCreatedEventIndexed
+	UserCreatedEventData
+}
+
+// NewUserCreatedEvent constructs a new UserCreated event
+func NewUserCreatedEvent(
+	user User,
+	creator common.Address,
+) UserCreatedEvent {
+	return UserCreatedEvent{
+		UserCreatedEventIndexed: UserCreatedEventIndexed{
+			Creator: creator,
+		},
+		UserCreatedEventData: UserCreatedEventData{
+			User: user,
+		},
+	}
+}
+
 // UserCreated represents an ABI event
 type UserCreatedEventIndexed struct {
 	Creator common.Address
@@ -2623,6 +2772,7 @@ func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if topics[0] != UserCreatedEventTopic {
 		return fmt.Errorf("invalid event signature for UserCreated event")
 	}
+
 	// Creator (static)
 	{
 		data := topics[1][:]

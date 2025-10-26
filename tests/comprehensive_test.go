@@ -40,7 +40,8 @@ var ComprehensiveTestABI = []string{
 	// Event definitions for testing
 	"event Transfer(address indexed from, address indexed to, uint256 value)",
 	"event UserCreated(User user, address indexed creator)",
-	"event ComplexEvent(string message, uint256[] numbers, address indexed sender)",
+	"event Complex(string message, uint256[] numbers, address indexed sender)",
+	"event IndexOnly(address indexed sender)",
 }
 
 var ComprehensiveTestABIDef ethabi.ABI

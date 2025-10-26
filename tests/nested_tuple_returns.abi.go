@@ -887,6 +887,7 @@ func (t *GetNestedTupleArrayReturn) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Result1[i0] (dynamic)
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Result1[i0]")
@@ -1214,6 +1215,7 @@ func (t *GetUsersArrayReturn) Decode(data0 []byte) error {
 			}
 			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
 			// Decode dynamic element at offset
+
 			// t.Result1[i0] (dynamic)
 			if offset >= len(data1) {
 				return fmt.Errorf("insufficient data for dynamic data, t.Result1[i0]")
