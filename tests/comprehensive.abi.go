@@ -542,147 +542,6 @@ func (t *UserProfile) Decode(data0 []byte) error {
 	return fmt.Errorf("decode not yet implemented")
 }
 
-// encode_User2_array encodes (uint256,(string,string[],(uint256,string[])))[] to ABI bytes
-func encode_User2_array(value []User2, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode elements
-	offset := 32
-	for _, elem := range value {
-		n, err := elem.EncodeTo(buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset, nil
-}
-
-// encode_string_array encodes string[] to ABI bytes
-func encode_string_array(value []string, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode elements
-	offset := 32
-	for _, elem := range value {
-		n, err := encode_string(elem, buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset, nil
-}
-
-// encode_bool encodes bool to ABI bytes
-func encode_bool(value bool, buf []byte) (int, error) {
-	if value {
-		buf[31] = 1
-	}
-	return 32, nil
-}
-
-// encode_address encodes address to ABI bytes
-func encode_address(value common.Address, buf []byte) (int, error) {
-	copy(buf[12:32], value[:])
-	return 32, nil
-}
-
-// encode_uint256_array_3 encodes uint256[3] to ABI bytes
-func encode_uint256_array_3(value [3]*big.Int, buf []byte) (int, error) {
-	// Encode fixed-size array
-	offset := 0
-	for _, elem := range value {
-		n, err := encode_uint256(elem, buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset, nil
-}
-
-// encode_address_array encodes address[] to ABI bytes
-func encode_address_array(value []common.Address, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode elements
-	offset := 32
-	for _, elem := range value {
-		n, err := encode_address(elem, buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset, nil
-}
-
-// encode_int32 encodes int32 to ABI bytes
-func encode_int32(value int32, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 28; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
-// encode_address_array_5 encodes address[5] to ABI bytes
-func encode_address_array_5(value [5]common.Address, buf []byte) (int, error) {
-	// Encode fixed-size array
-	offset := 0
-	for _, elem := range value {
-		n, err := encode_address(elem, buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset, nil
-}
-
-// encode_bytes32_array_2 encodes bytes32[2] to ABI bytes
-func encode_bytes32_array_2(value [2][32]byte, buf []byte) (int, error) {
-	// Encode fixed-size array
-	offset := 0
-	for _, elem := range value {
-		n, err := encode_bytes32(elem, buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset, nil
-}
-
-// encode_uint64 encodes uint64 to ABI bytes
-func encode_uint64(value uint64, buf []byte) (int, error) {
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// encode_string encodes string to ABI bytes
-func encode_string(value string, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode data
-	copy(buf[32:], []byte(value))
-
-	return 32 + abi.Pad32(len(value)), nil
-}
-
 // encode_Item_array encodes (uint32,bytes,bool)[] to ABI bytes
 func encode_Item_array(value []Item, buf []byte) (int, error) {
 	// Encode length
@@ -701,41 +560,22 @@ func encode_Item_array(value []Item, buf []byte) (int, error) {
 	return offset, nil
 }
 
-// encode_uint16 encodes uint16 to ABI bytes
-func encode_uint16(value uint16, buf []byte) (int, error) {
-	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
-	return 32, nil
-}
-
-// encode_bytes encodes bytes to ABI bytes
-func encode_bytes(value []byte, buf []byte) (int, error) {
+// encode_User2_array encodes (uint256,(string,string[],(uint256,string[])))[] to ABI bytes
+func encode_User2_array(value []User2, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 
-	// Encode data
-	copy(buf[32:], value)
-
-	return 32 + abi.Pad32(len(value)), nil
-}
-
-// encode_uint8 encodes uint8 to ABI bytes
-func encode_uint8(value uint8, buf []byte) (int, error) {
-	buf[31] = byte(value)
-	return 32, nil
-}
-
-// encode_uint256 encodes uint256 to ABI bytes
-func encode_uint256(value *big.Int, buf []byte) (int, error) {
-	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
-		return 0, err
+	// Encode elements
+	offset := 32
+	for _, elem := range value {
+		n, err := elem.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	return 32, nil
-}
 
-// encode_bytes32 encodes bytes32 to ABI bytes
-func encode_bytes32(value [32]byte, buf []byte) (int, error) {
-	copy(buf[:32], value[:])
-	return 32, nil
+	return offset, nil
 }
 
 // encode_User_array encodes (address,string,uint256)[] to ABI bytes
@@ -756,48 +596,57 @@ func encode_User_array(value []User, buf []byte) (int, error) {
 	return offset, nil
 }
 
-// encode_int8 encodes int8 to ABI bytes
-func encode_int8(value int8, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 31; i++ {
-			buf[i] = 0xff
-		}
-	}
-	buf[31] = byte(value)
+// encode_address encodes address to ABI bytes
+func encode_address(value common.Address, buf []byte) (int, error) {
+	copy(buf[12:32], value[:])
 	return 32, nil
 }
 
-// encode_int16 encodes int16 to ABI bytes
-func encode_int16(value int16, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 30; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
-	return 32, nil
-}
-
-// encode_int64 encodes int64 to ABI bytes
-func encode_int64(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// encode_uint256_array_array encodes uint256[][] to ABI bytes
-func encode_uint256_array_array(value [][]*big.Int, buf []byte) (int, error) {
+// encode_address_array encodes address[] to ABI bytes
+func encode_address_array(value []common.Address, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 
 	// Encode elements
 	offset := 32
 	for _, elem := range value {
-		n, err := encode_uint256_array(elem, buf[offset:])
+		n, err := encode_address(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset, nil
+}
+
+// encode_address_array_5 encodes address[5] to ABI bytes
+func encode_address_array_5(value [5]common.Address, buf []byte) (int, error) {
+	// Encode fixed-size array
+	offset := 0
+	if len(value) != 5 {
+		return 0, fmt.Errorf("invalid array length: expected 5, got %d", len(value))
+	}
+	for _, elem := range value {
+		n, err := encode_address(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset, nil
+}
+
+// encode_address_array_array_3 encodes address[][3] to ABI bytes
+func encode_address_array_array_3(value [3][]common.Address, buf []byte) (int, error) {
+	// Encode fixed-size array
+	offset := 0
+	if len(value) != 3 {
+		return 0, fmt.Errorf("invalid array length: expected 3, got %d", len(value))
+	}
+	for _, elem := range value {
+		n, err := encode_address_array(elem, buf[offset:])
 		if err != nil {
 			return 0, err
 		}
@@ -825,12 +674,113 @@ func encode_address_array_array_3_array(value [][3][]common.Address, buf []byte)
 	return offset, nil
 }
 
-// encode_address_array_array_3 encodes address[][3] to ABI bytes
-func encode_address_array_array_3(value [3][]common.Address, buf []byte) (int, error) {
+// encode_bool encodes bool to ABI bytes
+func encode_bool(value bool, buf []byte) (int, error) {
+	if value {
+		buf[31] = 1
+	}
+	return 32, nil
+}
+
+// encode_bytes encodes bytes to ABI bytes
+func encode_bytes(value []byte, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode data
+	copy(buf[32:], value)
+
+	return 32 + abi.Pad32(len(value)), nil
+}
+
+// encode_bytes32 encodes bytes32 to ABI bytes
+func encode_bytes32(value [32]byte, buf []byte) (int, error) {
+	copy(buf[:32], value[:])
+	return 32, nil
+}
+
+// encode_bytes32_array_2 encodes bytes32[2] to ABI bytes
+func encode_bytes32_array_2(value [2][32]byte, buf []byte) (int, error) {
 	// Encode fixed-size array
 	offset := 0
+	if len(value) != 2 {
+		return 0, fmt.Errorf("invalid array length: expected 2, got %d", len(value))
+	}
 	for _, elem := range value {
-		n, err := encode_address_array(elem, buf[offset:])
+		n, err := encode_bytes32(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset, nil
+}
+
+// encode_int16 encodes int16 to ABI bytes
+func encode_int16(value int16, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 30; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
+	return 32, nil
+}
+
+// encode_int32 encodes int32 to ABI bytes
+func encode_int32(value int32, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 28; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// encode_int64 encodes int64 to ABI bytes
+func encode_int64(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 24; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// encode_int8 encodes int8 to ABI bytes
+func encode_int8(value int8, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 31; i++ {
+			buf[i] = 0xff
+		}
+	}
+	buf[31] = byte(value)
+	return 32, nil
+}
+
+// encode_string encodes string to ABI bytes
+func encode_string(value string, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode data
+	copy(buf[32:], []byte(value))
+
+	return 32 + abi.Pad32(len(value)), nil
+}
+
+// encode_string_array encodes string[] to ABI bytes
+func encode_string_array(value []string, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode elements
+	offset := 32
+	for _, elem := range value {
+		n, err := encode_string(elem, buf[offset:])
 		if err != nil {
 			return 0, err
 		}
@@ -858,9 +808,17 @@ func encode_string_array_array(value [][]string, buf []byte) (int, error) {
 	return offset, nil
 }
 
-// encode_uint32 encodes uint32 to ABI bytes
-func encode_uint32(value uint32, buf []byte) (int, error) {
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+// encode_uint16 encodes uint16 to ABI bytes
+func encode_uint16(value uint16, buf []byte) (int, error) {
+	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
+	return 32, nil
+}
+
+// encode_uint256 encodes uint256 to ABI bytes
+func encode_uint256(value *big.Int, buf []byte) (int, error) {
+	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
+		return 0, err
+	}
 	return 32, nil
 }
 
@@ -880,6 +838,60 @@ func encode_uint256_array(value []*big.Int, buf []byte) (int, error) {
 	}
 
 	return offset, nil
+}
+
+// encode_uint256_array_3 encodes uint256[3] to ABI bytes
+func encode_uint256_array_3(value [3]*big.Int, buf []byte) (int, error) {
+	// Encode fixed-size array
+	offset := 0
+	if len(value) != 3 {
+		return 0, fmt.Errorf("invalid array length: expected 3, got %d", len(value))
+	}
+	for _, elem := range value {
+		n, err := encode_uint256(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset, nil
+}
+
+// encode_uint256_array_array encodes uint256[][] to ABI bytes
+func encode_uint256_array_array(value [][]*big.Int, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode elements
+	offset := 32
+	for _, elem := range value {
+		n, err := encode_uint256_array(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset, nil
+}
+
+// encode_uint32 encodes uint32 to ABI bytes
+func encode_uint32(value uint32, buf []byte) (int, error) {
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// encode_uint64 encodes uint64 to ABI bytes
+func encode_uint64(value uint64, buf []byte) (int, error) {
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// encode_uint8 encodes uint8 to ABI bytes
+func encode_uint8(value uint8, buf []byte) (int, error) {
+	buf[31] = byte(value)
+	return 32, nil
 }
 
 const TestComplexDynamicTuplesCallStaticSize = 32

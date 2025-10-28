@@ -95,19 +95,8 @@ func (g *Generator2) GenerateFromABI(abiDef abi.ABI) (string, error) {
 		return "", err
 	}
 
-	// Collect all types needed for encoding functions (including tuple types)
+	// Collect all types needed for encoding functions (excluding tuple types)
 	allTypes := g.collectAllTypes(methods)
-
-	// Generate standalone encoding functions for all types
-	// Generate primitive types first, then complex types to avoid ordering issues
-	var primitiveTypes, complexTypes []abi.Type
-	for _, t := range allTypes {
-		if t.T == abi.TupleTy || t.T == abi.SliceTy || t.T == abi.ArrayTy {
-			complexTypes = append(complexTypes, t)
-		} else {
-			primitiveTypes = append(primitiveTypes, t)
-		}
-	}
 
 	// Generate all encoding functions in topological order
 	// First collect all functions that need to be generated
@@ -115,12 +104,6 @@ func (g *Generator2) GenerateFromABI(abiDef abi.ABI) (string, error) {
 		if err := g.collectEncodingFunction(t); err != nil {
 			return "", fmt.Errorf("failed to collect encoding function for type %s: %w", t.String(), err)
 		}
-	}
-
-	// Reset the generatedFunctions map for the generation phase
-	// We need to track which functions have been actually generated, not just collected
-	for funcName := range g.generatedFunctions {
-		g.generatedFunctions[funcName] = false
 	}
 
 	// Now generate functions in the order they were collected
@@ -225,31 +208,14 @@ func (g *Generator2) collectAllTypes(methods []abi.Method) []abi.Type {
 		}
 	}
 
-	// Also collect tuple types that were created for function arguments
-	// These are synthetic tuple types that represent function call arguments
-	for _, method := range methods {
-		if len(method.Inputs) > 0 {
-			// Create a tuple type for the function inputs
-			tupleElems := make([]*abi.Type, len(method.Inputs))
-			tupleRawNames := make([]string, len(method.Inputs))
-			for i, input := range method.Inputs {
-				inputType := input.Type
-				tupleElems[i] = &inputType
-				tupleRawNames[i] = input.Name
-			}
-			tupleType := abi.Type{
-				T:             abi.TupleTy,
-				TupleElems:    tupleElems,
-				TupleRawNames: tupleRawNames,
-				TupleRawName:  fmt.Sprintf("%sCall", Title.String(method.Name)),
-			}
-			collectTypes(tupleType)
-		}
-	}
-
 	// Convert map to slice
 	result := make([]abi.Type, 0, len(typeSet))
-	for _, t := range typeSet {
+	for _, name := range SortedMapKeys(typeSet) {
+		t := typeSet[name]
+		if t.T == abi.TupleTy {
+			// Skip tuple types since they have their own struct methods
+			continue
+		}
 		result = append(result, t)
 	}
 	return result
@@ -261,10 +227,10 @@ func (g *Generator2) collectEncodingFunction(t abi.Type) error {
 	funcName := fmt.Sprintf("encode_%s", typeID)
 
 	// Skip if already collected
-	if g.generatedFunctions[funcName] {
+	if _, ok := g.generatedFunctions[funcName]; ok {
 		return nil
 	}
-	g.generatedFunctions[funcName] = true
+	g.generatedFunctions[funcName] = false
 
 	// Recursively collect dependencies
 	switch t.T {
@@ -287,11 +253,6 @@ func (g *Generator2) collectEncodingFunction(t abi.Type) error {
 
 // genEncodingFunction generates a standalone encoding function for a specific ABI type
 func (g *Generator2) genEncodingFunction(t abi.Type) error {
-	if t.T == abi.TupleTy {
-		// Tuple types are handled via struct methods
-		return nil
-	}
-
 	typeID := GenTypeIdentifier(t)
 	funcName := fmt.Sprintf("encode_%s", typeID)
 
@@ -485,6 +446,9 @@ func (g *Generator2) genArrayEncoding(t abi.Type) error {
 
 	g.L("\t// Encode fixed-size array")
 	g.L("\toffset := 0")
+	g.L("\tif len(value) != %d {", t.Size)
+	g.L("\t\treturn 0, fmt.Errorf(\"invalid array length: expected %d, got %%d\", len(value))", t.Size)
+	g.L("\t}")
 	g.L("\tfor _, elem := range value {")
 	g.L("\t\tn, err := %sbuf[offset:])", genEncodeCall(*t.Elem, "elem"))
 	g.L("\t\tif err != nil {")
