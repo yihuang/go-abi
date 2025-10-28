@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var NestedTupleReturnsABI -output nested_tuple_returns.abi.go
+//go:generate go run ../cmd -var NestedTupleReturnsABI -module nested_tuple_returns
 
 // NestedTupleReturnsABI contains human-readable ABI definitions for testing nested tuples in function returns
 var NestedTupleReturnsABI = []string{
@@ -60,7 +60,7 @@ func init() {
 func TestNestedTupleReturnsSimplePair(t *testing.T) {
 	// Test encoding and decoding of simple tuple return
 	args := &GetSimplePairReturn{
-		Result1: SimplePair{
+		Field1: SimplePair{
 			First:  big.NewInt(100),
 			Second: big.NewInt(200),
 		},
@@ -72,13 +72,13 @@ func TestNestedTupleReturnsSimplePair(t *testing.T) {
 
 	// Test decoding
 	var decoded GetSimplePairReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
 	require.Equal(t, args, &decoded)
 
 	// Test with go-ethereum
-	goEthEncoded, err := NestedTupleReturnsABIDef.Methods["getSimplePair"].Outputs.Pack(args.Result1)
+	goEthEncoded, err := NestedTupleReturnsABIDef.Methods["getSimplePair"].Outputs.Pack(args.Field1)
 	require.NoError(t, err)
 
 	// The return data should match our encoding
@@ -87,7 +87,7 @@ func TestNestedTupleReturnsSimplePair(t *testing.T) {
 
 func TestNestedTupleReturnsAddressStringPair(t *testing.T) {
 	args := &GetAddressStringPairReturn{
-		Result1: AddressStringPair{
+		Field1: AddressStringPair{
 			Addr: common.HexToAddress("0x1111111111111111111111111111111111111111"),
 			Str:  "test string",
 		},
@@ -97,7 +97,7 @@ func TestNestedTupleReturnsAddressStringPair(t *testing.T) {
 	require.NoError(t, err)
 
 	var decoded GetAddressStringPairReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
 	require.Equal(t, args, &decoded)
@@ -105,7 +105,7 @@ func TestNestedTupleReturnsAddressStringPair(t *testing.T) {
 
 func TestNestedTupleReturnsComplexNested(t *testing.T) {
 	args := &GetComplexNestedReturn{
-		Result1: ComplexNested{
+		Field1: ComplexNested{
 			Num:  big.NewInt(999),
 			Addr: common.HexToAddress("0x2222222222222222222222222222222222222222"),
 			Str:  "test string",
@@ -117,7 +117,7 @@ func TestNestedTupleReturnsComplexNested(t *testing.T) {
 	require.NoError(t, err)
 
 	var decoded GetComplexNestedReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
 	require.Equal(t, args, &decoded)
@@ -125,7 +125,7 @@ func TestNestedTupleReturnsComplexNested(t *testing.T) {
 
 func TestNestedTupleReturnsDeeplyNested(t *testing.T) {
 	args := &GetDeeplyNestedReturn{
-		Result1: DeeplyNested{
+		Field1: DeeplyNested{
 			Num:  big.NewInt(12345),
 			Str:  "deeply nested string",
 			Flag: true,
@@ -138,7 +138,7 @@ func TestNestedTupleReturnsDeeplyNested(t *testing.T) {
 	require.NoError(t, err)
 
 	var decoded GetDeeplyNestedReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
 	require.Equal(t, args, &decoded)
@@ -146,7 +146,7 @@ func TestNestedTupleReturnsDeeplyNested(t *testing.T) {
 
 func TestNestedTupleReturnsTupleArray(t *testing.T) {
 	args := &GetTupleArrayReturn{
-		Result1: []SimplePair{
+		Field1: []SimplePair{
 			{
 				First:  big.NewInt(1),
 				Second: big.NewInt(2),
@@ -162,16 +162,16 @@ func TestNestedTupleReturnsTupleArray(t *testing.T) {
 	require.NoError(t, err)
 
 	var decoded GetTupleArrayReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
-	require.Len(t, decoded.Result1, 2)
+	require.Len(t, decoded.Field1, 2)
 	require.Equal(t, args, &decoded)
 }
 
 func TestNestedTupleReturnsUserWithMetadata(t *testing.T) {
 	args := &GetUserWithMetadataReturn{
-		Result1: UserWithMetadata{
+		Field1: UserWithMetadata{
 			Name:     "Test User",
 			Id:       big.NewInt(123),
 			Age:      big.NewInt(30),
@@ -183,7 +183,7 @@ func TestNestedTupleReturnsUserWithMetadata(t *testing.T) {
 	require.NoError(t, err)
 
 	var decoded GetUserWithMetadataReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
 	require.Equal(t, args, &decoded)
@@ -191,7 +191,7 @@ func TestNestedTupleReturnsUserWithMetadata(t *testing.T) {
 
 func TestNestedTupleReturnsUsersArray(t *testing.T) {
 	args := &GetUsersArrayReturn{
-		Result1: []AddressStringPair{
+		Field1: []AddressStringPair{
 			{
 				Addr: common.HexToAddress("0x5555555555555555555555555555555555555555"),
 				Str:  "User 1",
@@ -207,28 +207,28 @@ func TestNestedTupleReturnsUsersArray(t *testing.T) {
 	require.NoError(t, err)
 
 	var decoded GetUsersArrayReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
-	require.Len(t, decoded.Result1, 2)
+	require.Len(t, decoded.Field1, 2)
 	require.Equal(t, args, &decoded)
 }
 
 func TestNestedTupleReturnsMultipleReturns(t *testing.T) {
 	args := &GetMultipleReturnsReturn{
-		Result1: big.NewInt(42),
-		Result2: AddressStringPair{
+		Field1: big.NewInt(42),
+		Field2: AddressStringPair{
 			Addr: common.HexToAddress("0x4444444444444444444444444444444444444444"),
 			Str:  "multiple return string",
 		},
-		Result3: true,
+		Field3: true,
 	}
 
 	encoded, err := args.Encode()
 	require.NoError(t, err)
 
 	var decoded GetMultipleReturnsReturn
-	err = decoded.Decode(encoded)
+	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 
 	require.Equal(t, args, &decoded)

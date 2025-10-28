@@ -15,7 +15,8 @@ import (
 	"golang.org/x/tools/imports"
 )
 
-func Command(inputFile, outputFile, varName string, opts ...Option) {
+// Command runs the original generator
+func Command(inputFile, varName string, opts ...Option) {
 	var abiDef ethabi.ABI
 	var err error
 
@@ -45,18 +46,21 @@ func Command(inputFile, outputFile, varName string, opts ...Option) {
 	}
 
 	// Generate code
-	generator := NewGenerator(opts...)
-	generatedCode, err := generator.GenerateFromABI(abiDef)
+	var generatedCode string
+	gen := NewGenerator(opts...)
+	generatedCode, err = gen.GenerateFromABI(abiDef)
 	if err != nil {
 		log.Printf("Raw generated code before formatting:%s\n", generatedCode)
-		log.Fatalf("Failed to generate code: %v", err)
+		log.Fatalf("Failed to generate code with generator2: %v", err)
 	}
 
 	// Write output
-	if outputFile == "" {
+	if gen.Options.ModuleName == "" {
 		fmt.Println(generatedCode)
 		return
 	}
+
+	outputFile := fmt.Sprintf("%s.abi.go", gen.Options.ModuleName)
 
 	opt := imports.Options{
 		Comments: true,

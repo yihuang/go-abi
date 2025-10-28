@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/test-go/testify/require"
 )
 
 func TestEventIndexedEncodingDecoding(t *testing.T) {
@@ -17,7 +18,8 @@ func TestEventIndexedEncodingDecoding(t *testing.T) {
 		)
 
 		// Encode topics
-		topics := transfer.EncodeTopics()
+		topics, err := transfer.EncodeTopics()
+		require.NoError(t, err)
 
 		// Verify topics count
 		if len(topics) != 3 {
@@ -52,7 +54,8 @@ func TestEventIndexedEncodingDecoding(t *testing.T) {
 		}
 
 		// Encode topics
-		topics := complexEvent.EncodeTopics()
+		topics, err := complexEvent.EncodeTopics()
+		require.NoError(t, err)
 
 		// Verify topics count
 		if len(topics) != 2 {
@@ -83,7 +86,8 @@ func TestEventIndexedEncodingDecoding(t *testing.T) {
 		}
 
 		// Encode topics
-		topics := userCreated.EncodeTopics()
+		topics, err := userCreated.EncodeTopics()
+		require.NoError(t, err)
 
 		// Verify topics count
 		if len(topics) != 2 {

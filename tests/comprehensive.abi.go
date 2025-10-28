@@ -4,7 +4,9 @@ package tests
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -43,18 +45,6 @@ const (
 	TestSmallIntegersID        = 690737721
 )
 
-// Event signatures
-var (
-	// Complex(string,uint256[],address)
-	ComplexEventTopic = common.Hash{0x56, 0x22, 0xe4, 0xd3, 0x12, 0xf8, 0xdd, 0x97, 0xbb, 0x32, 0x6c, 0x82, 0x99, 0x40, 0xc0, 0x6e, 0x5f, 0x3f, 0xf7, 0x2b, 0x31, 0x1a, 0x4d, 0xee, 0x95, 0x97, 0x35, 0x15, 0x88, 0x7d, 0x0d, 0xc7}
-	// IndexOnly(address)
-	IndexOnlyEventTopic = common.Hash{0x97, 0x3c, 0xfd, 0x69, 0xe6, 0x55, 0xa7, 0xff, 0xc7, 0x50, 0xd3, 0x74, 0x5d, 0x6c, 0xd2, 0xb0, 0xef, 0x78, 0xe9, 0x8c, 0x28, 0x84, 0x0b, 0xa3, 0xc7, 0x16, 0x3a, 0x5a, 0xe6, 0x37, 0x1f, 0x27}
-	// Transfer(address,address,uint256)
-	TransferEventTopic = common.Hash{0xdd, 0xf2, 0x52, 0xad, 0x1b, 0xe2, 0xc8, 0x9b, 0x69, 0xc2, 0xb0, 0x68, 0xfc, 0x37, 0x8d, 0xaa, 0x95, 0x2b, 0xa7, 0xf1, 0x63, 0xc4, 0xa1, 0x16, 0x28, 0xf5, 0x5a, 0x4d, 0xf5, 0x23, 0xb3, 0xef}
-	// UserCreated((address,string,uint256),address)
-	UserCreatedEventTopic = common.Hash{0x34, 0xd6, 0x8f, 0x2d, 0xec, 0x91, 0xef, 0x13, 0x0d, 0xe9, 0x21, 0x4e, 0x8e, 0xa8, 0x6e, 0x02, 0x29, 0xf7, 0x22, 0xee, 0x89, 0x41, 0xc9, 0x9f, 0x75, 0xbf, 0xa5, 0x38, 0x17, 0xd9, 0x97, 0x82}
-)
-
 const GroupStaticSize = 32
 
 // Group represents an ABI tuple
@@ -65,112 +55,64 @@ type Group struct {
 // EncodedSize returns the total encoded size of Group
 func (t Group) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + 32*len(t.Users) // length + offset pointers for dynamic elements
-	for _, elem := range t.Users {
-		dynamicSize += elem.EncodedSize() // dynamic tuple
-	}
+	dynamicSize += _ComprehensiveSizeUserSlice(t.Users)
 
 	return GroupStaticSize + dynamicSize
 }
 
 // EncodeTo encodes Group to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t Group) EncodeTo(buf []byte) (int, error) {
+func (value Group) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GroupStaticSize // Start dynamic data after static section
-
-	// Users (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Users: (address,string,uint256)[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Users (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Users)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Users) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Users {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					n, err := item.EncodeTo(buf[dynamicOffset:])
-					if err != nil {
-						return 0, err
-					}
-					dynamicOffset += n
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeUserSlice(value.Users, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes Group to ABI bytes
-func (t Group) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value Group) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes Group from ABI bytes in the provided buffer
-func (t *Group) Decode(data0 []byte) error {
-	if len(data0) < GroupStaticSize {
-		return fmt.Errorf("insufficient data for Group")
+func (t *Group) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Users
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Users
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Users (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Users")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Users = make([]User, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Users[i0] (dynamic)
-			if offset >= len(data1) {
-				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
-			}
-			if err := t.Users[i0].Decode(data1[offset:]); err != nil {
-				return err
-			}
+		t.Users, n, err = _ComprehensiveDecodeUserSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const ItemStaticSize = 96
@@ -185,74 +127,84 @@ type Item struct {
 // EncodedSize returns the total encoded size of Item
 func (t Item) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Data)) // length + padded bytes data
+	dynamicSize += _ComprehensiveSizeBytes(t.Data)
 
 	return ItemStaticSize + dynamicSize
 }
 
 // EncodeTo encodes Item to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t Item) EncodeTo(buf []byte) (int, error) {
+func (value Item) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := ItemStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Id: uint32
+	if _, err := _ComprehensiveEncodeUint32(value.Id, buf[0:]); err != nil {
+		return 0, err
+	}
 
-	// Id (static)
-	binary.BigEndian.PutUint32(buf[0+28:0+32], uint32(t.Id))
-
-	// Data (offset)
+	// Field Data: bytes
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeBytes(value.Data, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
-	// Data (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Data)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], t.Data)
-	dynamicOffset += abi.Pad32(len(t.Data))
-
-	// Active (static)
-	if t.Active {
-		buf[64+31] = 1
+	// Field Active: bool
+	if _, err := _ComprehensiveEncodeBool(value.Active, buf[64:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes Item to ABI bytes
-func (t Item) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value Item) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes Item from ABI bytes in the provided buffer
-func (t *Item) Decode(data0 []byte) error {
-	if len(data0) < ItemStaticSize {
-		return fmt.Errorf("insufficient data for Item")
+func (t *Item) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Id (static)
-	t.Id = uint32(binary.BigEndian.Uint32(data0[0+28 : 0+32]))
-	// Data
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 96
+	// Decode static field Id: uint32
+	t.Id, _, err = _ComprehensiveDecodeUint32(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Data
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Data (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Data")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// bytes data
-		t.Data = data0[offset : offset+length]
+		t.Data, n, err = _ComprehensiveDecodeBytes(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// t.Active (static)
-	t.Active = data0[64+31] == 1
-
-	return nil
+	// Decode static field Active: bool
+	t.Active, _, err = _ComprehensiveDecodeBool(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const Level1StaticSize = 32
@@ -265,61 +217,64 @@ type Level1 struct {
 // EncodedSize returns the total encoded size of Level1
 func (t Level1) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Level1.EncodedSize() // dynamic tuple
+	dynamicSize += t.Level1.EncodedSize()
 
 	return Level1StaticSize + dynamicSize
 }
 
 // EncodeTo encodes Level1 to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t Level1) EncodeTo(buf []byte) (int, error) {
+func (value Level1) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := Level1StaticSize // Start dynamic data after static section
-
-	// Level1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Level1: (((uint256,string)))
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Level1 (dynamic)
-	{
-		n, err := t.Level1.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Level1.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes Level1 to ABI bytes
-func (t Level1) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value Level1) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes Level1 from ABI bytes in the provided buffer
-func (t *Level1) Decode(data0 []byte) error {
-	if len(data0) < Level1StaticSize {
-		return fmt.Errorf("insufficient data for Level1")
+func (t *Level1) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Level1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Level1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Level1 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Level1")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Level1")
 		}
-		if err := t.Level1.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Level1.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const Level2StaticSize = 32
@@ -332,61 +287,64 @@ type Level2 struct {
 // EncodedSize returns the total encoded size of Level2
 func (t Level2) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Level2.EncodedSize() // dynamic tuple
+	dynamicSize += t.Level2.EncodedSize()
 
 	return Level2StaticSize + dynamicSize
 }
 
 // EncodeTo encodes Level2 to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t Level2) EncodeTo(buf []byte) (int, error) {
+func (value Level2) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := Level2StaticSize // Start dynamic data after static section
-
-	// Level2 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Level2: ((uint256,string))
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Level2 (dynamic)
-	{
-		n, err := t.Level2.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Level2.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes Level2 to ABI bytes
-func (t Level2) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value Level2) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes Level2 from ABI bytes in the provided buffer
-func (t *Level2) Decode(data0 []byte) error {
-	if len(data0) < Level2StaticSize {
-		return fmt.Errorf("insufficient data for Level2")
+func (t *Level2) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Level2
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Level2
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Level2 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Level2")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Level2")
 		}
-		if err := t.Level2.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Level2.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const Level3StaticSize = 32
@@ -399,61 +357,64 @@ type Level3 struct {
 // EncodedSize returns the total encoded size of Level3
 func (t Level3) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Level3.EncodedSize() // dynamic tuple
+	dynamicSize += t.Level3.EncodedSize()
 
 	return Level3StaticSize + dynamicSize
 }
 
 // EncodeTo encodes Level3 to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t Level3) EncodeTo(buf []byte) (int, error) {
+func (value Level3) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := Level3StaticSize // Start dynamic data after static section
-
-	// Level3 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Level3: (uint256,string)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Level3 (dynamic)
-	{
-		n, err := t.Level3.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Level3.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes Level3 to ABI bytes
-func (t Level3) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value Level3) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes Level3 from ABI bytes in the provided buffer
-func (t *Level3) Decode(data0 []byte) error {
-	if len(data0) < Level3StaticSize {
-		return fmt.Errorf("insufficient data for Level3")
+func (t *Level3) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Level3
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Level3
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Level3 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Level3")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Level3")
 		}
-		if err := t.Level3.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Level3.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const Level4StaticSize = 64
@@ -467,70 +428,74 @@ type Level4 struct {
 // EncodedSize returns the total encoded size of Level4
 func (t Level4) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Description)) // length + padded string data
+	dynamicSize += _ComprehensiveSizeString(t.Description)
 
 	return Level4StaticSize + dynamicSize
 }
 
 // EncodeTo encodes Level4 to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t Level4) EncodeTo(buf []byte) (int, error) {
+func (value Level4) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := Level4StaticSize // Start dynamic data after static section
-
-	// Value (static)
-
-	if err := abi.EncodeBigInt(t.Value, buf[0:32], false); err != nil {
+	var (
+		err error
+		n   int
+	)
+	// Field Value: uint256
+	if _, err := _ComprehensiveEncodeUint256(value.Value, buf[0:]); err != nil {
 		return 0, err
 	}
 
-	// Description (offset)
+	// Field Description: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Description (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Description)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Description))
-	dynamicOffset += abi.Pad32(len(t.Description))
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeString(value.Description, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes Level4 to ABI bytes
-func (t Level4) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value Level4) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes Level4 from ABI bytes in the provided buffer
-func (t *Level4) Decode(data0 []byte) error {
-	if len(data0) < Level4StaticSize {
-		return fmt.Errorf("insufficient data for Level4")
+func (t *Level4) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Value (static)
-	t.Value = new(big.Int).SetBytes(data0[0:32])
-	// Description
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 64
+	// Decode static field Value: uint256
+	t.Value, _, err = _ComprehensiveDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Description
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Description (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Description")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// string data
-		t.Description = string(data0[offset : offset+length])
+		t.Description, n, err = _ComprehensiveDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const User2StaticSize = 64
@@ -544,69 +509,74 @@ type User2 struct {
 // EncodedSize returns the total encoded size of User2
 func (t User2) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Profile.EncodedSize() // dynamic tuple
+	dynamicSize += t.Profile.EncodedSize()
 
 	return User2StaticSize + dynamicSize
 }
 
 // EncodeTo encodes User2 to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t User2) EncodeTo(buf []byte) (int, error) {
+func (value User2) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := User2StaticSize // Start dynamic data after static section
-
-	// Id (static)
-
-	if err := abi.EncodeBigInt(t.Id, buf[0:32], false); err != nil {
+	var (
+		err error
+		n   int
+	)
+	// Field Id: uint256
+	if _, err := _ComprehensiveEncodeUint256(value.Id, buf[0:]); err != nil {
 		return 0, err
 	}
 
-	// Profile (offset)
+	// Field Profile: (string,string[],(uint256,string[]))
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Profile (dynamic)
-	{
-		n, err := t.Profile.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Profile.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes User2 to ABI bytes
-func (t User2) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value User2) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes User2 from ABI bytes in the provided buffer
-func (t *User2) Decode(data0 []byte) error {
-	if len(data0) < User2StaticSize {
-		return fmt.Errorf("insufficient data for User2")
+func (t *User2) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Id (static)
-	t.Id = new(big.Int).SetBytes(data0[0:32])
-	// Profile
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 64
+	// Decode static field Id: uint256
+	t.Id, _, err = _ComprehensiveDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Profile
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Profile (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Profile")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Profile")
 		}
-		if err := t.Profile.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Profile.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const UserMetadata2StaticSize = 64
@@ -620,121 +590,74 @@ type UserMetadata2 struct {
 // EncodedSize returns the total encoded size of UserMetadata2
 func (t UserMetadata2) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + 32*len(t.Tags) // length + offset pointers for dynamic elements
-	for _, elem := range t.Tags {
-		dynamicSize += 32 + abi.Pad32(len(elem)) // length + padded string data
-	}
+	dynamicSize += _ComprehensiveSizeStringSlice(t.Tags)
 
 	return UserMetadata2StaticSize + dynamicSize
 }
 
 // EncodeTo encodes UserMetadata2 to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t UserMetadata2) EncodeTo(buf []byte) (int, error) {
+func (value UserMetadata2) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := UserMetadata2StaticSize // Start dynamic data after static section
-
-	// CreatedAt (static)
-
-	if err := abi.EncodeBigInt(t.CreatedAt, buf[0:32], false); err != nil {
+	var (
+		err error
+		n   int
+	)
+	// Field CreatedAt: uint256
+	if _, err := _ComprehensiveEncodeUint256(value.CreatedAt, buf[0:]); err != nil {
 		return 0, err
 	}
 
-	// Tags (offset)
+	// Field Tags: string[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Tags (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Tags)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Tags) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Tags {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				// length
-				binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
-				dynamicOffset += 32
-
-				// data
-				copy(buf[dynamicOffset:], []byte(item))
-				dynamicOffset += abi.Pad32(len(item))
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeStringSlice(value.Tags, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes UserMetadata2 to ABI bytes
-func (t UserMetadata2) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value UserMetadata2) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes UserMetadata2 from ABI bytes in the provided buffer
-func (t *UserMetadata2) Decode(data0 []byte) error {
-	if len(data0) < UserMetadata2StaticSize {
-		return fmt.Errorf("insufficient data for UserMetadata2")
+func (t *UserMetadata2) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.CreatedAt (static)
-	t.CreatedAt = new(big.Int).SetBytes(data0[0:32])
-	// Tags
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 64
+	// Decode static field CreatedAt: uint256
+	t.CreatedAt, _, err = _ComprehensiveDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Tags
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Tags (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Tags")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Tags = make([]string, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Tags[i0] (dynamic)
-			if offset+32 > len(data1) {
-				return fmt.Errorf("insufficient data for length prefix")
-			}
-			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
-			offset += 32
-			// string data
-			t.Tags[i0] = string(data1[offset : offset+length])
+		t.Tags, n, err = _ComprehensiveDecodeStringSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const UserProfileStaticSize = 96
@@ -749,164 +672,1151 @@ type UserProfile struct {
 // EncodedSize returns the total encoded size of UserProfile
 func (t UserProfile) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Name)) // length + padded string data
-	dynamicSize += 32 + 32*len(t.Emails)       // length + offset pointers for dynamic elements
-	for _, elem := range t.Emails {
-		dynamicSize += 32 + abi.Pad32(len(elem)) // length + padded string data
-	}
-	dynamicSize += t.Metadata.EncodedSize() // dynamic tuple
+	dynamicSize += _ComprehensiveSizeString(t.Name)
+	dynamicSize += _ComprehensiveSizeStringSlice(t.Emails)
+	dynamicSize += t.Metadata.EncodedSize()
 
 	return UserProfileStaticSize + dynamicSize
 }
 
 // EncodeTo encodes UserProfile to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t UserProfile) EncodeTo(buf []byte) (int, error) {
+func (value UserProfile) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := UserProfileStaticSize // Start dynamic data after static section
-
-	// Name (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Name: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeString(value.Name, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
-	// Name (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Name)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Name))
-	dynamicOffset += abi.Pad32(len(t.Name))
-
-	// Emails (offset)
+	// Field Emails: string[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Emails (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Emails)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Emails) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Emails {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				// length
-				binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
-				dynamicOffset += 32
-
-				// data
-				copy(buf[dynamicOffset:], []byte(item))
-				dynamicOffset += abi.Pad32(len(item))
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeStringSlice(value.Emails, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
-	// Metadata (offset)
+	// Field Metadata: (uint256,string[])
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
-
-	// Metadata (dynamic)
-	{
-		n, err := t.Metadata.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Metadata.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes UserProfile to ABI bytes
-func (t UserProfile) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value UserProfile) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes UserProfile from ABI bytes in the provided buffer
-func (t *UserProfile) Decode(data0 []byte) error {
-	if len(data0) < UserProfileStaticSize {
-		return fmt.Errorf("insufficient data for UserProfile")
+func (t *UserProfile) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 96
+	// Decode dynamic field Name
+	{
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Name")
+		}
+		t.Name, n, err = _ComprehensiveDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Emails
+	{
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Emails")
+		}
+		t.Emails, n, err = _ComprehensiveDecodeStringSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Metadata
+	{
+		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Metadata")
+		}
+		n, err = t.Metadata.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
+}
+
+// _ComprehensiveEncodeAddress encodes address to ABI bytes
+func _ComprehensiveEncodeAddress(value common.Address, buf []byte) (int, error) {
+	copy(buf[12:32], value[:])
+	return 32, nil
+}
+
+// _ComprehensiveEncodeAddressArray5 encodes address[5] to ABI bytes
+func _ComprehensiveEncodeAddressArray5(value [5]common.Address, buf []byte) (int, error) {
+	// Encode fixed-size array with static elements
+	if _, err := _ComprehensiveEncodeAddress(value[0], buf[0:]); err != nil {
+		return 0, err
+	}
+	if _, err := _ComprehensiveEncodeAddress(value[1], buf[32:]); err != nil {
+		return 0, err
+	}
+	if _, err := _ComprehensiveEncodeAddress(value[2], buf[64:]); err != nil {
+		return 0, err
+	}
+	if _, err := _ComprehensiveEncodeAddress(value[3], buf[96:]); err != nil {
+		return 0, err
+	}
+	if _, err := _ComprehensiveEncodeAddress(value[4], buf[128:]); err != nil {
+		return 0, err
 	}
 
-	// Name
-	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
+	return 160, nil
+}
 
-		// t.Name (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+// _ComprehensiveEncodeAddressSlice encodes address[] to ABI bytes
+func _ComprehensiveEncodeAddressSlice(value []common.Address, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := _ComprehensiveEncodeAddress(elem, buf[offset:])
+		if err != nil {
+			return 0, err
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// _ComprehensiveEncodeAddressSliceArray3 encodes address[][3] to ABI bytes
+func _ComprehensiveEncodeAddressSliceArray3(value [3][]common.Address, buf []byte) (int, error) {
+	// Encode fixed-size array with dynamic elements
+	var (
+		n   int
+		err error
+	)
+	dynamicOffset := 32 * 3
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	n, err = _ComprehensiveEncodeAddressSlice(value[0], buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+	n, err = _ComprehensiveEncodeAddressSlice(value[1], buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
+	n, err = _ComprehensiveEncodeAddressSlice(value[2], buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// _ComprehensiveEncodeAddressSliceArray3Slice encodes address[][3][] to ABI bytes
+func _ComprehensiveEncodeAddressSliceArray3Slice(value [][3][]common.Address, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
 		offset += 32
-		// string data
-		t.Name = string(data0[offset : offset+length])
-	}
-	// Emails
-	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
 
-		// t.Emails (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		// Write element at dynamic region
+		n, err := _ComprehensiveEncodeAddressSliceArray3(elem, buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		dynamicOffset += n
+	}
+
+	return dynamicOffset + 32, nil
+}
+
+// _ComprehensiveEncodeBool encodes bool to ABI bytes
+func _ComprehensiveEncodeBool(value bool, buf []byte) (int, error) {
+	if value {
+		buf[31] = 1
+	}
+	return 32, nil
+}
+
+// _ComprehensiveEncodeBytes encodes bytes to ABI bytes
+func _ComprehensiveEncodeBytes(value []byte, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode data
+	copy(buf[32:], value)
+
+	return 32 + abi.Pad32(len(value)), nil
+}
+
+// _ComprehensiveEncodeBytes32 encodes bytes32 to ABI bytes
+func _ComprehensiveEncodeBytes32(value [32]byte, buf []byte) (int, error) {
+	copy(buf[:32], value[:])
+	return 32, nil
+}
+
+// _ComprehensiveEncodeBytes32Array2 encodes bytes32[2] to ABI bytes
+func _ComprehensiveEncodeBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
+	// Encode fixed-size array with static elements
+	if _, err := _ComprehensiveEncodeBytes32(value[0], buf[0:]); err != nil {
+		return 0, err
+	}
+	if _, err := _ComprehensiveEncodeBytes32(value[1], buf[32:]); err != nil {
+		return 0, err
+	}
+
+	return 64, nil
+}
+
+// _ComprehensiveEncodeInt16 encodes int16 to ABI bytes
+func _ComprehensiveEncodeInt16(value int16, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 30; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
+	return 32, nil
+}
+
+// _ComprehensiveEncodeInt32 encodes int32 to ABI bytes
+func _ComprehensiveEncodeInt32(value int32, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 28; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// _ComprehensiveEncodeInt64 encodes int64 to ABI bytes
+func _ComprehensiveEncodeInt64(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 24; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// _ComprehensiveEncodeInt8 encodes int8 to ABI bytes
+func _ComprehensiveEncodeInt8(value int8, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 31; i++ {
+			buf[i] = 0xff
+		}
+	}
+	buf[31] = byte(value)
+	return 32, nil
+}
+
+// _ComprehensiveEncodeItemSlice encodes (uint32,bytes,bool)[] to ABI bytes
+func _ComprehensiveEncodeItemSlice(value []Item, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
 		offset += 32
-		// slice data
-		t.Emails = make([]string, length)
-		data1 := data0[offset:]
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
 
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Emails[i0] (dynamic)
-			if offset+32 > len(data1) {
-				return fmt.Errorf("insufficient data for length prefix")
-			}
-			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
-			offset += 32
-			// string data
-			t.Emails[i0] = string(data1[offset : offset+length])
+		// Write element at dynamic region
+		n, err := elem.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
-	}
-	// Metadata
-	{
-		offset := int(binary.BigEndian.Uint64(data0[64+24 : 64+32]))
-
-		// t.Metadata (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Metadata")
-		}
-		if err := t.Metadata.Decode(data0[offset:]); err != nil {
-			return err
-		}
+		dynamicOffset += n
 	}
 
-	return nil
+	return dynamicOffset + 32, nil
+}
+
+// _ComprehensiveEncodeString encodes string to ABI bytes
+func _ComprehensiveEncodeString(value string, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode data
+	copy(buf[32:], []byte(value))
+
+	return 32 + abi.Pad32(len(value)), nil
+}
+
+// _ComprehensiveEncodeStringSlice encodes string[] to ABI bytes
+func _ComprehensiveEncodeStringSlice(value []string, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
+		offset += 32
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
+
+		// Write element at dynamic region
+		n, err := _ComprehensiveEncodeString(elem, buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+
+	return dynamicOffset + 32, nil
+}
+
+// _ComprehensiveEncodeStringSliceSlice encodes string[][] to ABI bytes
+func _ComprehensiveEncodeStringSliceSlice(value [][]string, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
+		offset += 32
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
+
+		// Write element at dynamic region
+		n, err := _ComprehensiveEncodeStringSlice(elem, buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+
+	return dynamicOffset + 32, nil
+}
+
+// _ComprehensiveEncodeUint16 encodes uint16 to ABI bytes
+func _ComprehensiveEncodeUint16(value uint16, buf []byte) (int, error) {
+	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
+	return 32, nil
+}
+
+// _ComprehensiveEncodeUint256 encodes uint256 to ABI bytes
+func _ComprehensiveEncodeUint256(value *big.Int, buf []byte) (int, error) {
+	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
+		return 0, err
+	}
+	return 32, nil
+}
+
+// _ComprehensiveEncodeUint256Array3 encodes uint256[3] to ABI bytes
+func _ComprehensiveEncodeUint256Array3(value [3]*big.Int, buf []byte) (int, error) {
+	// Encode fixed-size array with static elements
+	if _, err := _ComprehensiveEncodeUint256(value[0], buf[0:]); err != nil {
+		return 0, err
+	}
+	if _, err := _ComprehensiveEncodeUint256(value[1], buf[32:]); err != nil {
+		return 0, err
+	}
+	if _, err := _ComprehensiveEncodeUint256(value[2], buf[64:]); err != nil {
+		return 0, err
+	}
+
+	return 96, nil
+}
+
+// _ComprehensiveEncodeUint256Slice encodes uint256[] to ABI bytes
+func _ComprehensiveEncodeUint256Slice(value []*big.Int, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := _ComprehensiveEncodeUint256(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// _ComprehensiveEncodeUint256SliceSlice encodes uint256[][] to ABI bytes
+func _ComprehensiveEncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
+		offset += 32
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
+
+		// Write element at dynamic region
+		n, err := _ComprehensiveEncodeUint256Slice(elem, buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+
+	return dynamicOffset + 32, nil
+}
+
+// _ComprehensiveEncodeUint32 encodes uint32 to ABI bytes
+func _ComprehensiveEncodeUint32(value uint32, buf []byte) (int, error) {
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// _ComprehensiveEncodeUint64 encodes uint64 to ABI bytes
+func _ComprehensiveEncodeUint64(value uint64, buf []byte) (int, error) {
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// _ComprehensiveEncodeUint8 encodes uint8 to ABI bytes
+func _ComprehensiveEncodeUint8(value uint8, buf []byte) (int, error) {
+	buf[31] = byte(value)
+	return 32, nil
+}
+
+// _ComprehensiveEncodeUser2Slice encodes (uint256,(string,string[],(uint256,string[])))[] to ABI bytes
+func _ComprehensiveEncodeUser2Slice(value []User2, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
+		offset += 32
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
+
+		// Write element at dynamic region
+		n, err := elem.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+
+	return dynamicOffset + 32, nil
+}
+
+// _ComprehensiveEncodeUserSlice encodes (address,string,uint256)[] to ABI bytes
+func _ComprehensiveEncodeUserSlice(value []User, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
+		offset += 32
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
+
+		// Write element at dynamic region
+		n, err := elem.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+
+	return dynamicOffset + 32, nil
+}
+
+// _ComprehensiveSizeAddressSlice returns the encoded size of address[]
+func _ComprehensiveSizeAddressSlice(value []common.Address) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// _ComprehensiveSizeAddressSliceArray3 returns the encoded size of address[][3]
+func _ComprehensiveSizeAddressSliceArray3(value [3][]common.Address) int {
+	size := 32 * 3 // offsets
+	size += _ComprehensiveSizeAddressSlice(value[0])
+	size += _ComprehensiveSizeAddressSlice(value[1])
+	size += _ComprehensiveSizeAddressSlice(value[2])
+	return size
+}
+
+// _ComprehensiveSizeAddressSliceArray3Slice returns the encoded size of address[][3][]
+func _ComprehensiveSizeAddressSliceArray3Slice(value [][3][]common.Address) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += _ComprehensiveSizeAddressSliceArray3(elem)
+	}
+	return size
+}
+
+// _ComprehensiveSizeBytes returns the encoded size of bytes
+func _ComprehensiveSizeBytes(value []byte) int {
+	size := 32 + abi.Pad32(len(value)) // length + padded bytes data
+	return size
+}
+
+// _ComprehensiveSizeItemSlice returns the encoded size of (uint32,bytes,bool)[]
+func _ComprehensiveSizeItemSlice(value []Item) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += elem.EncodedSize()
+	}
+	return size
+}
+
+// _ComprehensiveSizeString returns the encoded size of string
+func _ComprehensiveSizeString(value string) int {
+	size := 32 + abi.Pad32(len(value)) // length + padded string data
+	return size
+}
+
+// _ComprehensiveSizeStringSlice returns the encoded size of string[]
+func _ComprehensiveSizeStringSlice(value []string) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += _ComprehensiveSizeString(elem)
+	}
+	return size
+}
+
+// _ComprehensiveSizeStringSliceSlice returns the encoded size of string[][]
+func _ComprehensiveSizeStringSliceSlice(value [][]string) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += _ComprehensiveSizeStringSlice(elem)
+	}
+	return size
+}
+
+// _ComprehensiveSizeUint256Slice returns the encoded size of uint256[]
+func _ComprehensiveSizeUint256Slice(value []*big.Int) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// _ComprehensiveSizeUint256SliceSlice returns the encoded size of uint256[][]
+func _ComprehensiveSizeUint256SliceSlice(value [][]*big.Int) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += _ComprehensiveSizeUint256Slice(elem)
+	}
+	return size
+}
+
+// _ComprehensiveSizeUser2Slice returns the encoded size of (uint256,(string,string[],(uint256,string[])))[]
+func _ComprehensiveSizeUser2Slice(value []User2) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += elem.EncodedSize()
+	}
+	return size
+}
+
+// _ComprehensiveSizeUserSlice returns the encoded size of (address,string,uint256)[]
+func _ComprehensiveSizeUserSlice(value []User) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += elem.EncodedSize()
+	}
+	return size
+}
+
+// _ComprehensiveDecodeAddress decodes address from ABI bytes
+func _ComprehensiveDecodeAddress(data []byte) (common.Address, int, error) {
+	var result common.Address
+	copy(result[:], data[12:32])
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeAddressArray5 decodes address[5] from ABI bytes
+func _ComprehensiveDecodeAddressArray5(data []byte) ([5]common.Address, int, error) {
+	// Decode fixed-size array with static elements
+	var (
+		result [5]common.Address
+		err    error
+	)
+	if len(data) < 160 {
+		return result, 0, io.ErrUnexpectedEOF
+	}
+	// Element 0
+	result[0], _, err = _ComprehensiveDecodeAddress(data[0:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 1
+	result[1], _, err = _ComprehensiveDecodeAddress(data[32:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 2
+	result[2], _, err = _ComprehensiveDecodeAddress(data[64:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 3
+	result[3], _, err = _ComprehensiveDecodeAddress(data[96:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 4
+	result[4], _, err = _ComprehensiveDecodeAddress(data[128:])
+	if err != nil {
+		return result, 0, err
+	}
+	return result, 160, nil
+}
+
+// _ComprehensiveDecodeAddressSlice decodes address[] from ABI bytes
+func _ComprehensiveDecodeAddressSlice(data []byte) ([]common.Address, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]common.Address, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = _ComprehensiveDecodeAddress(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// _ComprehensiveDecodeAddressSliceArray3 decodes address[][3] from ABI bytes
+func _ComprehensiveDecodeAddressSliceArray3(data []byte) ([3][]common.Address, int, error) {
+	// Decode fixed-size array with dynamic elements
+	var result [3][]common.Address
+	if len(data) < 96 {
+		return result, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n   int
+		err error
+	)
+	offset := 0
+	dynamicOffset := 96
+	for i := 0; i < 3; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return result, 0, fmt.Errorf("invalid offset for array element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		result[i], n, err = _ComprehensiveDecodeAddressSlice(data[dynamicOffset:])
+		if err != nil {
+			return result, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset, nil
+}
+
+// _ComprehensiveDecodeAddressSliceArray3Slice decodes address[][3][] from ABI bytes
+func _ComprehensiveDecodeAddressSliceArray3Slice(data []byte) ([][3][]common.Address, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([][3][]common.Address, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		result[i], n, err = _ComprehensiveDecodeAddressSliceArray3(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _ComprehensiveDecodeBool decodes bool from ABI bytes
+func _ComprehensiveDecodeBool(data []byte) (bool, int, error) {
+	result := data[31] != 0
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeBytes decodes bytes from ABI bytes
+func _ComprehensiveDecodeBytes(data []byte) ([]byte, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32+abi.Pad32(length) {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+
+	// Decode data
+	result := make([]byte, length)
+	copy(result, data[32:32+length])
+	return result, 32 + abi.Pad32(length), nil
+}
+
+// _ComprehensiveDecodeBytes32 decodes bytes32 from ABI bytes
+func _ComprehensiveDecodeBytes32(data []byte) ([32]byte, int, error) {
+	var result [32]byte
+	copy(result[:], data[:32])
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeBytes32Array2 decodes bytes32[2] from ABI bytes
+func _ComprehensiveDecodeBytes32Array2(data []byte) ([2][32]byte, int, error) {
+	// Decode fixed-size array with static elements
+	var (
+		result [2][32]byte
+		err    error
+	)
+	if len(data) < 64 {
+		return result, 0, io.ErrUnexpectedEOF
+	}
+	// Element 0
+	result[0], _, err = _ComprehensiveDecodeBytes32(data[0:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 1
+	result[1], _, err = _ComprehensiveDecodeBytes32(data[32:])
+	if err != nil {
+		return result, 0, err
+	}
+	return result, 64, nil
+}
+
+// _ComprehensiveDecodeInt16 decodes int16 from ABI bytes
+func _ComprehensiveDecodeInt16(data []byte) (int16, int, error) {
+	var result int16
+	result = int16(binary.BigEndian.Uint16(data[30:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fff // Sign extend
+	}
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeInt32 decodes int32 from ABI bytes
+func _ComprehensiveDecodeInt32(data []byte) (int32, int, error) {
+	var result int32
+	result = int32(binary.BigEndian.Uint32(data[28:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffff // Sign extend
+	}
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeInt64 decodes int64 from ABI bytes
+func _ComprehensiveDecodeInt64(data []byte) (int64, int, error) {
+	var result int64
+	result = int64(binary.BigEndian.Uint64(data[24:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffffffffffff // Sign extend
+	}
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeInt8 decodes int8 from ABI bytes
+func _ComprehensiveDecodeInt8(data []byte) (int8, int, error) {
+	var result int8
+	result = int8(data[31])
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7f // Sign extend
+	}
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeItemSlice decodes (uint32,bytes,bool)[] from ABI bytes
+func _ComprehensiveDecodeItemSlice(data []byte) ([]Item, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([]Item, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		n, err = result[i].Decode(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _ComprehensiveDecodeString decodes string from ABI bytes
+func _ComprehensiveDecodeString(data []byte) (string, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32+abi.Pad32(length) {
+		return "", 0, io.ErrUnexpectedEOF
+	}
+
+	// Decode data
+	result := string(data[32 : 32+length])
+	return result, 32 + abi.Pad32(length), nil
+}
+
+// _ComprehensiveDecodeStringSlice decodes string[] from ABI bytes
+func _ComprehensiveDecodeStringSlice(data []byte) ([]string, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([]string, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		result[i], n, err = _ComprehensiveDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _ComprehensiveDecodeStringSliceSlice decodes string[][] from ABI bytes
+func _ComprehensiveDecodeStringSliceSlice(data []byte) ([][]string, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([][]string, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		result[i], n, err = _ComprehensiveDecodeStringSlice(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _ComprehensiveDecodeUint16 decodes uint16 from ABI bytes
+func _ComprehensiveDecodeUint16(data []byte) (uint16, int, error) {
+	result := binary.BigEndian.Uint16(data[30:32])
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeUint256 decodes uint256 from ABI bytes
+func _ComprehensiveDecodeUint256(data []byte) (*big.Int, int, error) {
+	result, err := abi.DecodeBigInt(data[:32], false)
+	if err != nil {
+		return nil, 0, err
+	}
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeUint256Array3 decodes uint256[3] from ABI bytes
+func _ComprehensiveDecodeUint256Array3(data []byte) ([3]*big.Int, int, error) {
+	// Decode fixed-size array with static elements
+	var (
+		result [3]*big.Int
+		err    error
+	)
+	if len(data) < 96 {
+		return result, 0, io.ErrUnexpectedEOF
+	}
+	// Element 0
+	result[0], _, err = _ComprehensiveDecodeUint256(data[0:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 1
+	result[1], _, err = _ComprehensiveDecodeUint256(data[32:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 2
+	result[2], _, err = _ComprehensiveDecodeUint256(data[64:])
+	if err != nil {
+		return result, 0, err
+	}
+	return result, 96, nil
+}
+
+// _ComprehensiveDecodeUint256Slice decodes uint256[] from ABI bytes
+func _ComprehensiveDecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]*big.Int, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = _ComprehensiveDecodeUint256(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// _ComprehensiveDecodeUint256SliceSlice decodes uint256[][] from ABI bytes
+func _ComprehensiveDecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([][]*big.Int, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		result[i], n, err = _ComprehensiveDecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _ComprehensiveDecodeUint32 decodes uint32 from ABI bytes
+func _ComprehensiveDecodeUint32(data []byte) (uint32, int, error) {
+	result := binary.BigEndian.Uint32(data[28:32])
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeUint64 decodes uint64 from ABI bytes
+func _ComprehensiveDecodeUint64(data []byte) (uint64, int, error) {
+	result := binary.BigEndian.Uint64(data[24:32])
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeUint8 decodes uint8 from ABI bytes
+func _ComprehensiveDecodeUint8(data []byte) (uint8, int, error) {
+	result := uint8(data[31])
+	return result, 32, nil
+}
+
+// _ComprehensiveDecodeUser2Slice decodes (uint256,(string,string[],(uint256,string[])))[] from ABI bytes
+func _ComprehensiveDecodeUser2Slice(data []byte) ([]User2, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([]User2, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		n, err = result[i].Decode(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _ComprehensiveDecodeUserSlice decodes (address,string,uint256)[] from ABI bytes
+func _ComprehensiveDecodeUserSlice(data []byte) ([]User, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([]User, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		n, err = result[i].Decode(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
 }
 
 const TestComplexDynamicTuplesCallStaticSize = 32
@@ -919,112 +1829,64 @@ type TestComplexDynamicTuplesCall struct {
 // EncodedSize returns the total encoded size of TestComplexDynamicTuplesCall
 func (t TestComplexDynamicTuplesCall) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + 32*len(t.Users) // length + offset pointers for dynamic elements
-	for _, elem := range t.Users {
-		dynamicSize += elem.EncodedSize() // dynamic tuple
-	}
+	dynamicSize += _ComprehensiveSizeUser2Slice(t.Users)
 
 	return TestComplexDynamicTuplesCallStaticSize + dynamicSize
 }
 
 // EncodeTo encodes TestComplexDynamicTuplesCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestComplexDynamicTuplesCall) EncodeTo(buf []byte) (int, error) {
+func (value TestComplexDynamicTuplesCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestComplexDynamicTuplesCallStaticSize // Start dynamic data after static section
-
-	// Users (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Users: (uint256,(string,string[],(uint256,string[])))[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Users (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Users)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Users) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Users {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					n, err := item.EncodeTo(buf[dynamicOffset:])
-					if err != nil {
-						return 0, err
-					}
-					dynamicOffset += n
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeUser2Slice(value.Users, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestComplexDynamicTuplesCall to ABI bytes
-func (t TestComplexDynamicTuplesCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestComplexDynamicTuplesCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestComplexDynamicTuplesCall from ABI bytes in the provided buffer
-func (t *TestComplexDynamicTuplesCall) Decode(data0 []byte) error {
-	if len(data0) < TestComplexDynamicTuplesCallStaticSize {
-		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesCall")
+func (t *TestComplexDynamicTuplesCall) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Users
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Users
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Users (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Users")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Users = make([]User2, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Users[i0] (dynamic)
-			if offset >= len(data1) {
-				return fmt.Errorf("insufficient data for dynamic data, t.Users[i0]")
-			}
-			if err := t.Users[i0].Decode(data1[offset:]); err != nil {
-				return err
-			}
+		t.Users, n, err = _ComprehensiveDecodeUser2Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testComplexDynamicTuples arguments to ABI bytes including function selector
@@ -1041,7 +1903,7 @@ const TestComplexDynamicTuplesReturnStaticSize = 32
 
 // TestComplexDynamicTuplesReturn represents an ABI tuple
 type TestComplexDynamicTuplesReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestComplexDynamicTuplesReturn
@@ -1052,37 +1914,41 @@ func (t TestComplexDynamicTuplesReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestComplexDynamicTuplesReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestComplexDynamicTuplesReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestComplexDynamicTuplesReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestComplexDynamicTuplesReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestComplexDynamicTuplesReturn to ABI bytes
-func (t TestComplexDynamicTuplesReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestComplexDynamicTuplesReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestComplexDynamicTuplesReturn from ABI bytes in the provided buffer
-func (t *TestComplexDynamicTuplesReturn) Decode(data0 []byte) error {
-	if len(data0) < TestComplexDynamicTuplesReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestComplexDynamicTuplesReturn")
+func (t *TestComplexDynamicTuplesReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const TestDeeplyNestedCallStaticSize = 32
@@ -1095,61 +1961,64 @@ type TestDeeplyNestedCall struct {
 // EncodedSize returns the total encoded size of TestDeeplyNestedCall
 func (t TestDeeplyNestedCall) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Data.EncodedSize() // dynamic tuple
+	dynamicSize += t.Data.EncodedSize()
 
 	return TestDeeplyNestedCallStaticSize + dynamicSize
 }
 
 // EncodeTo encodes TestDeeplyNestedCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestDeeplyNestedCall) EncodeTo(buf []byte) (int, error) {
+func (value TestDeeplyNestedCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestDeeplyNestedCallStaticSize // Start dynamic data after static section
-
-	// Data (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Data: ((((uint256,string))))
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Data (dynamic)
-	{
-		n, err := t.Data.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Data.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestDeeplyNestedCall to ABI bytes
-func (t TestDeeplyNestedCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestDeeplyNestedCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestDeeplyNestedCall from ABI bytes in the provided buffer
-func (t *TestDeeplyNestedCall) Decode(data0 []byte) error {
-	if len(data0) < TestDeeplyNestedCallStaticSize {
-		return fmt.Errorf("insufficient data for TestDeeplyNestedCall")
+func (t *TestDeeplyNestedCall) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Data
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Data
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Data (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Data")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Data")
 		}
-		if err := t.Data.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Data.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testDeeplyNested arguments to ABI bytes including function selector
@@ -1166,7 +2035,7 @@ const TestDeeplyNestedReturnStaticSize = 32
 
 // TestDeeplyNestedReturn represents an ABI tuple
 type TestDeeplyNestedReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestDeeplyNestedReturn
@@ -1177,37 +2046,41 @@ func (t TestDeeplyNestedReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestDeeplyNestedReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestDeeplyNestedReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestDeeplyNestedReturn to ABI bytes
-func (t TestDeeplyNestedReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestDeeplyNestedReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestDeeplyNestedReturn from ABI bytes in the provided buffer
-func (t *TestDeeplyNestedReturn) Decode(data0 []byte) error {
-	if len(data0) < TestDeeplyNestedReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestDeeplyNestedReturn")
+func (t *TestDeeplyNestedReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const TestExternalTupleCallStaticSize = 32
@@ -1220,61 +2093,64 @@ type TestExternalTupleCall struct {
 // EncodedSize returns the total encoded size of TestExternalTupleCall
 func (t TestExternalTupleCall) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.User.EncodedSize() // dynamic tuple
+	dynamicSize += t.User.EncodedSize()
 
 	return TestExternalTupleCallStaticSize + dynamicSize
 }
 
 // EncodeTo encodes TestExternalTupleCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestExternalTupleCall) EncodeTo(buf []byte) (int, error) {
+func (value TestExternalTupleCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestExternalTupleCallStaticSize // Start dynamic data after static section
-
-	// User (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field User: (address,string,uint256)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// User (dynamic)
-	{
-		n, err := t.User.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.User.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestExternalTupleCall to ABI bytes
-func (t TestExternalTupleCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestExternalTupleCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestExternalTupleCall from ABI bytes in the provided buffer
-func (t *TestExternalTupleCall) Decode(data0 []byte) error {
-	if len(data0) < TestExternalTupleCallStaticSize {
-		return fmt.Errorf("insufficient data for TestExternalTupleCall")
+func (t *TestExternalTupleCall) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// User
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field User
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.User (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.User")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field User")
 		}
-		if err := t.User.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.User.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testExternalTuple arguments to ABI bytes including function selector
@@ -1291,7 +2167,7 @@ const TestExternalTupleReturnStaticSize = 32
 
 // TestExternalTupleReturn represents an ABI tuple
 type TestExternalTupleReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestExternalTupleReturn
@@ -1302,37 +2178,41 @@ func (t TestExternalTupleReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestExternalTupleReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestExternalTupleReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestExternalTupleReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestExternalTupleReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestExternalTupleReturn to ABI bytes
-func (t TestExternalTupleReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestExternalTupleReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestExternalTupleReturn from ABI bytes in the provided buffer
-func (t *TestExternalTupleReturn) Decode(data0 []byte) error {
-	if len(data0) < TestExternalTupleReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestExternalTupleReturn")
+func (t *TestExternalTupleReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const TestFixedArraysCallStaticSize = 320
@@ -1352,90 +2232,61 @@ func (t TestFixedArraysCall) EncodedSize() int {
 }
 
 // EncodeTo encodes TestFixedArraysCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestFixedArraysCall) EncodeTo(buf []byte) (int, error) {
+func (value TestFixedArraysCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestFixedArraysCallStaticSize // Start dynamic data after static section
-
-	// Addresses (static)
-	// Encode fixed-size array t.Addresses
-	{
-		copy(buf[0+12:0+32], t.Addresses[0][:])
-		copy(buf[32+12:32+32], t.Addresses[1][:])
-		copy(buf[64+12:64+32], t.Addresses[2][:])
-		copy(buf[96+12:96+32], t.Addresses[3][:])
-		copy(buf[128+12:128+32], t.Addresses[4][:])
+	// Field Addresses: address[5]
+	if _, err := _ComprehensiveEncodeAddressArray5(value.Addresses, buf[0:]); err != nil {
+		return 0, err
 	}
-	// Uints (static)
-	// Encode fixed-size array t.Uints
-	{
 
-		if err := abi.EncodeBigInt(t.Uints[0], buf[160:192], false); err != nil {
-			return 0, err
-		}
-
-		if err := abi.EncodeBigInt(t.Uints[1], buf[192:224], false); err != nil {
-			return 0, err
-		}
-
-		if err := abi.EncodeBigInt(t.Uints[2], buf[224:256], false); err != nil {
-			return 0, err
-		}
-
+	// Field Uints: uint256[3]
+	if _, err := _ComprehensiveEncodeUint256Array3(value.Uints, buf[160:]); err != nil {
+		return 0, err
 	}
-	// Bytes32s (static)
-	// Encode fixed-size array t.Bytes32s
-	{
-		copy(buf[256:256+32], t.Bytes32s[0][:])
-		copy(buf[288:288+32], t.Bytes32s[1][:])
+
+	// Field Bytes32s: bytes32[2]
+	if _, err := _ComprehensiveEncodeBytes32Array2(value.Bytes32s, buf[256:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestFixedArraysCall to ABI bytes
-func (t TestFixedArraysCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestFixedArraysCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestFixedArraysCall from ABI bytes in the provided buffer
-func (t *TestFixedArraysCall) Decode(data0 []byte) error {
-	if len(data0) < TestFixedArraysCallStaticSize {
-		return fmt.Errorf("insufficient data for TestFixedArraysCall")
+func (t *TestFixedArraysCall) Decode(data []byte) (int, error) {
+	if len(data) < 320 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Addresses (static)
-	// Decode fixed-size array t.Addresses
-	for i0 := 0; i0 < 5; i0++ {
-		offset := 0 + i0*32
-		data1 := data0
-
-		// t.Addresses[i0] (static)
-		copy(t.Addresses[i0][:], data1[offset+12:offset+32])
+	var (
+		err error
+	)
+	dynamicOffset := 320
+	// Decode static field Addresses: address[5]
+	t.Addresses, _, err = _ComprehensiveDecodeAddressArray5(data[0:])
+	if err != nil {
+		return 0, err
 	}
-	// t.Uints (static)
-	// Decode fixed-size array t.Uints
-	for i0 := 0; i0 < 3; i0++ {
-		offset := 160 + i0*32
-		data1 := data0
-
-		// t.Uints[i0] (static)
-		t.Uints[i0] = new(big.Int).SetBytes(data1[offset : offset+32])
+	// Decode static field Uints: uint256[3]
+	t.Uints, _, err = _ComprehensiveDecodeUint256Array3(data[160:])
+	if err != nil {
+		return 0, err
 	}
-	// t.Bytes32s (static)
-	// Decode fixed-size array t.Bytes32s
-	for i0 := 0; i0 < 2; i0++ {
-		offset := 256 + i0*32
-		data1 := data0
-
-		// t.Bytes32s[i0] (static)
-		copy(t.Bytes32s[i0][:], data1[offset:offset+32])
+	// Decode static field Bytes32s: bytes32[2]
+	t.Bytes32s, _, err = _ComprehensiveDecodeBytes32Array2(data[256:])
+	if err != nil {
+		return 0, err
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testFixedArrays arguments to ABI bytes including function selector
@@ -1452,7 +2303,7 @@ const TestFixedArraysReturnStaticSize = 32
 
 // TestFixedArraysReturn represents an ABI tuple
 type TestFixedArraysReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestFixedArraysReturn
@@ -1463,37 +2314,41 @@ func (t TestFixedArraysReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestFixedArraysReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestFixedArraysReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestFixedArraysReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestFixedArraysReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestFixedArraysReturn to ABI bytes
-func (t TestFixedArraysReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestFixedArraysReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestFixedArraysReturn from ABI bytes in the provided buffer
-func (t *TestFixedArraysReturn) Decode(data0 []byte) error {
-	if len(data0) < TestFixedArraysReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestFixedArraysReturn")
+func (t *TestFixedArraysReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const TestMixedTypesCallStaticSize = 160
@@ -1510,154 +2365,117 @@ type TestMixedTypesCall struct {
 // EncodedSize returns the total encoded size of TestMixedTypesCall
 func (t TestMixedTypesCall) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.DynamicData)) // length + padded bytes data
-	dynamicSize += 32 + 32*len(t.Items)               // length + offset pointers for dynamic elements
-	for _, elem := range t.Items {
-		dynamicSize += elem.EncodedSize() // dynamic tuple
-	}
+	dynamicSize += _ComprehensiveSizeBytes(t.DynamicData)
+	dynamicSize += _ComprehensiveSizeItemSlice(t.Items)
 
 	return TestMixedTypesCallStaticSize + dynamicSize
 }
 
 // EncodeTo encodes TestMixedTypesCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
+func (value TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestMixedTypesCallStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field FixedData: bytes32
+	if _, err := _ComprehensiveEncodeBytes32(value.FixedData, buf[0:]); err != nil {
+		return 0, err
+	}
 
-	// FixedData (static)
-	copy(buf[0:0+32], t.FixedData[:])
-
-	// DynamicData (offset)
+	// Field DynamicData: bytes
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// DynamicData (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.DynamicData)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], t.DynamicData)
-	dynamicOffset += abi.Pad32(len(t.DynamicData))
-
-	// Flag (static)
-	if t.Flag {
-		buf[64+31] = 1
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeBytes(value.DynamicData, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
-	// Count (static)
-	buf[96+31] = byte(t.Count)
+	dynamicOffset += n
 
-	// Items (offset)
+	// Field Flag: bool
+	if _, err := _ComprehensiveEncodeBool(value.Flag, buf[64:]); err != nil {
+		return 0, err
+	}
+
+	// Field Count: uint8
+	if _, err := _ComprehensiveEncodeUint8(value.Count, buf[96:]); err != nil {
+		return 0, err
+	}
+
+	// Field Items: (uint32,bytes,bool)[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[128+24:128+32], uint64(dynamicOffset))
-
-	// Items (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Items)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Items) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Items {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					n, err := item.EncodeTo(buf[dynamicOffset:])
-					if err != nil {
-						return 0, err
-					}
-					dynamicOffset += n
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeItemSlice(value.Items, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestMixedTypesCall to ABI bytes
-func (t TestMixedTypesCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestMixedTypesCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestMixedTypesCall from ABI bytes in the provided buffer
-func (t *TestMixedTypesCall) Decode(data0 []byte) error {
-	if len(data0) < TestMixedTypesCallStaticSize {
-		return fmt.Errorf("insufficient data for TestMixedTypesCall")
+func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
+	if len(data) < 160 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.FixedData (static)
-	copy(t.FixedData[:], data0[0:0+32])
-	// DynamicData
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 160
+	// Decode static field FixedData: bytes32
+	t.FixedData, _, err = _ComprehensiveDecodeBytes32(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field DynamicData
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.DynamicData (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field DynamicData")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// bytes data
-		t.DynamicData = data0[offset : offset+length]
+		t.DynamicData, n, err = _ComprehensiveDecodeBytes(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// t.Flag (static)
-	t.Flag = data0[64+31] == 1
-	// t.Count (static)
-	t.Count = uint8(data0[96+31])
-	// Items
+	// Decode static field Flag: bool
+	t.Flag, _, err = _ComprehensiveDecodeBool(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Count: uint8
+	t.Count, _, err = _ComprehensiveDecodeUint8(data[96:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Items
 	{
-		offset := int(binary.BigEndian.Uint64(data0[128+24 : 128+32]))
-
-		// t.Items (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[128+24 : 128+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Items")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Items = make([]Item, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Items[i0] (dynamic)
-			if offset >= len(data1) {
-				return fmt.Errorf("insufficient data for dynamic data, t.Items[i0]")
-			}
-			if err := t.Items[i0].Decode(data1[offset:]); err != nil {
-				return err
-			}
+		t.Items, n, err = _ComprehensiveDecodeItemSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testMixedTypes arguments to ABI bytes including function selector
@@ -1674,7 +2492,7 @@ const TestMixedTypesReturnStaticSize = 32
 
 // TestMixedTypesReturn represents an ABI tuple
 type TestMixedTypesReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestMixedTypesReturn
@@ -1685,37 +2503,41 @@ func (t TestMixedTypesReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestMixedTypesReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestMixedTypesReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestMixedTypesReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestMixedTypesReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestMixedTypesReturn to ABI bytes
-func (t TestMixedTypesReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestMixedTypesReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestMixedTypesReturn from ABI bytes in the provided buffer
-func (t *TestMixedTypesReturn) Decode(data0 []byte) error {
-	if len(data0) < TestMixedTypesReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestMixedTypesReturn")
+func (t *TestMixedTypesReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const TestNestedDynamicArraysCallStaticSize = 96
@@ -1730,488 +2552,110 @@ type TestNestedDynamicArraysCall struct {
 // EncodedSize returns the total encoded size of TestNestedDynamicArraysCall
 func (t TestNestedDynamicArraysCall) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + 32*len(t.Matrix) // length + offset pointers for dynamic elements
-	for _, elem := range t.Matrix {
-		dynamicSize += 32 + 32*len(elem) // length + static elements
-	}
-	dynamicSize += 32 + 32*len(t.AddressMatrix) // length + offset pointers for dynamic elements
-	for _, elem := range t.AddressMatrix {
-		dynamicSize += 32 * 3               // offset pointers for dynamic elements
-		dynamicSize += 32 + 32*len(elem[0]) // length + static elements
-		dynamicSize += 32 + 32*len(elem[1]) // length + static elements
-		dynamicSize += 32 + 32*len(elem[2]) // length + static elements
-	}
-	dynamicSize += 32 + 32*len(t.DymMatrix) // length + offset pointers for dynamic elements
-	for _, elem := range t.DymMatrix {
-		dynamicSize += 32 + 32*len(elem) // length + offset pointers for dynamic elements
-		for _, elem := range elem {
-			dynamicSize += 32 + abi.Pad32(len(elem)) // length + padded string data
-		}
-	}
+	dynamicSize += _ComprehensiveSizeUint256SliceSlice(t.Matrix)
+	dynamicSize += _ComprehensiveSizeAddressSliceArray3Slice(t.AddressMatrix)
+	dynamicSize += _ComprehensiveSizeStringSliceSlice(t.DymMatrix)
 
 	return TestNestedDynamicArraysCallStaticSize + dynamicSize
 }
 
 // EncodeTo encodes TestNestedDynamicArraysCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
+func (value TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestNestedDynamicArraysCallStaticSize // Start dynamic data after static section
-
-	// Matrix (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Matrix: uint256[][]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Matrix (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Matrix)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Matrix) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Matrix {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					// length
-					binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
-					dynamicOffset += 32
-
-					// data without dynamic region
-					buf := buf[dynamicOffset:]
-					var offset int
-					for _, item := range item {
-						tmpBuf := buf[offset:]
-
-						if err := abi.EncodeBigInt(item, tmpBuf[0:32], false); err != nil {
-							return 0, err
-						}
-
-						offset += 32
-					}
-					dynamicOffset += offset
-
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeUint256SliceSlice(value.Matrix, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
-	// AddressMatrix (offset)
+	// Field AddressMatrix: address[][3][]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// AddressMatrix (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.AddressMatrix)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.AddressMatrix) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.AddressMatrix {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					var written int
-
-					// data with dynamic region
-					{
-						buf := buf[dynamicOffset:]
-						dynamicOffset := 3 * 32 // start after static region
-
-						// write offsets
-						binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-						// write data (dynamic)
-
-						{
-							// length
-							binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item[0])))
-							dynamicOffset += 32
-
-							// data without dynamic region
-							buf := buf[dynamicOffset:]
-							var offset int
-							for _, item := range item[0] {
-								tmpBuf := buf[offset:]
-
-								copy(tmpBuf[0+12:0+32], item[:])
-
-								offset += 32
-							}
-							dynamicOffset += offset
-
-						}
-						// write offsets
-						binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-						// write data (dynamic)
-
-						{
-							// length
-							binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item[1])))
-							dynamicOffset += 32
-
-							// data without dynamic region
-							buf := buf[dynamicOffset:]
-							var offset int
-							for _, item := range item[1] {
-								tmpBuf := buf[offset:]
-
-								copy(tmpBuf[0+12:0+32], item[:])
-
-								offset += 32
-							}
-							dynamicOffset += offset
-
-						}
-						// write offsets
-						binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
-
-						// write data (dynamic)
-
-						{
-							// length
-							binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item[2])))
-							dynamicOffset += 32
-
-							// data without dynamic region
-							buf := buf[dynamicOffset:]
-							var offset int
-							for _, item := range item[2] {
-								tmpBuf := buf[offset:]
-
-								copy(tmpBuf[0+12:0+32], item[:])
-
-								offset += 32
-							}
-							dynamicOffset += offset
-
-						}
-						written = dynamicOffset
-					}
-					dynamicOffset += written
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeAddressSliceArray3Slice(value.AddressMatrix, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
-	// DymMatrix (offset)
+	// Field DymMatrix: string[][]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
-
-	// DymMatrix (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.DymMatrix)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.DymMatrix) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.DymMatrix {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					// length
-					binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
-					dynamicOffset += 32
-
-					var written int
-
-					// data with dynamic region
-					{
-						buf := buf[dynamicOffset:]
-						dynamicOffset := len(item) * 32 // start after static region
-
-						var offset int
-						for _, item := range item {
-							// write offsets
-							binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-							offset += 32
-
-							// write data (dynamic)
-
-							// length
-							binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(item)))
-							dynamicOffset += 32
-
-							// data
-							copy(buf[dynamicOffset:], []byte(item))
-							dynamicOffset += abi.Pad32(len(item))
-
-						}
-						written = dynamicOffset
-					}
-					dynamicOffset += written
-
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeStringSliceSlice(value.DymMatrix, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestNestedDynamicArraysCall to ABI bytes
-func (t TestNestedDynamicArraysCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestNestedDynamicArraysCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestNestedDynamicArraysCall from ABI bytes in the provided buffer
-func (t *TestNestedDynamicArraysCall) Decode(data0 []byte) error {
-	if len(data0) < TestNestedDynamicArraysCallStaticSize {
-		return fmt.Errorf("insufficient data for TestNestedDynamicArraysCall")
+func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Matrix
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 96
+	// Decode dynamic field Matrix
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Matrix (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Matrix")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Matrix = make([][]*big.Int, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Matrix[i0] (dynamic)
-			if offset+32 > len(data1) {
-				return fmt.Errorf("insufficient data for length prefix")
-			}
-			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
-			offset += 32
-			// slice data
-			t.Matrix[i0] = make([]*big.Int, length)
-			data2 := data1[offset:]
-
-			offset = 0
-			for i1 := 0; i1 < length; i1++ {
-				// t.Matrix[i0][i1] (static)
-				t.Matrix[i0][i1] = new(big.Int).SetBytes(data2[offset : offset+32])
-				offset += 32
-			}
+		t.Matrix, n, err = _ComprehensiveDecodeUint256SliceSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-	// AddressMatrix
+	// Decode dynamic field AddressMatrix
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.AddressMatrix (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field AddressMatrix")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.AddressMatrix = make([][3][]common.Address, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.AddressMatrix[i0] (dynamic)
-			if offset >= len(data1) {
-				return fmt.Errorf("insufficient data for dynamic data, t.AddressMatrix[i0]")
-			}
-			// Fixed-size array t.AddressMatrix[i0] with dynamic elements
-			data2 := data1[offset:]
-
-			if len(data2) < 3*32 {
-				return fmt.Errorf("insufficient data for offsets, t.AddressMatrix[i0]")
-			}
-
-			{
-				// Dynamic elements with offsets
-				// Read element offset
-				offset := int(binary.BigEndian.Uint64(data2[0+24 : 0+32]))
-				// Decode dynamic element at offset
-
-				// t.AddressMatrix[i0][0] (dynamic)
-				if offset+32 > len(data2) {
-					return fmt.Errorf("insufficient data for length prefix")
-				}
-				length := int(binary.BigEndian.Uint64(data2[offset+24 : offset+32]))
-				offset += 32
-				// slice data
-				t.AddressMatrix[i0][0] = make([]common.Address, length)
-				data3 := data2[offset:]
-
-				offset = 0
-				for i2 := 0; i2 < length; i2++ {
-					// t.AddressMatrix[i0][0][i2] (static)
-					copy(t.AddressMatrix[i0][0][i2][:], data3[offset+12:offset+32])
-					offset += 32
-				}
-			}
-			{
-				// Dynamic elements with offsets
-				// Read element offset
-				offset := int(binary.BigEndian.Uint64(data2[32+24 : 32+32]))
-				// Decode dynamic element at offset
-
-				// t.AddressMatrix[i0][1] (dynamic)
-				if offset+32 > len(data2) {
-					return fmt.Errorf("insufficient data for length prefix")
-				}
-				length := int(binary.BigEndian.Uint64(data2[offset+24 : offset+32]))
-				offset += 32
-				// slice data
-				t.AddressMatrix[i0][1] = make([]common.Address, length)
-				data3 := data2[offset:]
-
-				offset = 0
-				for i2 := 0; i2 < length; i2++ {
-					// t.AddressMatrix[i0][1][i2] (static)
-					copy(t.AddressMatrix[i0][1][i2][:], data3[offset+12:offset+32])
-					offset += 32
-				}
-			}
-			{
-				// Dynamic elements with offsets
-				// Read element offset
-				offset := int(binary.BigEndian.Uint64(data2[64+24 : 64+32]))
-				// Decode dynamic element at offset
-
-				// t.AddressMatrix[i0][2] (dynamic)
-				if offset+32 > len(data2) {
-					return fmt.Errorf("insufficient data for length prefix")
-				}
-				length := int(binary.BigEndian.Uint64(data2[offset+24 : offset+32]))
-				offset += 32
-				// slice data
-				t.AddressMatrix[i0][2] = make([]common.Address, length)
-				data3 := data2[offset:]
-
-				offset = 0
-				for i2 := 0; i2 < length; i2++ {
-					// t.AddressMatrix[i0][2][i2] (static)
-					copy(t.AddressMatrix[i0][2][i2][:], data3[offset+12:offset+32])
-					offset += 32
-				}
-			}
+		t.AddressMatrix, n, err = _ComprehensiveDecodeAddressSliceArray3Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-	// DymMatrix
+	// Decode dynamic field DymMatrix
 	{
-		offset := int(binary.BigEndian.Uint64(data0[64+24 : 64+32]))
-
-		// t.DymMatrix (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field DymMatrix")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.DymMatrix = make([][]string, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.DymMatrix[i0] (dynamic)
-			if offset+32 > len(data1) {
-				return fmt.Errorf("insufficient data for length prefix")
-			}
-			length := int(binary.BigEndian.Uint64(data1[offset+24 : offset+32]))
-			offset += 32
-			// slice data
-			t.DymMatrix[i0] = make([]string, length)
-			data2 := data1[offset:]
-
-			// Dynamic elements with offsets (dynamic array)
-			for i1 := 0; i1 < length; i1++ {
-				// Read element offset
-				tmp := i1 * 32
-				if tmp+32 > len(data2) {
-					return fmt.Errorf("insufficient data for element offset")
-				}
-				offset := int(binary.BigEndian.Uint64(data2[tmp+24 : tmp+32]))
-				// Decode dynamic element at offset
-
-				// t.DymMatrix[i0][i1] (dynamic)
-				if offset+32 > len(data2) {
-					return fmt.Errorf("insufficient data for length prefix")
-				}
-				length := int(binary.BigEndian.Uint64(data2[offset+24 : offset+32]))
-				offset += 32
-				// string data
-				t.DymMatrix[i0][i1] = string(data2[offset : offset+length])
-			}
+		t.DymMatrix, n, err = _ComprehensiveDecodeStringSliceSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testNestedDynamicArrays arguments to ABI bytes including function selector
@@ -2228,7 +2672,7 @@ const TestNestedDynamicArraysReturnStaticSize = 32
 
 // TestNestedDynamicArraysReturn represents an ABI tuple
 type TestNestedDynamicArraysReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestNestedDynamicArraysReturn
@@ -2239,37 +2683,41 @@ func (t TestNestedDynamicArraysReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestNestedDynamicArraysReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestNestedDynamicArraysReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestNestedDynamicArraysReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestNestedDynamicArraysReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestNestedDynamicArraysReturn to ABI bytes
-func (t TestNestedDynamicArraysReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestNestedDynamicArraysReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestNestedDynamicArraysReturn from ABI bytes in the provided buffer
-func (t *TestNestedDynamicArraysReturn) Decode(data0 []byte) error {
-	if len(data0) < TestNestedDynamicArraysReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestNestedDynamicArraysReturn")
+func (t *TestNestedDynamicArraysReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const TestNestedStructCallStaticSize = 32
@@ -2282,61 +2730,64 @@ type TestNestedStructCall struct {
 // EncodedSize returns the total encoded size of TestNestedStructCall
 func (t TestNestedStructCall) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Group.EncodedSize() // dynamic tuple
+	dynamicSize += t.Group.EncodedSize()
 
 	return TestNestedStructCallStaticSize + dynamicSize
 }
 
 // EncodeTo encodes TestNestedStructCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestNestedStructCall) EncodeTo(buf []byte) (int, error) {
+func (value TestNestedStructCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestNestedStructCallStaticSize // Start dynamic data after static section
-
-	// Group (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Group: ((address,string,uint256)[])
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Group (dynamic)
-	{
-		n, err := t.Group.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Group.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestNestedStructCall to ABI bytes
-func (t TestNestedStructCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestNestedStructCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestNestedStructCall from ABI bytes in the provided buffer
-func (t *TestNestedStructCall) Decode(data0 []byte) error {
-	if len(data0) < TestNestedStructCallStaticSize {
-		return fmt.Errorf("insufficient data for TestNestedStructCall")
+func (t *TestNestedStructCall) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Group
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Group
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Group (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Group")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Group")
 		}
-		if err := t.Group.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Group.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testNestedStruct arguments to ABI bytes including function selector
@@ -2353,7 +2804,7 @@ const TestNestedStructReturnStaticSize = 32
 
 // TestNestedStructReturn represents an ABI tuple
 type TestNestedStructReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestNestedStructReturn
@@ -2364,37 +2815,41 @@ func (t TestNestedStructReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestNestedStructReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestNestedStructReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestNestedStructReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestNestedStructReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestNestedStructReturn to ABI bytes
-func (t TestNestedStructReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestNestedStructReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestNestedStructReturn from ABI bytes in the provided buffer
-func (t *TestNestedStructReturn) Decode(data0 []byte) error {
-	if len(data0) < TestNestedStructReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestNestedStructReturn")
+func (t *TestNestedStructReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const TestSmallIntegersCallStaticSize = 256
@@ -2419,90 +2874,111 @@ func (t TestSmallIntegersCall) EncodedSize() int {
 }
 
 // EncodeTo encodes TestSmallIntegersCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestSmallIntegersCall) EncodeTo(buf []byte) (int, error) {
+func (value TestSmallIntegersCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestSmallIntegersCallStaticSize // Start dynamic data after static section
-
-	// U8 (static)
-	buf[0+31] = byte(t.U8)
-	// U16 (static)
-	binary.BigEndian.PutUint16(buf[32+30:32+32], uint16(t.U16))
-	// U32 (static)
-	binary.BigEndian.PutUint32(buf[64+28:64+32], uint32(t.U32))
-	// U64 (static)
-	binary.BigEndian.PutUint64(buf[96+24:96+32], uint64(t.U64))
-	// I8 (static)
-
-	if t.I8 < 0 {
-		for i := 0; i < 31; i++ {
-			buf[128+i] = 0xff
-		}
+	// Field U8: uint8
+	if _, err := _ComprehensiveEncodeUint8(value.U8, buf[0:]); err != nil {
+		return 0, err
 	}
-	buf[128+31] = byte(t.I8)
 
-	// I16 (static)
-
-	if t.I16 < 0 {
-		for i := 0; i < 30; i++ {
-			buf[160+i] = 0xff
-		}
+	// Field U16: uint16
+	if _, err := _ComprehensiveEncodeUint16(value.U16, buf[32:]); err != nil {
+		return 0, err
 	}
-	binary.BigEndian.PutUint16(buf[160+30:160+32], uint16(t.I16))
 
-	// I32 (static)
-
-	if t.I32 < 0 {
-		for i := 0; i < 28; i++ {
-			buf[192+i] = 0xff
-		}
+	// Field U32: uint32
+	if _, err := _ComprehensiveEncodeUint32(value.U32, buf[64:]); err != nil {
+		return 0, err
 	}
-	binary.BigEndian.PutUint32(buf[192+28:192+32], uint32(t.I32))
 
-	// I64 (static)
-
-	if t.I64 < 0 {
-		for i := 0; i < 24; i++ {
-			buf[224+i] = 0xff
-		}
+	// Field U64: uint64
+	if _, err := _ComprehensiveEncodeUint64(value.U64, buf[96:]); err != nil {
+		return 0, err
 	}
-	binary.BigEndian.PutUint64(buf[224+24:224+32], uint64(t.I64))
+
+	// Field I8: int8
+	if _, err := _ComprehensiveEncodeInt8(value.I8, buf[128:]); err != nil {
+		return 0, err
+	}
+
+	// Field I16: int16
+	if _, err := _ComprehensiveEncodeInt16(value.I16, buf[160:]); err != nil {
+		return 0, err
+	}
+
+	// Field I32: int32
+	if _, err := _ComprehensiveEncodeInt32(value.I32, buf[192:]); err != nil {
+		return 0, err
+	}
+
+	// Field I64: int64
+	if _, err := _ComprehensiveEncodeInt64(value.I64, buf[224:]); err != nil {
+		return 0, err
+	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestSmallIntegersCall to ABI bytes
-func (t TestSmallIntegersCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestSmallIntegersCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestSmallIntegersCall from ABI bytes in the provided buffer
-func (t *TestSmallIntegersCall) Decode(data0 []byte) error {
-	if len(data0) < TestSmallIntegersCallStaticSize {
-		return fmt.Errorf("insufficient data for TestSmallIntegersCall")
+func (t *TestSmallIntegersCall) Decode(data []byte) (int, error) {
+	if len(data) < 256 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.U8 (static)
-	t.U8 = uint8(data0[0+31])
-	// t.U16 (static)
-	t.U16 = uint16(binary.BigEndian.Uint16(data0[32+30 : 32+32]))
-	// t.U32 (static)
-	t.U32 = uint32(binary.BigEndian.Uint32(data0[64+28 : 64+32]))
-	// t.U64 (static)
-	t.U64 = uint64(binary.BigEndian.Uint64(data0[96+24 : 96+32]))
-	// t.I8 (static)
-	t.I8 = int8(data0[128+31])
-	// t.I16 (static)
-	t.I16 = int16(binary.BigEndian.Uint16(data0[160+30 : 160+32]))
-	// t.I32 (static)
-	t.I32 = int32(binary.BigEndian.Uint32(data0[192+28 : 192+32]))
-	// t.I64 (static)
-	t.I64 = int64(binary.BigEndian.Uint64(data0[224+24 : 224+32]))
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 256
+	// Decode static field U8: uint8
+	t.U8, _, err = _ComprehensiveDecodeUint8(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U16: uint16
+	t.U16, _, err = _ComprehensiveDecodeUint16(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U32: uint32
+	t.U32, _, err = _ComprehensiveDecodeUint32(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U64: uint64
+	t.U64, _, err = _ComprehensiveDecodeUint64(data[96:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I8: int8
+	t.I8, _, err = _ComprehensiveDecodeInt8(data[128:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I16: int16
+	t.I16, _, err = _ComprehensiveDecodeInt16(data[160:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I32: int32
+	t.I32, _, err = _ComprehensiveDecodeInt32(data[192:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I64: int64
+	t.I64, _, err = _ComprehensiveDecodeInt64(data[224:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes testSmallIntegers arguments to ABI bytes including function selector
@@ -2519,7 +2995,7 @@ const TestSmallIntegersReturnStaticSize = 32
 
 // TestSmallIntegersReturn represents an ABI tuple
 type TestSmallIntegersReturn struct {
-	Result1 bool
+	Field1 bool
 }
 
 // EncodedSize returns the total encoded size of TestSmallIntegersReturn
@@ -2530,40 +3006,56 @@ func (t TestSmallIntegersReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes TestSmallIntegersReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TestSmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
+func (value TestSmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TestSmallIntegersReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	if t.Result1 {
-		buf[0+31] = 1
+	// Field Field1: bool
+	if _, err := _ComprehensiveEncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes TestSmallIntegersReturn to ABI bytes
-func (t TestSmallIntegersReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TestSmallIntegersReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TestSmallIntegersReturn from ABI bytes in the provided buffer
-func (t *TestSmallIntegersReturn) Decode(data0 []byte) error {
-	if len(data0) < TestSmallIntegersReturnStaticSize {
-		return fmt.Errorf("insufficient data for TestSmallIntegersReturn")
+func (t *TestSmallIntegersReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = data0[0+31] == 1
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = _ComprehensiveDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
-// ComplexEvent represents an ABI event
+// Event signatures
+var (
+	// Complex(string,uint256[],address)
+	ComplexEventTopic = common.Hash{0x56, 0x22, 0xe4, 0xd3, 0x12, 0xf8, 0xdd, 0x97, 0xbb, 0x32, 0x6c, 0x82, 0x99, 0x40, 0xc0, 0x6e, 0x5f, 0x3f, 0xf7, 0x2b, 0x31, 0x1a, 0x4d, 0xee, 0x95, 0x97, 0x35, 0x15, 0x88, 0x7d, 0x0d, 0xc7}
+	// IndexOnly(address)
+	IndexOnlyEventTopic = common.Hash{0x97, 0x3c, 0xfd, 0x69, 0xe6, 0x55, 0xa7, 0xff, 0xc7, 0x50, 0xd3, 0x74, 0x5d, 0x6c, 0xd2, 0xb0, 0xef, 0x78, 0xe9, 0x8c, 0x28, 0x84, 0x0b, 0xa3, 0xc7, 0x16, 0x3a, 0x5a, 0xe6, 0x37, 0x1f, 0x27}
+	// Transfer(address,address,uint256)
+	TransferEventTopic = common.Hash{0xdd, 0xf2, 0x52, 0xad, 0x1b, 0xe2, 0xc8, 0x9b, 0x69, 0xc2, 0xb0, 0x68, 0xfc, 0x37, 0x8d, 0xaa, 0x95, 0x2b, 0xa7, 0xf1, 0x63, 0xc4, 0xa1, 0x16, 0x28, 0xf5, 0x5a, 0x4d, 0xf5, 0x23, 0xb3, 0xef}
+	// UserCreated((address,string,uint256),address)
+	UserCreatedEventTopic = common.Hash{0x34, 0xd6, 0x8f, 0x2d, 0xec, 0x91, 0xef, 0x13, 0x0d, 0xe9, 0x21, 0x4e, 0x8e, 0xa8, 0x6e, 0x02, 0x29, 0xf7, 0x22, 0xee, 0x89, 0x41, 0xc9, 0x9f, 0x75, 0xbf, 0xa5, 0x38, 0x17, 0xd9, 0x97, 0x82}
+)
+
+// ComplexEvent represents the Complex event
 type ComplexEvent struct {
 	ComplexEventIndexed
 	ComplexEventData
@@ -2592,44 +3084,33 @@ type ComplexEventIndexed struct {
 }
 
 // EncodeTopics encodes indexed fields of Complex event to topics
-func (e ComplexEventIndexed) EncodeTopics() []common.Hash {
+func (e ComplexEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	topics := make([]common.Hash, 0, 2)
 	topics = append(topics, ComplexEventTopic)
-
-	// Encode indexed field Sender
 	{
-		var buf common.Hash
-
-		// Sender (static)
-		copy(buf[0+12:0+32], e.Sender[:])
-
-		topics = append(topics, buf)
+		// Sender
+		var hash common.Hash
+		if _, err := _ComprehensiveEncodeAddress(e.Sender, hash[:]); err != nil {
+			return nil, err
+		}
+		topics = append(topics, hash)
 	}
-
-	return topics
+	return topics, nil
 }
 
-// DecodeTopics decodes indexed fields of Complex event from topics
+// DecodeTopics decodes indexed fields of Complex event from topics, ignore hash topics
 func (e *ComplexEventIndexed) DecodeTopics(topics []common.Hash) error {
-	if len(topics) < 2 {
-		return fmt.Errorf("insufficient topics for Complex event")
+	if len(topics) != 2 {
+		return fmt.Errorf("invalid number of topics for Complex event: expected 2, got %d", len(topics))
 	}
-
-	// Check event signature
 	if topics[0] != ComplexEventTopic {
-		return fmt.Errorf("invalid event signature for Complex event")
+		return fmt.Errorf("invalid event topic for Complex event")
 	}
-
-	// Sender (static)
-	{
-		data := topics[1][:]
-		offset := 0
-
-		// e.Sender (static)
-		copy(e.Sender[:], data[offset+12:offset+32])
-
+	var err error
+	e.Sender, _, err = _ComprehensiveDecodeAddress(topics[1][:])
+	if err != nil {
+		return err
 	}
-
 	return nil
 }
 
@@ -2644,112 +3125,90 @@ type ComplexEventData struct {
 // EncodedSize returns the total encoded size of ComplexEventData
 func (t ComplexEventData) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Message)) // length + padded string data
-	dynamicSize += 32 + 32*len(t.Numbers)         // length + static elements
+	dynamicSize += _ComprehensiveSizeString(t.Message)
+	dynamicSize += _ComprehensiveSizeUint256Slice(t.Numbers)
 
 	return ComplexEventDataStaticSize + dynamicSize
 }
 
 // EncodeTo encodes ComplexEventData to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t ComplexEventData) EncodeTo(buf []byte) (int, error) {
+func (value ComplexEventData) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := ComplexEventDataStaticSize // Start dynamic data after static section
-
-	// Message (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Message: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Message (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Message)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Message))
-	dynamicOffset += abi.Pad32(len(t.Message))
-
-	// Numbers (offset)
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Numbers (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Numbers)))
-		dynamicOffset += 32
-
-		// data without dynamic region
-		buf := buf[dynamicOffset:]
-		var offset int
-		for _, item := range t.Numbers {
-			tmpBuf := buf[offset:]
-
-			if err := abi.EncodeBigInt(item, tmpBuf[0:32], false); err != nil {
-				return 0, err
-			}
-
-			offset += 32
-		}
-		dynamicOffset += offset
-
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeString(value.Message, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
+
+	// Field Numbers: uint256[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = _ComprehensiveEncodeUint256Slice(value.Numbers, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes ComplexEventData to ABI bytes
-func (t ComplexEventData) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value ComplexEventData) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes ComplexEventData from ABI bytes in the provided buffer
-func (t *ComplexEventData) Decode(data0 []byte) error {
-	if len(data0) < ComplexEventDataStaticSize {
-		return fmt.Errorf("insufficient data for ComplexEventData")
+func (t *ComplexEventData) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Message
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 64
+	// Decode dynamic field Message
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Message (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Message")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// string data
-		t.Message = string(data0[offset : offset+length])
+		t.Message, n, err = _ComprehensiveDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// Numbers
+	// Decode dynamic field Numbers
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Numbers (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Numbers")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Numbers = make([]*big.Int, length)
-		data1 := data0[offset:]
-
-		offset = 0
-		for i0 := 0; i0 < length; i0++ {
-			// t.Numbers[i0] (static)
-			t.Numbers[i0] = new(big.Int).SetBytes(data1[offset : offset+32])
-			offset += 32
+		t.Numbers, n, err = _ComprehensiveDecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
-// IndexOnlyEvent represents an ABI event
+// IndexOnlyEvent represents the IndexOnly event
 type IndexOnlyEvent struct {
 	IndexOnlyEventIndexed
 	IndexOnlyEventData
@@ -2773,50 +3232,39 @@ type IndexOnlyEventIndexed struct {
 }
 
 // EncodeTopics encodes indexed fields of IndexOnly event to topics
-func (e IndexOnlyEventIndexed) EncodeTopics() []common.Hash {
+func (e IndexOnlyEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	topics := make([]common.Hash, 0, 2)
 	topics = append(topics, IndexOnlyEventTopic)
-
-	// Encode indexed field Sender
 	{
-		var buf common.Hash
-
-		// Sender (static)
-		copy(buf[0+12:0+32], e.Sender[:])
-
-		topics = append(topics, buf)
+		// Sender
+		var hash common.Hash
+		if _, err := _ComprehensiveEncodeAddress(e.Sender, hash[:]); err != nil {
+			return nil, err
+		}
+		topics = append(topics, hash)
 	}
-
-	return topics
+	return topics, nil
 }
 
-// DecodeTopics decodes indexed fields of IndexOnly event from topics
+// DecodeTopics decodes indexed fields of IndexOnly event from topics, ignore hash topics
 func (e *IndexOnlyEventIndexed) DecodeTopics(topics []common.Hash) error {
-	if len(topics) < 2 {
-		return fmt.Errorf("insufficient topics for IndexOnly event")
+	if len(topics) != 2 {
+		return fmt.Errorf("invalid number of topics for IndexOnly event: expected 2, got %d", len(topics))
 	}
-
-	// Check event signature
 	if topics[0] != IndexOnlyEventTopic {
-		return fmt.Errorf("invalid event signature for IndexOnly event")
+		return fmt.Errorf("invalid event topic for IndexOnly event")
 	}
-
-	// Sender (static)
-	{
-		data := topics[1][:]
-		offset := 0
-
-		// e.Sender (static)
-		copy(e.Sender[:], data[offset+12:offset+32])
-
+	var err error
+	e.Sender, _, err = _ComprehensiveDecodeAddress(topics[1][:])
+	if err != nil {
+		return err
 	}
-
 	return nil
 }
 
 type IndexOnlyEventData abi.EmptyTuple
 
-// TransferEvent represents an ABI event
+// TransferEvent represents the Transfer event
 type TransferEvent struct {
 	TransferEventIndexed
 	TransferEventData
@@ -2846,64 +3294,45 @@ type TransferEventIndexed struct {
 }
 
 // EncodeTopics encodes indexed fields of Transfer event to topics
-func (e TransferEventIndexed) EncodeTopics() []common.Hash {
+func (e TransferEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	topics := make([]common.Hash, 0, 3)
 	topics = append(topics, TransferEventTopic)
-
-	// Encode indexed field From
 	{
-		var buf common.Hash
-
-		// From (static)
-		copy(buf[0+12:0+32], e.From[:])
-
-		topics = append(topics, buf)
+		// From
+		var hash common.Hash
+		if _, err := _ComprehensiveEncodeAddress(e.From, hash[:]); err != nil {
+			return nil, err
+		}
+		topics = append(topics, hash)
 	}
-
-	// Encode indexed field To
 	{
-		var buf common.Hash
-
-		// To (static)
-		copy(buf[0+12:0+32], e.To[:])
-
-		topics = append(topics, buf)
+		// To
+		var hash common.Hash
+		if _, err := _ComprehensiveEncodeAddress(e.To, hash[:]); err != nil {
+			return nil, err
+		}
+		topics = append(topics, hash)
 	}
-
-	return topics
+	return topics, nil
 }
 
-// DecodeTopics decodes indexed fields of Transfer event from topics
+// DecodeTopics decodes indexed fields of Transfer event from topics, ignore hash topics
 func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
-	if len(topics) < 3 {
-		return fmt.Errorf("insufficient topics for Transfer event")
+	if len(topics) != 3 {
+		return fmt.Errorf("invalid number of topics for Transfer event: expected 3, got %d", len(topics))
 	}
-
-	// Check event signature
 	if topics[0] != TransferEventTopic {
-		return fmt.Errorf("invalid event signature for Transfer event")
+		return fmt.Errorf("invalid event topic for Transfer event")
 	}
-
-	// From (static)
-	{
-		data := topics[1][:]
-		offset := 0
-
-		// e.From (static)
-		copy(e.From[:], data[offset+12:offset+32])
-
+	var err error
+	e.From, _, err = _ComprehensiveDecodeAddress(topics[1][:])
+	if err != nil {
+		return err
 	}
-
-	// To (static)
-	{
-		data := topics[2][:]
-		offset := 0
-
-		// e.To (static)
-		copy(e.To[:], data[offset+12:offset+32])
-
+	e.To, _, err = _ComprehensiveDecodeAddress(topics[2][:])
+	if err != nil {
+		return err
 	}
-
 	return nil
 }
 
@@ -2922,13 +3351,11 @@ func (t TransferEventData) EncodedSize() int {
 }
 
 // EncodeTo encodes TransferEventData to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t TransferEventData) EncodeTo(buf []byte) (int, error) {
+func (value TransferEventData) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := TransferEventDataStaticSize // Start dynamic data after static section
-
-	// Value (static)
-
-	if err := abi.EncodeBigInt(t.Value, buf[0:32], false); err != nil {
+	// Field Value: uint256
+	if _, err := _ComprehensiveEncodeUint256(value.Value, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2936,27 +3363,32 @@ func (t TransferEventData) EncodeTo(buf []byte) (int, error) {
 }
 
 // Encode encodes TransferEventData to ABI bytes
-func (t TransferEventData) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value TransferEventData) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes TransferEventData from ABI bytes in the provided buffer
-func (t *TransferEventData) Decode(data0 []byte) error {
-	if len(data0) < TransferEventDataStaticSize {
-		return fmt.Errorf("insufficient data for TransferEventData")
+func (t *TransferEventData) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Value (static)
-	t.Value = new(big.Int).SetBytes(data0[0:32])
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Value: uint256
+	t.Value, _, err = _ComprehensiveDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
-// UserCreatedEvent represents an ABI event
+// UserCreatedEvent represents the UserCreated event
 type UserCreatedEvent struct {
 	UserCreatedEventIndexed
 	UserCreatedEventData
@@ -2983,44 +3415,33 @@ type UserCreatedEventIndexed struct {
 }
 
 // EncodeTopics encodes indexed fields of UserCreated event to topics
-func (e UserCreatedEventIndexed) EncodeTopics() []common.Hash {
+func (e UserCreatedEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	topics := make([]common.Hash, 0, 2)
 	topics = append(topics, UserCreatedEventTopic)
-
-	// Encode indexed field Creator
 	{
-		var buf common.Hash
-
-		// Creator (static)
-		copy(buf[0+12:0+32], e.Creator[:])
-
-		topics = append(topics, buf)
+		// Creator
+		var hash common.Hash
+		if _, err := _ComprehensiveEncodeAddress(e.Creator, hash[:]); err != nil {
+			return nil, err
+		}
+		topics = append(topics, hash)
 	}
-
-	return topics
+	return topics, nil
 }
 
-// DecodeTopics decodes indexed fields of UserCreated event from topics
+// DecodeTopics decodes indexed fields of UserCreated event from topics, ignore hash topics
 func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
-	if len(topics) < 2 {
-		return fmt.Errorf("insufficient topics for UserCreated event")
+	if len(topics) != 2 {
+		return fmt.Errorf("invalid number of topics for UserCreated event: expected 2, got %d", len(topics))
 	}
-
-	// Check event signature
 	if topics[0] != UserCreatedEventTopic {
-		return fmt.Errorf("invalid event signature for UserCreated event")
+		return fmt.Errorf("invalid event topic for UserCreated event")
 	}
-
-	// Creator (static)
-	{
-		data := topics[1][:]
-		offset := 0
-
-		// e.Creator (static)
-		copy(e.Creator[:], data[offset+12:offset+32])
-
+	var err error
+	e.Creator, _, err = _ComprehensiveDecodeAddress(topics[1][:])
+	if err != nil {
+		return err
 	}
-
 	return nil
 }
 
@@ -3034,59 +3455,62 @@ type UserCreatedEventData struct {
 // EncodedSize returns the total encoded size of UserCreatedEventData
 func (t UserCreatedEventData) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.User.EncodedSize() // dynamic tuple
+	dynamicSize += t.User.EncodedSize()
 
 	return UserCreatedEventDataStaticSize + dynamicSize
 }
 
 // EncodeTo encodes UserCreatedEventData to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t UserCreatedEventData) EncodeTo(buf []byte) (int, error) {
+func (value UserCreatedEventData) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := UserCreatedEventDataStaticSize // Start dynamic data after static section
-
-	// User (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field User: (address,string,uint256)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// User (dynamic)
-	{
-		n, err := t.User.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.User.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes UserCreatedEventData to ABI bytes
-func (t UserCreatedEventData) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value UserCreatedEventData) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes UserCreatedEventData from ABI bytes in the provided buffer
-func (t *UserCreatedEventData) Decode(data0 []byte) error {
-	if len(data0) < UserCreatedEventDataStaticSize {
-		return fmt.Errorf("insufficient data for UserCreatedEventData")
+func (t *UserCreatedEventData) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// User
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field User
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.User (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.User")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field User")
 		}
-		if err := t.User.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.User.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }

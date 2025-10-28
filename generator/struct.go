@@ -32,32 +32,28 @@ func StructFieldFromTupleElement(t abi.Type, index int) StructField {
 type Struct struct {
 	Name   string
 	Fields []StructField
+
+	// The tuple type
+	T abi.Type
 }
 
-func StructFromInputs(method abi.Method) Struct {
-	fields := make([]StructField, 0, len(method.Inputs))
-	for _, input := range method.Inputs {
+func StructFromArguments(name string, args []abi.Argument) Struct {
+	fields := make([]StructField, 0, len(args))
+	types := make([]*abi.Type, 0, len(args))
+	names := make([]string, 0, len(args))
+	for i, input := range args {
 		field := StructFieldFromArgument(input)
-		fields = append(fields, field)
-	}
-	return Struct{
-		Name:   fmt.Sprintf("%sCall", Title.String(method.Name)),
-		Fields: fields,
-	}
-}
-
-func StructFromOutputs(method abi.Method) Struct {
-	fields := make([]StructField, 0, len(method.Outputs))
-	for i, output := range method.Outputs {
-		field := StructFieldFromArgument(output)
 		if field.Name == "" {
-			field.Name = fmt.Sprintf("Result%d", i+1)
+			field.Name = fmt.Sprintf("Field%d", i+1)
 		}
 		fields = append(fields, field)
+		types = append(types, field.Type)
+		names = append(names, field.Name)
 	}
 	return Struct{
-		Name:   fmt.Sprintf("%sReturn", Title.String(method.Name)),
+		Name:   name,
 		Fields: fields,
+		T:      abi.Type{T: abi.TupleTy, TupleElems: types, TupleRawNames: names, TupleRawName: name},
 	}
 }
 
@@ -69,21 +65,20 @@ func StructFromTuple(t abi.Type) Struct {
 	return Struct{
 		Name:   TupleStructName(t),
 		Fields: fields,
+		T:      t,
 	}
 }
 
-func StructFromEvent(event abi.Event) Struct {
-	fields := make([]StructField, 0)
+func StructFromEventData(event abi.Event) Struct {
+	name := fmt.Sprintf("%sEventData", Title.String(event.Name))
+	arguments := make([]abi.Argument, 0)
 	for _, input := range event.Inputs {
 		if input.Indexed {
 			continue
 		}
-		fields = append(fields, StructFieldFromArgument(input))
+		arguments = append(arguments, input)
 	}
-	return Struct{
-		Name:   fmt.Sprintf("%sEventData", Title.String(event.Name)),
-		Fields: fields,
-	}
+	return StructFromArguments(name, arguments)
 }
 
 func (s Struct) Types() []*abi.Type {

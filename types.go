@@ -9,7 +9,7 @@ type Encode interface {
 }
 
 type Decode interface {
-	Decode([]byte) error
+	Decode([]byte) (int, error)
 }
 
 type EmptyTuple struct{}

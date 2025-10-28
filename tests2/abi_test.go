@@ -1,4 +1,4 @@
-package tests
+package tests2
 
 import (
 	"bytes"
@@ -30,6 +30,8 @@ var TestABI = []string{
 	"function batchProcess(UserData[] users) returns (bool)",
 	"function smallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
 	"function communityPool() view returns ((string denom, uint256 amount)[] coins)",
+	"event Transfer(address indexed from, address indexed to, uint256 value)",
+	"event DynamicIndexed(string indexed denom)",
 }
 
 var TestABIDef ethabi.ABI

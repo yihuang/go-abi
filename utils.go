@@ -2,6 +2,7 @@ package abi
 
 import (
 	"errors"
+	"io"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/math"
@@ -28,4 +29,25 @@ func EncodeBigInt(n *big.Int, buf []byte, signed bool) error {
 	}
 	n.FillBytes(buf[32-l : 32])
 	return nil
+}
+
+func DecodeBigInt(data []byte, signed bool) (*big.Int, error) {
+	if len(data) < 32 {
+		return nil, io.ErrUnexpectedEOF
+	}
+
+	if signed && data[0]&0x80 != 0 {
+		// negative number
+		tmp := make([]byte, 32)
+		for i := 0; i < 32; i++ {
+			tmp[i] = ^data[i]
+		}
+		bigN := new(big.Int).SetBytes(tmp)
+		bigN.Add(bigN, big.NewInt(1))
+		bigN.Neg(bigN)
+		return bigN, nil
+	}
+
+	bigN := new(big.Int).SetBytes(data[:32])
+	return bigN, nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/test-go/testify/require"
 )
 
 func TestEventTopicComparison(t *testing.T) {
@@ -46,7 +47,8 @@ func TestEventTopicComparison(t *testing.T) {
 		}
 
 		// Encode topics
-		topics := event.EncodeTopics()
+		topics, err := event.EncodeTopics()
+		require.NoError(t, err)
 
 		// Check that the address is properly padded (12 bytes of zeros + 20 bytes of address)
 		fromTopic := topics[1]
