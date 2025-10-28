@@ -1,0 +1,54 @@
+[
+  {
+    "name": "setMessage",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "message",
+        "type": "string"
+      },
+      {
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "success",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "name": "addItems",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "items",
+        "type": "string[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "count",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "name": "processData",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "dataArray",
+        "type": "bytes[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "processed",
+        "type": "bool"
+      }
+    ]
+  }
+]

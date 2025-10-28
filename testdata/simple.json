@@ -1,0 +1,22 @@
+[
+  {
+    "name": "transfer",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "success",
+        "type": "bool"
+      }
+    ]
+  }
+]

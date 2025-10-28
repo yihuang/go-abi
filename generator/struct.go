@@ -32,32 +32,53 @@ func StructFieldFromTupleElement(t abi.Type, index int) StructField {
 type Struct struct {
 	Name   string
 	Fields []StructField
+
+	// The tuple type
+	T abi.Type
 }
 
 func StructFromInputs(method abi.Method) Struct {
 	fields := make([]StructField, 0, len(method.Inputs))
+	types := make([]*abi.Type, 0, len(method.Inputs))
+	names := make([]string, 0, len(method.Inputs))
 	for _, input := range method.Inputs {
 		field := StructFieldFromArgument(input)
 		fields = append(fields, field)
+		types = append(types, field.Type)
+		names = append(names, field.Name)
 	}
+	name := fmt.Sprintf("%sCall", Title.String(method.Name))
 	return Struct{
-		Name:   fmt.Sprintf("%sCall", Title.String(method.Name)),
+		Name:   name,
 		Fields: fields,
+		T:      abi.Type{T: abi.TupleTy, TupleElems: types, TupleRawNames: names, TupleRawName: name},
 	}
 }
 
 func StructFromOutputs(method abi.Method) Struct {
 	fields := make([]StructField, 0, len(method.Outputs))
+	types := make([]*abi.Type, 0, len(method.Inputs))
+	names := make([]string, 0, len(method.Inputs))
 	for i, output := range method.Outputs {
 		field := StructFieldFromArgument(output)
 		if field.Name == "" {
 			field.Name = fmt.Sprintf("Result%d", i+1)
 		}
 		fields = append(fields, field)
+		types = append(types, field.Type)
+		names = append(names, field.Name)
+	}
+	name := fmt.Sprintf("%sReturn", Title.String(method.Name))
+	t := abi.Type{
+		T:             abi.TupleTy,
+		TupleElems:    types,
+		TupleRawNames: names,
+		TupleRawName:  name,
 	}
 	return Struct{
-		Name:   fmt.Sprintf("%sReturn", Title.String(method.Name)),
+		Name:   name,
 		Fields: fields,
+		T:      t,
 	}
 }
 
@@ -69,6 +90,7 @@ func StructFromTuple(t abi.Type) Struct {
 	return Struct{
 		Name:   TupleStructName(t),
 		Fields: fields,
+		T:      t,
 	}
 }
 

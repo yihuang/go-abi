@@ -16,6 +16,7 @@ func main() {
 		varName       = flag.String("var", "", "Variable name containing human-readable ABI (for Go source files)")
 		extTuplesFlag = flag.String("external-tuples", "", "External tuple mappings in format 'key1=value1,key2=value2'")
 		imports       = flag.String("imports", "", "Additional import paths, comma-separated")
+		useGenerator2 = flag.Bool("generator2", false, "Use the new generator2 with standalone functions")
 	)
 	flag.Parse()
 
@@ -38,12 +39,21 @@ func main() {
 		opts = append(opts, generator.ExternalTuples(extTuples))
 	}
 
-	generator.Command(
-		*inputFile,
-		*outputFile,
-		*varName,
-		opts...,
-	)
+	if *useGenerator2 {
+		generator.Command2(
+			*inputFile,
+			*outputFile,
+			*varName,
+			opts...,
+		)
+	} else {
+		generator.Command(
+			*inputFile,
+			*outputFile,
+			*varName,
+			opts...,
+		)
+	}
 }
 
 // parseExternalTuples parses external tuple mappings from string format
