@@ -106,10 +106,24 @@ func (g *Generator2) GenerateFromABI(abiDef abi.ABI) (string, error) {
 		}
 	}
 
+	// Also collect size functions for all types
+	for _, t := range allTypes {
+		if err := g.collectSizeFunction(t); err != nil {
+			return "", fmt.Errorf("failed to collect size function for type %s: %w", t.String(), err)
+		}
+	}
+
 	// Now generate functions in the order they were collected
 	for _, t := range allTypes {
 		if err := g.genEncodingFunction(t); err != nil {
 			return "", fmt.Errorf("failed to generate encoding function for type %s: %w", t.String(), err)
+		}
+	}
+
+	// Generate size functions after encoding functions
+	for _, t := range allTypes {
+		if err := g.genSizeFunction(t); err != nil {
+			return "", fmt.Errorf("failed to generate size function for type %s: %w", t.String(), err)
 		}
 	}
 
@@ -248,6 +262,93 @@ func (g *Generator2) collectEncodingFunction(t abi.Type) error {
 		}
 	}
 
+	return nil
+}
+
+// collectSizeFunction collects all size functions needed for a type
+func (g *Generator2) collectSizeFunction(t abi.Type) error {
+	typeID := GenTypeIdentifier(t)
+	funcName := fmt.Sprintf("size_%s", typeID)
+
+	// Skip if already collected
+	if _, ok := g.generatedFunctions[funcName]; ok {
+		return nil
+	}
+	g.generatedFunctions[funcName] = false
+
+	// Recursively collect dependencies
+	switch t.T {
+	case abi.SliceTy, abi.ArrayTy:
+		if t.Elem != nil {
+			return g.collectSizeFunction(*t.Elem)
+		}
+	case abi.TupleTy:
+		for _, elem := range t.TupleElems {
+			if elem != nil {
+				if err := g.collectSizeFunction(*elem); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// genSizeFunction generates a standalone size calculation function for a specific ABI type
+func (g *Generator2) genSizeFunction(t abi.Type) error {
+	typeID := GenTypeIdentifier(t)
+	funcName := fmt.Sprintf("size_%s", typeID)
+
+	// Skip if already generated
+	if g.generatedFunctions[funcName] {
+		return nil
+	}
+	g.generatedFunctions[funcName] = true
+
+	g.L("")
+	g.L("// %s returns the encoded size of %s", funcName, t.String())
+	g.L("func %s(value %s) int {", funcName, g.abiTypeToGoType(t))
+
+	// Generate size calculation logic based on type
+	g.L("	size := 0")
+
+	if !IsDynamicType(t) {
+		// Static types have fixed size
+		g.L("	return %d", GetTypeSize(t))
+	} else {
+		// Dynamic types need size calculation
+		switch t.T {
+		case abi.StringTy:
+			g.L("	size += 32 + abi.Pad32(len(value)) // length + padded string data")
+		case abi.BytesTy:
+			g.L("	size += 32 + abi.Pad32(len(value)) // length + padded bytes data")
+		case abi.SliceTy:
+			if IsDynamicType(*t.Elem) {
+				// Dynamic array with dynamic elements
+				g.L("	size += 32 + 32 * len(value) // length + offset pointers for dynamic elements")
+				g.L("	for _, elem := range value {")
+				g.L("		size += %s(elem)", genSizeCall(*t.Elem))
+				g.L("	}")
+			} else {
+				// Dynamic array with static elements
+				g.L("	size += 32 + %d * len(value) // length + static elements", GetTypeSize(*t.Elem))
+			}
+		case abi.ArrayTy:
+			// Fixed size array of dynamic element types
+			g.L("	for _, elem := range value {")
+			g.L("		size += %s(elem)", genSizeCall(*t.Elem))
+			g.L("	}")
+		case abi.TupleTy:
+			// Dynamic tuple, just call tuple struct method
+			g.L("	size += value.EncodedSize() // dynamic tuple")
+		default:
+			panic("impossible")
+		}
+		g.L("	return size")
+	}
+
+	g.L("}")
 	return nil
 }
 
@@ -620,7 +721,8 @@ func (g *Generator2) genEncodedSize(s Struct) {
 		if !IsDynamicType(*f.Type) {
 			continue
 		}
-		g.genSize(*f.Type, "dynamicSize", "t."+f.Name)
+		// Use size functions instead of inline calculations
+		g.L("	dynamicSize += %st.%s)", genSizeCall(*f.Type), f.Name)
 	}
 
 	g.L("")
@@ -862,4 +964,15 @@ func genEncodeCall(t abi.Type, value string) string {
 
 	typeID := GenTypeIdentifier(t)
 	return fmt.Sprintf("encode_%s(%s, ", typeID, value)
+}
+
+func genSizeCall(t abi.Type) string {
+	// Generate the function name for size calculation with this type
+	if t.T == abi.TupleTy {
+		// For tuple types, use the struct's EncodedSize method
+		return "value.EncodedSize()"
+	}
+
+	typeID := GenTypeIdentifier(t)
+	return fmt.Sprintf("size_%s(", typeID)
 }

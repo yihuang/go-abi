@@ -77,4 +77,17 @@ func TestDynamicTypes(t *testing.T) {
 	if !strings.Contains(generatedCode, "dynamicSize") {
 		t.Error("Generated code should handle dynamic size calculations")
 	}
+
+	// Check that size functions are generated for dynamic types
+	expectedSizeFunctions := []string{
+		"size_string",
+		"size_bytes",
+		"size_string_array",
+	}
+
+	for _, expectedFunc := range expectedSizeFunctions {
+		if !strings.Contains(generatedCode, expectedFunc+"(") {
+			t.Errorf("Generated code missing expected size function: %s", expectedFunc)
+		}
+	}
 }
