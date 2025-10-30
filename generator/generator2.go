@@ -311,13 +311,12 @@ func (g *Generator2) genSizeFunction(t abi.Type) error {
 	g.L("func %s(value %s) int {", funcName, g.abiTypeToGoType(t))
 
 	// Generate size calculation logic based on type
-	g.L("	size := 0")
-
 	if !IsDynamicType(t) {
 		// Static types have fixed size
 		g.L("	return %d", GetTypeSize(t))
 	} else {
 		// Dynamic types need size calculation
+		g.L("	size := 0")
 		switch t.T {
 		case abi.StringTy:
 			g.L("	size += 32 + abi.Pad32(len(value)) // length + padded string data")
@@ -328,7 +327,7 @@ func (g *Generator2) genSizeFunction(t abi.Type) error {
 				// Dynamic array with dynamic elements
 				g.L("	size += 32 + 32 * len(value) // length + offset pointers for dynamic elements")
 				g.L("	for _, elem := range value {")
-				g.L("		size += %s(elem)", genSizeCall(*t.Elem))
+				g.L("		size += %s", genSizeCallWithValue(*t.Elem, "elem"))
 				g.L("	}")
 			} else {
 				// Dynamic array with static elements
@@ -337,7 +336,7 @@ func (g *Generator2) genSizeFunction(t abi.Type) error {
 		case abi.ArrayTy:
 			// Fixed size array of dynamic element types
 			g.L("	for _, elem := range value {")
-			g.L("		size += %s(elem)", genSizeCall(*t.Elem))
+			g.L("		size += %s", genSizeCallWithValue(*t.Elem, "elem"))
 			g.L("	}")
 		case abi.TupleTy:
 			// Dynamic tuple, just call tuple struct method
@@ -570,6 +569,7 @@ func (g *Generator2) genTupleEncoding(t abi.Type) error {
 
 	g.L("\t// Encode tuple fields")
 	g.L("\toffset := 0")
+	g.L("\tdynamicOffset := %sStaticSize // Start dynamic data after static section", TupleStructName(t))
 
 	// Generate encoding for each tuple element
 	g.L("\tvar (")
@@ -587,15 +587,31 @@ func (g *Generator2) genTupleEncoding(t abi.Type) error {
 			fieldName = fmt.Sprintf("value.%s", Title.String(t.TupleRawNames[i]))
 		}
 		g.L("\t// Field %d: %s", i, elem.String())
-		g.L("\tn, err = %sbuf[offset:])", genEncodeCall(*elem, fieldName))
-		g.L("\tif err != nil {")
-		g.L("\t\treturn 0, err")
-		g.L("\t}")
-		g.L("\toffset += n")
+
+		if !IsDynamicType(*elem) {
+			// Static field - encode directly
+			g.L("\tn, err = %sbuf[offset:])", genEncodeCall(*elem, fieldName))
+			g.L("\tif err != nil {")
+			g.L("\t\treturn 0, err")
+			g.L("\t}")
+			g.L("\toffset += n")
+		} else {
+			// Dynamic field - encode offset pointer and data in dynamic section
+			g.L("\t// Encode offset pointer")
+			g.L("\tbinary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))")
+			g.L("\toffset += 32")
+
+			g.L("\t// Encode dynamic data")
+			g.L("\tn, err = %sbuf[dynamicOffset:])", genEncodeCall(*elem, fieldName))
+			g.L("\tif err != nil {")
+			g.L("\t\treturn 0, err")
+			g.L("\t}")
+			g.L("\tdynamicOffset += n")
+		}
 		g.L("")
 	}
 
-	g.L("\treturn offset, nil")
+	g.L("\treturn dynamicOffset, nil")
 	g.L("}")
 
 	return nil
@@ -722,7 +738,13 @@ func (g *Generator2) genEncodedSize(s Struct) {
 			continue
 		}
 		// Use size functions instead of inline calculations
-		g.L("	dynamicSize += %st.%s)", genSizeCall(*f.Type), f.Name)
+		if f.Type.T == abi.TupleTy {
+			// For tuple types, use the struct's EncodedSize method
+			g.L("	dynamicSize += t.%s.EncodedSize()", f.Name)
+		} else {
+			// For other dynamic types, use the standalone size function
+			g.L("	dynamicSize += %s", genSizeCallWithField(*f.Type, fmt.Sprintf("t.%s", f.Name)))
+		}
 	}
 
 	g.L("")
@@ -967,12 +989,27 @@ func genEncodeCall(t abi.Type, value string) string {
 }
 
 func genSizeCall(t abi.Type) string {
+	return genSizeCallWithValue(t, "elem")
+}
+
+func genSizeCallWithValue(t abi.Type, valueRef string) string {
 	// Generate the function name for size calculation with this type
 	if t.T == abi.TupleTy {
 		// For tuple types, use the struct's EncodedSize method
-		return "value.EncodedSize()"
+		return fmt.Sprintf("%s.EncodedSize()", valueRef)
 	}
 
 	typeID := GenTypeIdentifier(t)
-	return fmt.Sprintf("size_%s(", typeID)
+	return fmt.Sprintf("size_%s(%s)", typeID, valueRef)
+}
+
+func genSizeCallWithField(t abi.Type, field string) string {
+	// Generate the function name for size calculation with a specific field
+	if t.T == abi.TupleTy {
+		// For tuple types, use the struct's EncodedSize method
+		return fmt.Sprintf("%s.EncodedSize()", field)
+	}
+
+	typeID := GenTypeIdentifier(t)
+	return fmt.Sprintf("size_%s(%s)", typeID, field)
 }

@@ -63,7 +63,7 @@ type Tuple_45c89796 struct {
 // EncodedSize returns the total encoded size of Tuple_45c89796
 func (t Tuple_45c89796) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + abi.Pad32(len(t.Denom)) // length + padded string data
+	dynamicSize += size_string(t.Denom)
 
 	return Tuple_45c89796StaticSize + dynamicSize
 }
@@ -72,16 +72,21 @@ func (t Tuple_45c89796) EncodedSize() int {
 func (value Tuple_45c89796) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := Tuple_45c89796StaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
 	)
 	// Field 0: string
-	n, err = encode_string(value.Denom, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_string(value.Denom, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
 	// Field 1: uint256
 	n, err = encode_uint256(value.Amount, buf[offset:])
@@ -90,7 +95,7 @@ func (value Tuple_45c89796) EncodeTo(buf []byte) (int, error) {
 	}
 	offset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes Tuple_45c89796 to ABI bytes
@@ -120,7 +125,7 @@ type User struct {
 // EncodedSize returns the total encoded size of User
 func (t User) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + abi.Pad32(len(t.Name)) // length + padded string data
+	dynamicSize += size_string(t.Name)
 
 	return UserStaticSize + dynamicSize
 }
@@ -129,6 +134,7 @@ func (t User) EncodedSize() int {
 func (value User) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := UserStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -141,11 +147,15 @@ func (value User) EncodeTo(buf []byte) (int, error) {
 	offset += n
 
 	// Field 1: string
-	n, err = encode_string(value.Name, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_string(value.Name, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
 	// Field 2: uint256
 	n, err = encode_uint256(value.Age, buf[offset:])
@@ -154,7 +164,7 @@ func (value User) EncodeTo(buf []byte) (int, error) {
 	}
 	offset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes User to ABI bytes
@@ -183,7 +193,7 @@ type UserData struct {
 // EncodedSize returns the total encoded size of UserData
 func (t UserData) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += t.Data.EncodedSize() // dynamic tuple
+	dynamicSize += t.Data.EncodedSize()
 
 	return UserDataStaticSize + dynamicSize
 }
@@ -192,6 +202,7 @@ func (t UserData) EncodedSize() int {
 func (value UserData) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := UserDataStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -204,13 +215,17 @@ func (value UserData) EncodeTo(buf []byte) (int, error) {
 	offset += n
 
 	// Field 1: (bytes32,string)
-	n, err = value.Data.EncodeTo(buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = value.Data.EncodeTo(buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes UserData to ABI bytes
@@ -239,7 +254,7 @@ type UserMetadata struct {
 // EncodedSize returns the total encoded size of UserMetadata
 func (t UserMetadata) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + abi.Pad32(len(t.Value)) // length + padded string data
+	dynamicSize += size_string(t.Value)
 
 	return UserMetadataStaticSize + dynamicSize
 }
@@ -248,6 +263,7 @@ func (t UserMetadata) EncodedSize() int {
 func (value UserMetadata) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := UserMetadataStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -260,13 +276,17 @@ func (value UserMetadata) EncodeTo(buf []byte) (int, error) {
 	offset += n
 
 	// Field 1: string
-	n, err = encode_string(value.Value, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_string(value.Value, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes UserMetadata to ABI bytes
@@ -510,6 +530,124 @@ func encode_uint8(value uint8, buf []byte) (int, error) {
 	return 32, nil
 }
 
+// size_Tuple_45c89796_array returns the encoded size of (string,uint256)[]
+func size_Tuple_45c89796_array(value []Tuple_45c89796) int {
+	size := 0
+	size += 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += elem.EncodedSize()
+	}
+	return size
+}
+
+// size_UserData_array returns the encoded size of (uint256,(bytes32,string))[]
+func size_UserData_array(value []UserData) int {
+	size := 0
+	size += 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += elem.EncodedSize()
+	}
+	return size
+}
+
+// size_address returns the encoded size of address
+func size_address(value common.Address) int {
+	return 32
+}
+
+// size_address_array returns the encoded size of address[]
+func size_address_array(value []common.Address) int {
+	size := 0
+	size += 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// size_address_array_10 returns the encoded size of address[10]
+func size_address_array_10(value [10]common.Address) int {
+	return 320
+}
+
+// size_bool returns the encoded size of bool
+func size_bool(value bool) int {
+	return 32
+}
+
+// size_bytes returns the encoded size of bytes
+func size_bytes(value []byte) int {
+	size := 0
+	size += 32 + abi.Pad32(len(value)) // length + padded bytes data
+	return size
+}
+
+// size_bytes32 returns the encoded size of bytes32
+func size_bytes32(value [32]byte) int {
+	return 32
+}
+
+// size_int16 returns the encoded size of int16
+func size_int16(value int16) int {
+	return 32
+}
+
+// size_int32 returns the encoded size of int32
+func size_int32(value int32) int {
+	return 32
+}
+
+// size_int64 returns the encoded size of int64
+func size_int64(value int64) int {
+	return 32
+}
+
+// size_int8 returns the encoded size of int8
+func size_int8(value int8) int {
+	return 32
+}
+
+// size_string returns the encoded size of string
+func size_string(value string) int {
+	size := 0
+	size += 32 + abi.Pad32(len(value)) // length + padded string data
+	return size
+}
+
+// size_uint16 returns the encoded size of uint16
+func size_uint16(value uint16) int {
+	return 32
+}
+
+// size_uint256 returns the encoded size of uint256
+func size_uint256(value *big.Int) int {
+	return 32
+}
+
+// size_uint256_array returns the encoded size of uint256[]
+func size_uint256_array(value []*big.Int) int {
+	size := 0
+	size += 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// size_uint256_array_10 returns the encoded size of uint256[10]
+func size_uint256_array_10(value [10]*big.Int) int {
+	return 320
+}
+
+// size_uint32 returns the encoded size of uint32
+func size_uint32(value uint32) int {
+	return 32
+}
+
+// size_uint64 returns the encoded size of uint64
+func size_uint64(value uint64) int {
+	return 32
+}
+
+// size_uint8 returns the encoded size of uint8
+func size_uint8(value uint8) int {
+	return 32
+}
+
 const BalanceOfCallStaticSize = 32
 
 // BalanceOfCall represents an ABI tuple
@@ -528,6 +666,7 @@ func (t BalanceOfCall) EncodedSize() int {
 func (value BalanceOfCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := BalanceOfCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -539,7 +678,7 @@ func (value BalanceOfCall) EncodeTo(buf []byte) (int, error) {
 	}
 	offset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes BalanceOfCall to ABI bytes
@@ -577,10 +716,7 @@ type BatchProcessCall struct {
 // EncodedSize returns the total encoded size of BatchProcessCall
 func (t BatchProcessCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + 32*len(t.Users) // length + offset pointers for dynamic elements
-	for _, elem := range t.Users {
-		dynamicSize += elem.EncodedSize() // dynamic tuple
-	}
+	dynamicSize += size_UserData_array(t.Users)
 
 	return BatchProcessCallStaticSize + dynamicSize
 }
@@ -589,18 +725,23 @@ func (t BatchProcessCall) EncodedSize() int {
 func (value BatchProcessCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := BatchProcessCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
 	)
 	// Field 0: (uint256,(bytes32,string))[]
-	n, err = encode_UserData_array(value.Users, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_UserData_array(value.Users, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes BatchProcessCall to ABI bytes
@@ -646,6 +787,7 @@ func (t GetBalancesCall) EncodedSize() int {
 func (value GetBalancesCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := GetBalancesCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -657,7 +799,7 @@ func (value GetBalancesCall) EncodeTo(buf []byte) (int, error) {
 	}
 	offset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes GetBalancesCall to ABI bytes
@@ -696,8 +838,8 @@ type ProcessUserDataCall struct {
 // EncodedSize returns the total encoded size of ProcessUserDataCall
 func (t ProcessUserDataCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += t.User1.EncodedSize() // dynamic tuple
-	dynamicSize += t.User2.EncodedSize() // dynamic tuple
+	dynamicSize += t.User1.EncodedSize()
+	dynamicSize += t.User2.EncodedSize()
 
 	return ProcessUserDataCallStaticSize + dynamicSize
 }
@@ -706,25 +848,34 @@ func (t ProcessUserDataCall) EncodedSize() int {
 func (value ProcessUserDataCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := ProcessUserDataCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
 	)
 	// Field 0: (address,string,uint256)
-	n, err = value.User1.EncodeTo(buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = value.User1.EncodeTo(buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
 	// Field 1: (address,string,uint256)
-	n, err = value.User2.EncodeTo(buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = value.User2.EncodeTo(buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes ProcessUserDataCall to ABI bytes
@@ -763,7 +914,7 @@ type SetDataCall struct {
 // EncodedSize returns the total encoded size of SetDataCall
 func (t SetDataCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + abi.Pad32(len(t.Value)) // length + padded bytes data
+	dynamicSize += size_bytes(t.Value)
 
 	return SetDataCallStaticSize + dynamicSize
 }
@@ -772,6 +923,7 @@ func (t SetDataCall) EncodedSize() int {
 func (value SetDataCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := SetDataCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -784,13 +936,17 @@ func (value SetDataCall) EncodeTo(buf []byte) (int, error) {
 	offset += n
 
 	// Field 1: bytes
-	n, err = encode_bytes(value.Value, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_bytes(value.Value, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes SetDataCall to ABI bytes
@@ -828,7 +984,7 @@ type SetMessageCall struct {
 // EncodedSize returns the total encoded size of SetMessageCall
 func (t SetMessageCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + abi.Pad32(len(t.Message)) // length + padded string data
+	dynamicSize += size_string(t.Message)
 
 	return SetMessageCallStaticSize + dynamicSize
 }
@@ -837,18 +993,23 @@ func (t SetMessageCall) EncodedSize() int {
 func (value SetMessageCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := SetMessageCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
 	)
 	// Field 0: string
-	n, err = encode_string(value.Message, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_string(value.Message, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes SetMessageCall to ABI bytes
@@ -901,6 +1062,7 @@ func (t SmallIntegersCall) EncodedSize() int {
 func (value SmallIntegersCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := SmallIntegersCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -961,7 +1123,7 @@ func (value SmallIntegersCall) EncodeTo(buf []byte) (int, error) {
 	}
 	offset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes SmallIntegersCall to ABI bytes
@@ -1008,6 +1170,7 @@ func (t TransferCall) EncodedSize() int {
 func (value TransferCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := TransferCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -1026,7 +1189,7 @@ func (value TransferCall) EncodeTo(buf []byte) (int, error) {
 	}
 	offset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes TransferCall to ABI bytes
@@ -1065,8 +1228,8 @@ type TransferBatchCall struct {
 // EncodedSize returns the total encoded size of TransferBatchCall
 func (t TransferBatchCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + 32*len(t.Recipients) // length + static elements
-	dynamicSize += 32 + 32*len(t.Amounts)    // length + static elements
+	dynamicSize += size_address_array(t.Recipients)
+	dynamicSize += size_uint256_array(t.Amounts)
 
 	return TransferBatchCallStaticSize + dynamicSize
 }
@@ -1075,25 +1238,34 @@ func (t TransferBatchCall) EncodedSize() int {
 func (value TransferBatchCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := TransferBatchCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
 	)
 	// Field 0: address[]
-	n, err = encode_address_array(value.Recipients, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_address_array(value.Recipients, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
 	// Field 1: uint256[]
-	n, err = encode_uint256_array(value.Amounts, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_uint256_array(value.Amounts, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes TransferBatchCall to ABI bytes
@@ -1133,7 +1305,7 @@ type UpdateProfileCall struct {
 // EncodedSize returns the total encoded size of UpdateProfileCall
 func (t UpdateProfileCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += 32 + abi.Pad32(len(t.Name)) // length + padded string data
+	dynamicSize += size_string(t.Name)
 
 	return UpdateProfileCallStaticSize + dynamicSize
 }
@@ -1142,6 +1314,7 @@ func (t UpdateProfileCall) EncodedSize() int {
 func (value UpdateProfileCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	offset := 0
+	dynamicOffset := UpdateProfileCallStaticSize // Start dynamic data after static section
 	var (
 		err error
 		n   int
@@ -1154,11 +1327,15 @@ func (value UpdateProfileCall) EncodeTo(buf []byte) (int, error) {
 	offset += n
 
 	// Field 1: string
-	n, err = encode_string(value.Name, buf[offset:])
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
+	offset += 32
+	// Encode dynamic data
+	n, err = encode_string(value.Name, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
-	offset += n
+	dynamicOffset += n
 
 	// Field 2: uint256
 	n, err = encode_uint256(value.Age, buf[offset:])
@@ -1167,7 +1344,7 @@ func (value UpdateProfileCall) EncodeTo(buf []byte) (int, error) {
 	}
 	offset += n
 
-	return offset, nil
+	return dynamicOffset, nil
 }
 
 // Encode encodes UpdateProfileCall to ABI bytes
