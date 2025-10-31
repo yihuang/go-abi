@@ -51,7 +51,7 @@ func Command(inputFile, varName string, opts ...Option) {
 	generatedCode, err = gen.GenerateFromABI(abiDef)
 	if err != nil {
 		log.Printf("Raw generated code before formatting:%s\n", generatedCode)
-		log.Fatalf("Failed to generate code with generator2: %v", err)
+		log.Fatalf("Failed to generate code: %v", err)
 	}
 
 	// Write output
