@@ -83,17 +83,29 @@ func isStructSignature(line string) bool {
 // parseLineWithStructs parses a single line of human-readable ABI with struct context
 func parseLineWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	// Try to match function
-	if item := parseFunctionWithStructs(line, structs); item != nil {
+	item, err := parseFunctionWithStructs(line, structs)
+	if err != nil {
+		return nil, err
+	}
+	if item != nil {
 		return item, nil
 	}
 
 	// Try to match event
-	if item := parseEventWithStructs(line, structs); item != nil {
+	item, err = parseEventWithStructs(line, structs)
+	if err != nil {
+		return nil, err
+	}
+	if item != nil {
 		return item, nil
 	}
 
 	// Try to match constructor
-	if item := parseConstructorWithStructs(line, structs); item != nil {
+	item, err = parseConstructorWithStructs(line, structs)
+	if err != nil {
+		return nil, err
+	}
+	if item != nil {
 		return item, nil
 	}
 
@@ -111,10 +123,10 @@ func parseLine(line string) (map[string]interface{}, error) {
 }
 
 // parseFunctionWithStructs parses a function definition with struct context
-func parseFunctionWithStructs(line string, structs map[string][]map[string]interface{}) map[string]interface{} {
+func parseFunctionWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	matches := functionRegex.FindStringSubmatch(line)
 	if matches == nil {
-		return nil
+		return nil, nil
 	}
 
 	name := matches[1]
@@ -197,14 +209,14 @@ func parseFunctionWithStructs(line string, structs map[string][]map[string]inter
 
 	inputs, err := parseParametersWithStructs(inputsStr, false, structs)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	outputs := []map[string]interface{}{}
 	if outputsStr != "" {
 		outputs, err = parseParametersWithStructs(outputsStr, false, structs)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 	}
 
@@ -214,19 +226,19 @@ func parseFunctionWithStructs(line string, structs map[string][]map[string]inter
 		"inputs":          inputs,
 		"outputs":         outputs,
 		"stateMutability": stateMutability,
-	}
+	}, nil
 }
 
 // parseFunction parses a function definition
-func parseFunction(line string) map[string]interface{} {
+func parseFunction(line string) (map[string]interface{}, error) {
 	return parseFunctionWithStructs(line, nil)
 }
 
 // parseEventWithStructs parses an event definition with struct context
-func parseEventWithStructs(line string, structs map[string][]map[string]interface{}) map[string]interface{} {
+func parseEventWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	matches := eventRegex.FindStringSubmatch(line)
 	if matches == nil {
-		return nil
+		return nil, nil
 	}
 
 	name := matches[1]
@@ -234,7 +246,7 @@ func parseEventWithStructs(line string, structs map[string][]map[string]interfac
 
 	inputs, err := parseParametersWithStructs(inputsStr, true, structs)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	return map[string]interface{}{
@@ -242,19 +254,19 @@ func parseEventWithStructs(line string, structs map[string][]map[string]interfac
 		"name":      name,
 		"inputs":    inputs,
 		"anonymous": false,
-	}
+	}, nil
 }
 
 // parseEvent parses an event definition
-func parseEvent(line string) map[string]interface{} {
+func parseEvent(line string) (map[string]interface{}, error) {
 	return parseEventWithStructs(line, nil)
 }
 
 // parseConstructorWithStructs parses a constructor definition with struct context
-func parseConstructorWithStructs(line string, structs map[string][]map[string]interface{}) map[string]interface{} {
+func parseConstructorWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	matches := constructorRegex.FindStringSubmatch(line)
 	if matches == nil {
-		return nil
+		return nil, nil
 	}
 
 	inputsStr := matches[1]
@@ -266,18 +278,18 @@ func parseConstructorWithStructs(line string, structs map[string][]map[string]in
 
 	inputs, err := parseParametersWithStructs(inputsStr, false, structs)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	return map[string]interface{}{
 		"type":            "constructor",
 		"inputs":          inputs,
 		"stateMutability": stateMutability,
-	}
+	}, nil
 }
 
 // parseConstructor parses a constructor definition
-func parseConstructor(line string) map[string]interface{} {
+func parseConstructor(line string) (map[string]interface{}, error) {
 	return parseConstructorWithStructs(line, nil)
 }
 

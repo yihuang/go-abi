@@ -59,7 +59,7 @@ type AddressStringPair struct {
 // EncodedSize returns the total encoded size of AddressStringPair
 func (t AddressStringPair) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += NestedSizeString(t.Str)
+	dynamicSize += abi.SizeString(t.Str)
 
 	return AddressStringPairStaticSize + dynamicSize
 }
@@ -73,7 +73,7 @@ func (value AddressStringPair) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field Addr: address
-	if _, err := NestedEncodeAddress(value.Addr, buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value.Addr, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -81,7 +81,7 @@ func (value AddressStringPair) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = NestedEncodeString(value.Str, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Str, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -110,7 +110,7 @@ func (t *AddressStringPair) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field Addr: address
-	t.Addr, _, err = NestedDecodeAddress(data[0:])
+	t.Addr, _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -120,7 +120,7 @@ func (t *AddressStringPair) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Str")
 		}
-		t.Str, n, err = NestedDecodeString(data[dynamicOffset:])
+		t.Str, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -142,8 +142,8 @@ type ComplexNested struct {
 // EncodedSize returns the total encoded size of ComplexNested
 func (t ComplexNested) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += NestedSizeString(t.Str)
-	dynamicSize += NestedSizeBytes(t.Data)
+	dynamicSize += abi.SizeString(t.Str)
+	dynamicSize += abi.SizeBytes(t.Data)
 
 	return ComplexNestedStaticSize + dynamicSize
 }
@@ -157,12 +157,12 @@ func (value ComplexNested) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field Num: uint256
-	if _, err := NestedEncodeUint256(value.Num, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Num, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field Addr: address
-	if _, err := NestedEncodeAddress(value.Addr, buf[32:]); err != nil {
+	if _, err := abi.EncodeAddress(value.Addr, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -170,7 +170,7 @@ func (value ComplexNested) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = NestedEncodeString(value.Str, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Str, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -180,7 +180,7 @@ func (value ComplexNested) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[96+24:96+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = NestedEncodeBytes(value.Data, buf[dynamicOffset:])
+	n, err = abi.EncodeBytes(value.Data, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -209,12 +209,12 @@ func (t *ComplexNested) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 128
 	// Decode static field Num: uint256
-	t.Num, _, err = NestedDecodeUint256(data[0:])
+	t.Num, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Addr: address
-	t.Addr, _, err = NestedDecodeAddress(data[32:])
+	t.Addr, _, err = abi.DecodeAddress(data[32:])
 	if err != nil {
 		return 0, err
 	}
@@ -224,7 +224,7 @@ func (t *ComplexNested) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Str")
 		}
-		t.Str, n, err = NestedDecodeString(data[dynamicOffset:])
+		t.Str, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -236,7 +236,7 @@ func (t *ComplexNested) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Data")
 		}
-		t.Data, n, err = NestedDecodeBytes(data[dynamicOffset:])
+		t.Data, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -259,7 +259,7 @@ type DeeplyNested struct {
 // EncodedSize returns the total encoded size of DeeplyNested
 func (t DeeplyNested) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += NestedSizeString(t.Str)
+	dynamicSize += abi.SizeString(t.Str)
 
 	return DeeplyNestedStaticSize + dynamicSize
 }
@@ -273,7 +273,7 @@ func (value DeeplyNested) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field Num: uint256
-	if _, err := NestedEncodeUint256(value.Num, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Num, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -281,7 +281,7 @@ func (value DeeplyNested) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = NestedEncodeString(value.Str, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Str, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -293,12 +293,12 @@ func (value DeeplyNested) EncodeTo(buf []byte) (int, error) {
 	}
 
 	// Field Addr: address
-	if _, err := NestedEncodeAddress(value.Addr, buf[96:]); err != nil {
+	if _, err := abi.EncodeAddress(value.Addr, buf[96:]); err != nil {
 		return 0, err
 	}
 
 	// Field Hash: bytes32
-	if _, err := NestedEncodeBytes32(value.Hash, buf[128:]); err != nil {
+	if _, err := abi.EncodeBytes32(value.Hash, buf[128:]); err != nil {
 		return 0, err
 	}
 
@@ -325,7 +325,7 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 160
 	// Decode static field Num: uint256
-	t.Num, _, err = NestedDecodeUint256(data[0:])
+	t.Num, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -335,7 +335,7 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Str")
 		}
-		t.Str, n, err = NestedDecodeString(data[dynamicOffset:])
+		t.Str, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -347,12 +347,12 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	// Decode static field Addr: address
-	t.Addr, _, err = NestedDecodeAddress(data[96:])
+	t.Addr, _, err = abi.DecodeAddress(data[96:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Hash: bytes32
-	t.Hash, _, err = NestedDecodeBytes32(data[128:])
+	t.Hash, _, err = abi.DecodeBytes32(data[128:])
 	if err != nil {
 		return 0, err
 	}
@@ -379,12 +379,12 @@ func (value SimplePair) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := SimplePairStaticSize // Start dynamic data after static section
 	// Field First: uint256
-	if _, err := NestedEncodeUint256(value.First, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.First, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field Second: uint256
-	if _, err := NestedEncodeUint256(value.Second, buf[32:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Second, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -410,12 +410,12 @@ func (t *SimplePair) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field First: uint256
-	t.First, _, err = NestedDecodeUint256(data[0:])
+	t.First, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Second: uint256
-	t.Second, _, err = NestedDecodeUint256(data[32:])
+	t.Second, _, err = abi.DecodeUint256(data[32:])
 	if err != nil {
 		return 0, err
 	}
@@ -435,8 +435,8 @@ type UserWithMetadata struct {
 // EncodedSize returns the total encoded size of UserWithMetadata
 func (t UserWithMetadata) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += NestedSizeString(t.Name)
-	dynamicSize += NestedSizeString(t.Metadata)
+	dynamicSize += abi.SizeString(t.Name)
+	dynamicSize += abi.SizeString(t.Metadata)
 
 	return UserWithMetadataStaticSize + dynamicSize
 }
@@ -453,19 +453,19 @@ func (value UserWithMetadata) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = NestedEncodeString(value.Name, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Name, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
 	// Field Id: uint256
-	if _, err := NestedEncodeUint256(value.Id, buf[32:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Id, buf[32:]); err != nil {
 		return 0, err
 	}
 
 	// Field Age: uint256
-	if _, err := NestedEncodeUint256(value.Age, buf[64:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Age, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -473,7 +473,7 @@ func (value UserWithMetadata) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[96+24:96+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = NestedEncodeString(value.Metadata, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Metadata, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -507,19 +507,19 @@ func (t *UserWithMetadata) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Name")
 		}
-		t.Name, n, err = NestedDecodeString(data[dynamicOffset:])
+		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
 	// Decode static field Id: uint256
-	t.Id, _, err = NestedDecodeUint256(data[32:])
+	t.Id, _, err = abi.DecodeUint256(data[32:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Age: uint256
-	t.Age, _, err = NestedDecodeUint256(data[64:])
+	t.Age, _, err = abi.DecodeUint256(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -529,19 +529,13 @@ func (t *UserWithMetadata) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Metadata")
 		}
-		t.Metadata, n, err = NestedDecodeString(data[dynamicOffset:])
+		t.Metadata, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
-}
-
-// NestedEncodeAddress encodes address to ABI bytes
-func NestedEncodeAddress(value common.Address, buf []byte) (int, error) {
-	copy(buf[12:32], value[:])
-	return 32, nil
 }
 
 // NestedEncodeAddressStringPairSlice encodes (address,string)[] to ABI bytes
@@ -574,23 +568,6 @@ func NestedEncodeBool(value bool, buf []byte) (int, error) {
 	if value {
 		buf[31] = 1
 	}
-	return 32, nil
-}
-
-// NestedEncodeBytes encodes bytes to ABI bytes
-func NestedEncodeBytes(value []byte, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode data
-	copy(buf[32:], value)
-
-	return 32 + abi.Pad32(len(value)), nil
-}
-
-// NestedEncodeBytes32 encodes bytes32 to ABI bytes
-func NestedEncodeBytes32(value [32]byte, buf []byte) (int, error) {
-	copy(buf[:32], value[:])
 	return 32, nil
 }
 
@@ -638,37 +615,12 @@ func NestedEncodeSimplePairSlice(value []SimplePair, buf []byte) (int, error) {
 	return offset + 32, nil
 }
 
-// NestedEncodeString encodes string to ABI bytes
-func NestedEncodeString(value string, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode data
-	copy(buf[32:], []byte(value))
-
-	return 32 + abi.Pad32(len(value)), nil
-}
-
-// NestedEncodeUint256 encodes uint256 to ABI bytes
-func NestedEncodeUint256(value *big.Int, buf []byte) (int, error) {
-	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
-		return 0, err
-	}
-	return 32, nil
-}
-
 // NestedSizeAddressStringPairSlice returns the encoded size of (address,string)[]
 func NestedSizeAddressStringPairSlice(value []AddressStringPair) int {
 	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
 	for _, elem := range value {
 		size += elem.EncodedSize()
 	}
-	return size
-}
-
-// NestedSizeBytes returns the encoded size of bytes
-func NestedSizeBytes(value []byte) int {
-	size := 32 + abi.Pad32(len(value)) // length + padded bytes data
 	return size
 }
 
@@ -685,19 +637,6 @@ func NestedSizeComplexNestedSlice(value []ComplexNested) int {
 func NestedSizeSimplePairSlice(value []SimplePair) int {
 	size := 32 + 64*len(value) // length + static elements
 	return size
-}
-
-// NestedSizeString returns the encoded size of string
-func NestedSizeString(value string) int {
-	size := 32 + abi.Pad32(len(value)) // length + padded string data
-	return size
-}
-
-// NestedDecodeAddress decodes address from ABI bytes
-func NestedDecodeAddress(data []byte) (common.Address, int, error) {
-	var result common.Address
-	copy(result[:], data[12:32])
-	return result, 32, nil
 }
 
 // NestedDecodeAddressStringPairSlice decodes (address,string)[] from ABI bytes
@@ -737,27 +676,6 @@ func NestedDecodeAddressStringPairSlice(data []byte) ([]AddressStringPair, int, 
 // NestedDecodeBool decodes bool from ABI bytes
 func NestedDecodeBool(data []byte) (bool, int, error) {
 	result := data[31] != 0
-	return result, 32, nil
-}
-
-// NestedDecodeBytes decodes bytes from ABI bytes
-func NestedDecodeBytes(data []byte) ([]byte, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32+abi.Pad32(length) {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-
-	// Decode data
-	result := make([]byte, length)
-	copy(result, data[32:32+length])
-	return result, 32 + abi.Pad32(length), nil
-}
-
-// NestedDecodeBytes32 decodes bytes32 from ABI bytes
-func NestedDecodeBytes32(data []byte) ([32]byte, int, error) {
-	var result [32]byte
-	copy(result[:], data[:32])
 	return result, 32, nil
 }
 
@@ -821,28 +739,6 @@ func NestedDecodeSimplePairSlice(data []byte) ([]SimplePair, int, error) {
 		offset += n
 	}
 	return result, offset + 32, nil
-}
-
-// NestedDecodeString decodes string from ABI bytes
-func NestedDecodeString(data []byte) (string, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32+abi.Pad32(length) {
-		return "", 0, io.ErrUnexpectedEOF
-	}
-
-	// Decode data
-	result := string(data[32 : 32+length])
-	return result, 32 + abi.Pad32(length), nil
-}
-
-// NestedDecodeUint256 decodes uint256 from ABI bytes
-func NestedDecodeUint256(data []byte) (*big.Int, int, error) {
-	result, err := abi.DecodeBigInt(data[:32], false)
-	if err != nil {
-		return nil, 0, err
-	}
-	return result, 32, nil
 }
 
 // GetAddressStringPairCall represents the input arguments for getAddressStringPair function
@@ -1141,7 +1037,7 @@ func (value GetMultipleReturnsReturn) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field Field1: uint256
-	if _, err := NestedEncodeUint256(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1183,7 +1079,7 @@ func (t *GetMultipleReturnsReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 96
 	// Decode static field Field1: uint256
-	t.Field1, _, err = NestedDecodeUint256(data[0:])
+	t.Field1, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}

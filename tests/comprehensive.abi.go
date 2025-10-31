@@ -127,7 +127,7 @@ type Item struct {
 // EncodedSize returns the total encoded size of Item
 func (t Item) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeBytes(t.Data)
+	dynamicSize += abi.SizeBytes(t.Data)
 
 	return ItemStaticSize + dynamicSize
 }
@@ -141,7 +141,7 @@ func (value Item) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field Id: uint32
-	if _, err := EncodeUint32(value.Id, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint32(value.Id, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -149,7 +149,7 @@ func (value Item) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeBytes(value.Data, buf[dynamicOffset:])
+	n, err = abi.EncodeBytes(value.Data, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -183,7 +183,7 @@ func (t *Item) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 96
 	// Decode static field Id: uint32
-	t.Id, _, err = DecodeUint32(data[0:])
+	t.Id, _, err = abi.DecodeUint32(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -193,7 +193,7 @@ func (t *Item) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Data")
 		}
-		t.Data, n, err = DecodeBytes(data[dynamicOffset:])
+		t.Data, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -428,7 +428,7 @@ type Level4 struct {
 // EncodedSize returns the total encoded size of Level4
 func (t Level4) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeString(t.Description)
+	dynamicSize += abi.SizeString(t.Description)
 
 	return Level4StaticSize + dynamicSize
 }
@@ -442,7 +442,7 @@ func (value Level4) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field Value: uint256
-	if _, err := EncodeUint256(value.Value, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Value, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -450,7 +450,7 @@ func (value Level4) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeString(value.Description, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Description, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -479,7 +479,7 @@ func (t *Level4) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field Value: uint256
-	t.Value, _, err = DecodeUint256(data[0:])
+	t.Value, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -489,7 +489,7 @@ func (t *Level4) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Description")
 		}
-		t.Description, n, err = DecodeString(data[dynamicOffset:])
+		t.Description, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -523,7 +523,7 @@ func (value User2) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field Id: uint256
-	if _, err := EncodeUint256(value.Id, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Id, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -560,7 +560,7 @@ func (t *User2) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field Id: uint256
-	t.Id, _, err = DecodeUint256(data[0:])
+	t.Id, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -590,7 +590,7 @@ type UserMetadata2 struct {
 // EncodedSize returns the total encoded size of UserMetadata2
 func (t UserMetadata2) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeStringSlice(t.Tags)
+	dynamicSize += abi.SizeStringSlice(t.Tags)
 
 	return UserMetadata2StaticSize + dynamicSize
 }
@@ -604,7 +604,7 @@ func (value UserMetadata2) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field CreatedAt: uint256
-	if _, err := EncodeUint256(value.CreatedAt, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.CreatedAt, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -612,7 +612,7 @@ func (value UserMetadata2) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeStringSlice(value.Tags, buf[dynamicOffset:])
+	n, err = abi.EncodeStringSlice(value.Tags, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -641,7 +641,7 @@ func (t *UserMetadata2) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field CreatedAt: uint256
-	t.CreatedAt, _, err = DecodeUint256(data[0:])
+	t.CreatedAt, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -651,7 +651,7 @@ func (t *UserMetadata2) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Tags")
 		}
-		t.Tags, n, err = DecodeStringSlice(data[dynamicOffset:])
+		t.Tags, n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -672,8 +672,8 @@ type UserProfile struct {
 // EncodedSize returns the total encoded size of UserProfile
 func (t UserProfile) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeString(t.Name)
-	dynamicSize += SizeStringSlice(t.Emails)
+	dynamicSize += abi.SizeString(t.Name)
+	dynamicSize += abi.SizeStringSlice(t.Emails)
 	dynamicSize += t.Metadata.EncodedSize()
 
 	return UserProfileStaticSize + dynamicSize
@@ -691,7 +691,7 @@ func (value UserProfile) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeString(value.Name, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Name, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -701,7 +701,7 @@ func (value UserProfile) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeStringSlice(value.Emails, buf[dynamicOffset:])
+	n, err = abi.EncodeStringSlice(value.Emails, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -745,7 +745,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Name")
 		}
-		t.Name, n, err = DecodeString(data[dynamicOffset:])
+		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -757,7 +757,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Emails")
 		}
-		t.Emails, n, err = DecodeStringSlice(data[dynamicOffset:])
+		t.Emails, n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -778,51 +778,26 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
-// EncodeAddress encodes address to ABI bytes
-func EncodeAddress(value common.Address, buf []byte) (int, error) {
-	copy(buf[12:32], value[:])
-	return 32, nil
-}
-
 // EncodeAddressArray5 encodes address[5] to ABI bytes
 func EncodeAddressArray5(value [5]common.Address, buf []byte) (int, error) {
 	// Encode fixed-size array with static elements
-	if _, err := EncodeAddress(value[0], buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value[0], buf[0:]); err != nil {
 		return 0, err
 	}
-	if _, err := EncodeAddress(value[1], buf[32:]); err != nil {
+	if _, err := abi.EncodeAddress(value[1], buf[32:]); err != nil {
 		return 0, err
 	}
-	if _, err := EncodeAddress(value[2], buf[64:]); err != nil {
+	if _, err := abi.EncodeAddress(value[2], buf[64:]); err != nil {
 		return 0, err
 	}
-	if _, err := EncodeAddress(value[3], buf[96:]); err != nil {
+	if _, err := abi.EncodeAddress(value[3], buf[96:]); err != nil {
 		return 0, err
 	}
-	if _, err := EncodeAddress(value[4], buf[128:]); err != nil {
+	if _, err := abi.EncodeAddress(value[4], buf[128:]); err != nil {
 		return 0, err
 	}
 
 	return 160, nil
-}
-
-// EncodeAddressSlice encodes address[] to ABI bytes
-func EncodeAddressSlice(value []common.Address, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-	buf = buf[32:]
-
-	// Encode elements with static types
-	var offset int
-	for _, elem := range value {
-		n, err := EncodeAddress(elem, buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset + 32, nil
 }
 
 // EncodeAddressSliceArray3 encodes address[][3] to ABI bytes
@@ -834,21 +809,21 @@ func EncodeAddressSliceArray3(value [3][]common.Address, buf []byte) (int, error
 	)
 	dynamicOffset := 32 * 3
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	n, err = EncodeAddressSlice(value[0], buf[dynamicOffset:])
+	n, err = abi.EncodeAddressSlice(value[0], buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	n, err = EncodeAddressSlice(value[1], buf[dynamicOffset:])
+	n, err = abi.EncodeAddressSlice(value[1], buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
 	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
-	n, err = EncodeAddressSlice(value[2], buf[dynamicOffset:])
+	n, err = abi.EncodeAddressSlice(value[2], buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -890,78 +865,17 @@ func EncodeBool(value bool, buf []byte) (int, error) {
 	return 32, nil
 }
 
-// EncodeBytes encodes bytes to ABI bytes
-func EncodeBytes(value []byte, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode data
-	copy(buf[32:], value)
-
-	return 32 + abi.Pad32(len(value)), nil
-}
-
-// EncodeBytes32 encodes bytes32 to ABI bytes
-func EncodeBytes32(value [32]byte, buf []byte) (int, error) {
-	copy(buf[:32], value[:])
-	return 32, nil
-}
-
 // EncodeBytes32Array2 encodes bytes32[2] to ABI bytes
 func EncodeBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
 	// Encode fixed-size array with static elements
-	if _, err := EncodeBytes32(value[0], buf[0:]); err != nil {
+	if _, err := abi.EncodeBytes32(value[0], buf[0:]); err != nil {
 		return 0, err
 	}
-	if _, err := EncodeBytes32(value[1], buf[32:]); err != nil {
+	if _, err := abi.EncodeBytes32(value[1], buf[32:]); err != nil {
 		return 0, err
 	}
 
 	return 64, nil
-}
-
-// EncodeInt16 encodes int16 to ABI bytes
-func EncodeInt16(value int16, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 30; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
-	return 32, nil
-}
-
-// EncodeInt32 encodes int32 to ABI bytes
-func EncodeInt32(value int32, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 28; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
-// EncodeInt64 encodes int64 to ABI bytes
-func EncodeInt64(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeInt8 encodes int8 to ABI bytes
-func EncodeInt8(value int8, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 31; i++ {
-			buf[i] = 0xff
-		}
-	}
-	buf[31] = byte(value)
-	return 32, nil
 }
 
 // EncodeItemSlice encodes (uint32,bytes,bool)[] to ABI bytes
@@ -989,42 +903,6 @@ func EncodeItemSlice(value []Item, buf []byte) (int, error) {
 	return dynamicOffset + 32, nil
 }
 
-// EncodeString encodes string to ABI bytes
-func EncodeString(value string, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode data
-	copy(buf[32:], []byte(value))
-
-	return 32 + abi.Pad32(len(value)), nil
-}
-
-// EncodeStringSlice encodes string[] to ABI bytes
-func EncodeStringSlice(value []string, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-	buf = buf[32:]
-
-	// Encode elements with dynamic types
-	var offset int
-	dynamicOffset := len(value) * 32
-	for _, elem := range value {
-		// Write offset for element
-		offset += 32
-		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
-
-		// Write element at dynamic region
-		n, err := EncodeString(elem, buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
-	}
-
-	return dynamicOffset + 32, nil
-}
-
 // EncodeStringSliceSlice encodes string[][] to ABI bytes
 func EncodeStringSliceSlice(value [][]string, buf []byte) (int, error) {
 	// Encode length
@@ -1040,7 +918,7 @@ func EncodeStringSliceSlice(value [][]string, buf []byte) (int, error) {
 		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
 
 		// Write element at dynamic region
-		n, err := EncodeStringSlice(elem, buf[dynamicOffset:])
+		n, err := abi.EncodeStringSlice(elem, buf[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -1050,53 +928,20 @@ func EncodeStringSliceSlice(value [][]string, buf []byte) (int, error) {
 	return dynamicOffset + 32, nil
 }
 
-// EncodeUint16 encodes uint16 to ABI bytes
-func EncodeUint16(value uint16, buf []byte) (int, error) {
-	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
-	return 32, nil
-}
-
-// EncodeUint256 encodes uint256 to ABI bytes
-func EncodeUint256(value *big.Int, buf []byte) (int, error) {
-	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
-		return 0, err
-	}
-	return 32, nil
-}
-
 // EncodeUint256Array3 encodes uint256[3] to ABI bytes
 func EncodeUint256Array3(value [3]*big.Int, buf []byte) (int, error) {
 	// Encode fixed-size array with static elements
-	if _, err := EncodeUint256(value[0], buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value[0], buf[0:]); err != nil {
 		return 0, err
 	}
-	if _, err := EncodeUint256(value[1], buf[32:]); err != nil {
+	if _, err := abi.EncodeUint256(value[1], buf[32:]); err != nil {
 		return 0, err
 	}
-	if _, err := EncodeUint256(value[2], buf[64:]); err != nil {
+	if _, err := abi.EncodeUint256(value[2], buf[64:]); err != nil {
 		return 0, err
 	}
 
 	return 96, nil
-}
-
-// EncodeUint256Slice encodes uint256[] to ABI bytes
-func EncodeUint256Slice(value []*big.Int, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-	buf = buf[32:]
-
-	// Encode elements with static types
-	var offset int
-	for _, elem := range value {
-		n, err := EncodeUint256(elem, buf[offset:])
-		if err != nil {
-			return 0, err
-		}
-		offset += n
-	}
-
-	return offset + 32, nil
 }
 
 // EncodeUint256SliceSlice encodes uint256[][] to ABI bytes
@@ -1114,7 +959,7 @@ func EncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
 		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
 
 		// Write element at dynamic region
-		n, err := EncodeUint256Slice(elem, buf[dynamicOffset:])
+		n, err := abi.EncodeUint256Slice(elem, buf[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -1122,24 +967,6 @@ func EncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
 	}
 
 	return dynamicOffset + 32, nil
-}
-
-// EncodeUint32 encodes uint32 to ABI bytes
-func EncodeUint32(value uint32, buf []byte) (int, error) {
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
-// EncodeUint64 encodes uint64 to ABI bytes
-func EncodeUint64(value uint64, buf []byte) (int, error) {
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeUint8 encodes uint8 to ABI bytes
-func EncodeUint8(value uint8, buf []byte) (int, error) {
-	buf[31] = byte(value)
-	return 32, nil
 }
 
 // EncodeUser2Slice encodes (uint256,(string,string[],(uint256,string[])))[] to ABI bytes
@@ -1192,18 +1019,12 @@ func EncodeUserSlice(value []User, buf []byte) (int, error) {
 	return dynamicOffset + 32, nil
 }
 
-// SizeAddressSlice returns the encoded size of address[]
-func SizeAddressSlice(value []common.Address) int {
-	size := 32 + 32*len(value) // length + static elements
-	return size
-}
-
 // SizeAddressSliceArray3 returns the encoded size of address[][3]
 func SizeAddressSliceArray3(value [3][]common.Address) int {
 	size := 32 * 3 // offsets
-	size += SizeAddressSlice(value[0])
-	size += SizeAddressSlice(value[1])
-	size += SizeAddressSlice(value[2])
+	size += abi.SizeAddressSlice(value[0])
+	size += abi.SizeAddressSlice(value[1])
+	size += abi.SizeAddressSlice(value[2])
 	return size
 }
 
@@ -1216,12 +1037,6 @@ func SizeAddressSliceArray3Slice(value [][3][]common.Address) int {
 	return size
 }
 
-// SizeBytes returns the encoded size of bytes
-func SizeBytes(value []byte) int {
-	size := 32 + abi.Pad32(len(value)) // length + padded bytes data
-	return size
-}
-
 // SizeItemSlice returns the encoded size of (uint32,bytes,bool)[]
 func SizeItemSlice(value []Item) int {
 	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
@@ -1231,33 +1046,12 @@ func SizeItemSlice(value []Item) int {
 	return size
 }
 
-// SizeString returns the encoded size of string
-func SizeString(value string) int {
-	size := 32 + abi.Pad32(len(value)) // length + padded string data
-	return size
-}
-
-// SizeStringSlice returns the encoded size of string[]
-func SizeStringSlice(value []string) int {
-	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
-	for _, elem := range value {
-		size += SizeString(elem)
-	}
-	return size
-}
-
 // SizeStringSliceSlice returns the encoded size of string[][]
 func SizeStringSliceSlice(value [][]string) int {
 	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
 	for _, elem := range value {
-		size += SizeStringSlice(elem)
+		size += abi.SizeStringSlice(elem)
 	}
-	return size
-}
-
-// SizeUint256Slice returns the encoded size of uint256[]
-func SizeUint256Slice(value []*big.Int) int {
-	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
@@ -1265,7 +1059,7 @@ func SizeUint256Slice(value []*big.Int) int {
 func SizeUint256SliceSlice(value [][]*big.Int) int {
 	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
 	for _, elem := range value {
-		size += SizeUint256Slice(elem)
+		size += abi.SizeUint256Slice(elem)
 	}
 	return size
 }
@@ -1288,13 +1082,6 @@ func SizeUserSlice(value []User) int {
 	return size
 }
 
-// DecodeAddress decodes address from ABI bytes
-func DecodeAddress(data []byte) (common.Address, int, error) {
-	var result common.Address
-	copy(result[:], data[12:32])
-	return result, 32, nil
-}
-
 // DecodeAddressArray5 decodes address[5] from ABI bytes
 func DecodeAddressArray5(data []byte) ([5]common.Address, int, error) {
 	// Decode fixed-size array with static elements
@@ -1306,59 +1093,31 @@ func DecodeAddressArray5(data []byte) ([5]common.Address, int, error) {
 		return result, 0, io.ErrUnexpectedEOF
 	}
 	// Element 0
-	result[0], _, err = DecodeAddress(data[0:])
+	result[0], _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return result, 0, err
 	}
 	// Element 1
-	result[1], _, err = DecodeAddress(data[32:])
+	result[1], _, err = abi.DecodeAddress(data[32:])
 	if err != nil {
 		return result, 0, err
 	}
 	// Element 2
-	result[2], _, err = DecodeAddress(data[64:])
+	result[2], _, err = abi.DecodeAddress(data[64:])
 	if err != nil {
 		return result, 0, err
 	}
 	// Element 3
-	result[3], _, err = DecodeAddress(data[96:])
+	result[3], _, err = abi.DecodeAddress(data[96:])
 	if err != nil {
 		return result, 0, err
 	}
 	// Element 4
-	result[4], _, err = DecodeAddress(data[128:])
+	result[4], _, err = abi.DecodeAddress(data[128:])
 	if err != nil {
 		return result, 0, err
 	}
 	return result, 160, nil
-}
-
-// DecodeAddressSlice decodes address[] from ABI bytes
-func DecodeAddressSlice(data []byte) ([]common.Address, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	data = data[32:]
-	if len(data) < 32*length {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	var (
-		n      int
-		err    error
-		offset int
-	)
-	// Decode elements with static types
-	result := make([]common.Address, length)
-	for i := 0; i < length; i++ {
-		result[i], n, err = DecodeAddress(data[offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		offset += n
-	}
-	return result, offset + 32, nil
 }
 
 // DecodeAddressSliceArray3 decodes address[][3] from ABI bytes
@@ -1380,7 +1139,7 @@ func DecodeAddressSliceArray3(data []byte) ([3][]common.Address, int, error) {
 		if dynamicOffset != tmp {
 			return result, 0, fmt.Errorf("invalid offset for array element %d: expected %d, got %d", i, dynamicOffset, tmp)
 		}
-		result[i], n, err = DecodeAddressSlice(data[dynamicOffset:])
+		result[i], n, err = abi.DecodeAddressSlice(data[dynamicOffset:])
 		if err != nil {
 			return result, 0, err
 		}
@@ -1429,27 +1188,6 @@ func DecodeBool(data []byte) (bool, int, error) {
 	return result, 32, nil
 }
 
-// DecodeBytes decodes bytes from ABI bytes
-func DecodeBytes(data []byte) ([]byte, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32+abi.Pad32(length) {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-
-	// Decode data
-	result := make([]byte, length)
-	copy(result, data[32:32+length])
-	return result, 32 + abi.Pad32(length), nil
-}
-
-// DecodeBytes32 decodes bytes32 from ABI bytes
-func DecodeBytes32(data []byte) ([32]byte, int, error) {
-	var result [32]byte
-	copy(result[:], data[:32])
-	return result, 32, nil
-}
-
 // DecodeBytes32Array2 decodes bytes32[2] from ABI bytes
 func DecodeBytes32Array2(data []byte) ([2][32]byte, int, error) {
 	// Decode fixed-size array with static elements
@@ -1461,56 +1199,16 @@ func DecodeBytes32Array2(data []byte) ([2][32]byte, int, error) {
 		return result, 0, io.ErrUnexpectedEOF
 	}
 	// Element 0
-	result[0], _, err = DecodeBytes32(data[0:])
+	result[0], _, err = abi.DecodeBytes32(data[0:])
 	if err != nil {
 		return result, 0, err
 	}
 	// Element 1
-	result[1], _, err = DecodeBytes32(data[32:])
+	result[1], _, err = abi.DecodeBytes32(data[32:])
 	if err != nil {
 		return result, 0, err
 	}
 	return result, 64, nil
-}
-
-// DecodeInt16 decodes int16 from ABI bytes
-func DecodeInt16(data []byte) (int16, int, error) {
-	var result int16
-	result = int16(binary.BigEndian.Uint16(data[30:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fff // Sign extend
-	}
-	return result, 32, nil
-}
-
-// DecodeInt32 decodes int32 from ABI bytes
-func DecodeInt32(data []byte) (int32, int, error) {
-	var result int32
-	result = int32(binary.BigEndian.Uint32(data[28:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffff // Sign extend
-	}
-	return result, 32, nil
-}
-
-// DecodeInt64 decodes int64 from ABI bytes
-func DecodeInt64(data []byte) (int64, int, error) {
-	var result int64
-	result = int64(binary.BigEndian.Uint64(data[24:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffffffffffff // Sign extend
-	}
-	return result, 32, nil
-}
-
-// DecodeInt8 decodes int8 from ABI bytes
-func DecodeInt8(data []byte) (int8, int, error) {
-	var result int8
-	result = int8(data[31])
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7f // Sign extend
-	}
-	return result, 32, nil
 }
 
 // DecodeItemSlice decodes (uint32,bytes,bool)[] from ABI bytes
@@ -1547,53 +1245,6 @@ func DecodeItemSlice(data []byte) ([]Item, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
-// DecodeString decodes string from ABI bytes
-func DecodeString(data []byte) (string, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32+abi.Pad32(length) {
-		return "", 0, io.ErrUnexpectedEOF
-	}
-
-	// Decode data
-	result := string(data[32 : 32+length])
-	return result, 32 + abi.Pad32(length), nil
-}
-
-// DecodeStringSlice decodes string[] from ABI bytes
-func DecodeStringSlice(data []byte) ([]string, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	data = data[32:]
-	if len(data) < 32*length {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	var (
-		n      int
-		err    error
-		offset int
-	)
-	// Decode elements with dynamic types
-	result := make([]string, length)
-	dynamicOffset := length * 32
-	for i := 0; i < length; i++ {
-		offset += 32
-		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
-		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
-		}
-		result[i], n, err = DecodeString(data[dynamicOffset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		dynamicOffset += n
-	}
-	return result, dynamicOffset + 32, nil
-}
-
 // DecodeStringSliceSlice decodes string[][] from ABI bytes
 func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 	// Decode length
@@ -1619,28 +1270,13 @@ func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 		if dynamicOffset != tmp {
 			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
 		}
-		result[i], n, err = DecodeStringSlice(data[dynamicOffset:])
+		result[i], n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
 			return nil, 0, err
 		}
 		dynamicOffset += n
 	}
 	return result, dynamicOffset + 32, nil
-}
-
-// DecodeUint16 decodes uint16 from ABI bytes
-func DecodeUint16(data []byte) (uint16, int, error) {
-	result := binary.BigEndian.Uint16(data[30:32])
-	return result, 32, nil
-}
-
-// DecodeUint256 decodes uint256 from ABI bytes
-func DecodeUint256(data []byte) (*big.Int, int, error) {
-	result, err := abi.DecodeBigInt(data[:32], false)
-	if err != nil {
-		return nil, 0, err
-	}
-	return result, 32, nil
 }
 
 // DecodeUint256Array3 decodes uint256[3] from ABI bytes
@@ -1654,49 +1290,21 @@ func DecodeUint256Array3(data []byte) ([3]*big.Int, int, error) {
 		return result, 0, io.ErrUnexpectedEOF
 	}
 	// Element 0
-	result[0], _, err = DecodeUint256(data[0:])
+	result[0], _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return result, 0, err
 	}
 	// Element 1
-	result[1], _, err = DecodeUint256(data[32:])
+	result[1], _, err = abi.DecodeUint256(data[32:])
 	if err != nil {
 		return result, 0, err
 	}
 	// Element 2
-	result[2], _, err = DecodeUint256(data[64:])
+	result[2], _, err = abi.DecodeUint256(data[64:])
 	if err != nil {
 		return result, 0, err
 	}
 	return result, 96, nil
-}
-
-// DecodeUint256Slice decodes uint256[] from ABI bytes
-func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	data = data[32:]
-	if len(data) < 32*length {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	var (
-		n      int
-		err    error
-		offset int
-	)
-	// Decode elements with static types
-	result := make([]*big.Int, length)
-	for i := 0; i < length; i++ {
-		result[i], n, err = DecodeUint256(data[offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		offset += n
-	}
-	return result, offset + 32, nil
 }
 
 // DecodeUint256SliceSlice decodes uint256[][] from ABI bytes
@@ -1724,31 +1332,13 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 		if dynamicOffset != tmp {
 			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
 		}
-		result[i], n, err = DecodeUint256Slice(data[dynamicOffset:])
+		result[i], n, err = abi.DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
 			return nil, 0, err
 		}
 		dynamicOffset += n
 	}
 	return result, dynamicOffset + 32, nil
-}
-
-// DecodeUint32 decodes uint32 from ABI bytes
-func DecodeUint32(data []byte) (uint32, int, error) {
-	result := binary.BigEndian.Uint32(data[28:32])
-	return result, 32, nil
-}
-
-// DecodeUint64 decodes uint64 from ABI bytes
-func DecodeUint64(data []byte) (uint64, int, error) {
-	result := binary.BigEndian.Uint64(data[24:32])
-	return result, 32, nil
-}
-
-// DecodeUint8 decodes uint8 from ABI bytes
-func DecodeUint8(data []byte) (uint8, int, error) {
-	result := uint8(data[31])
-	return result, 32, nil
 }
 
 // DecodeUser2Slice decodes (uint256,(string,string[],(uint256,string[])))[] from ABI bytes
@@ -2365,7 +1955,7 @@ type TestMixedTypesCall struct {
 // EncodedSize returns the total encoded size of TestMixedTypesCall
 func (t TestMixedTypesCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeBytes(t.DynamicData)
+	dynamicSize += abi.SizeBytes(t.DynamicData)
 	dynamicSize += SizeItemSlice(t.Items)
 
 	return TestMixedTypesCallStaticSize + dynamicSize
@@ -2380,7 +1970,7 @@ func (value TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
 		n   int
 	)
 	// Field FixedData: bytes32
-	if _, err := EncodeBytes32(value.FixedData, buf[0:]); err != nil {
+	if _, err := abi.EncodeBytes32(value.FixedData, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2388,7 +1978,7 @@ func (value TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeBytes(value.DynamicData, buf[dynamicOffset:])
+	n, err = abi.EncodeBytes(value.DynamicData, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -2400,7 +1990,7 @@ func (value TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
 	}
 
 	// Field Count: uint8
-	if _, err := EncodeUint8(value.Count, buf[96:]); err != nil {
+	if _, err := abi.EncodeUint8(value.Count, buf[96:]); err != nil {
 		return 0, err
 	}
 
@@ -2437,7 +2027,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 160
 	// Decode static field FixedData: bytes32
-	t.FixedData, _, err = DecodeBytes32(data[0:])
+	t.FixedData, _, err = abi.DecodeBytes32(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -2447,7 +2037,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field DynamicData")
 		}
-		t.DynamicData, n, err = DecodeBytes(data[dynamicOffset:])
+		t.DynamicData, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -2459,7 +2049,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	// Decode static field Count: uint8
-	t.Count, _, err = DecodeUint8(data[96:])
+	t.Count, _, err = abi.DecodeUint8(data[96:])
 	if err != nil {
 		return 0, err
 	}
@@ -2878,42 +2468,42 @@ func (value TestSmallIntegersCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestSmallIntegersCallStaticSize // Start dynamic data after static section
 	// Field U8: uint8
-	if _, err := EncodeUint8(value.U8, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint8(value.U8, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field U16: uint16
-	if _, err := EncodeUint16(value.U16, buf[32:]); err != nil {
+	if _, err := abi.EncodeUint16(value.U16, buf[32:]); err != nil {
 		return 0, err
 	}
 
 	// Field U32: uint32
-	if _, err := EncodeUint32(value.U32, buf[64:]); err != nil {
+	if _, err := abi.EncodeUint32(value.U32, buf[64:]); err != nil {
 		return 0, err
 	}
 
 	// Field U64: uint64
-	if _, err := EncodeUint64(value.U64, buf[96:]); err != nil {
+	if _, err := abi.EncodeUint64(value.U64, buf[96:]); err != nil {
 		return 0, err
 	}
 
 	// Field I8: int8
-	if _, err := EncodeInt8(value.I8, buf[128:]); err != nil {
+	if _, err := abi.EncodeInt8(value.I8, buf[128:]); err != nil {
 		return 0, err
 	}
 
 	// Field I16: int16
-	if _, err := EncodeInt16(value.I16, buf[160:]); err != nil {
+	if _, err := abi.EncodeInt16(value.I16, buf[160:]); err != nil {
 		return 0, err
 	}
 
 	// Field I32: int32
-	if _, err := EncodeInt32(value.I32, buf[192:]); err != nil {
+	if _, err := abi.EncodeInt32(value.I32, buf[192:]); err != nil {
 		return 0, err
 	}
 
 	// Field I64: int64
-	if _, err := EncodeInt64(value.I64, buf[224:]); err != nil {
+	if _, err := abi.EncodeInt64(value.I64, buf[224:]); err != nil {
 		return 0, err
 	}
 
@@ -2939,42 +2529,42 @@ func (t *TestSmallIntegersCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 256
 	// Decode static field U8: uint8
-	t.U8, _, err = DecodeUint8(data[0:])
+	t.U8, _, err = abi.DecodeUint8(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U16: uint16
-	t.U16, _, err = DecodeUint16(data[32:])
+	t.U16, _, err = abi.DecodeUint16(data[32:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U32: uint32
-	t.U32, _, err = DecodeUint32(data[64:])
+	t.U32, _, err = abi.DecodeUint32(data[64:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U64: uint64
-	t.U64, _, err = DecodeUint64(data[96:])
+	t.U64, _, err = abi.DecodeUint64(data[96:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I8: int8
-	t.I8, _, err = DecodeInt8(data[128:])
+	t.I8, _, err = abi.DecodeInt8(data[128:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I16: int16
-	t.I16, _, err = DecodeInt16(data[160:])
+	t.I16, _, err = abi.DecodeInt16(data[160:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I32: int32
-	t.I32, _, err = DecodeInt32(data[192:])
+	t.I32, _, err = abi.DecodeInt32(data[192:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I64: int64
-	t.I64, _, err = DecodeInt64(data[224:])
+	t.I64, _, err = abi.DecodeInt64(data[224:])
 	if err != nil {
 		return 0, err
 	}
@@ -3090,7 +2680,7 @@ func (e ComplexEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// Sender
 		var hash common.Hash
-		if _, err := EncodeAddress(e.Sender, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.Sender, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -3107,7 +2697,7 @@ func (e *ComplexEventIndexed) DecodeTopics(topics []common.Hash) error {
 		return fmt.Errorf("invalid event topic for Complex event")
 	}
 	var err error
-	e.Sender, _, err = DecodeAddress(topics[1][:])
+	e.Sender, _, err = abi.DecodeAddress(topics[1][:])
 	if err != nil {
 		return err
 	}
@@ -3125,8 +2715,8 @@ type ComplexEventData struct {
 // EncodedSize returns the total encoded size of ComplexEventData
 func (t ComplexEventData) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeString(t.Message)
-	dynamicSize += SizeUint256Slice(t.Numbers)
+	dynamicSize += abi.SizeString(t.Message)
+	dynamicSize += abi.SizeUint256Slice(t.Numbers)
 
 	return ComplexEventDataStaticSize + dynamicSize
 }
@@ -3143,7 +2733,7 @@ func (value ComplexEventData) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeString(value.Message, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Message, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -3153,7 +2743,7 @@ func (value ComplexEventData) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeUint256Slice(value.Numbers, buf[dynamicOffset:])
+	n, err = abi.EncodeUint256Slice(value.Numbers, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -3187,7 +2777,7 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Message")
 		}
-		t.Message, n, err = DecodeString(data[dynamicOffset:])
+		t.Message, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -3199,7 +2789,7 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Numbers")
 		}
-		t.Numbers, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		t.Numbers, n, err = abi.DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -3238,7 +2828,7 @@ func (e IndexOnlyEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// Sender
 		var hash common.Hash
-		if _, err := EncodeAddress(e.Sender, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.Sender, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -3255,7 +2845,7 @@ func (e *IndexOnlyEventIndexed) DecodeTopics(topics []common.Hash) error {
 		return fmt.Errorf("invalid event topic for IndexOnly event")
 	}
 	var err error
-	e.Sender, _, err = DecodeAddress(topics[1][:])
+	e.Sender, _, err = abi.DecodeAddress(topics[1][:])
 	if err != nil {
 		return err
 	}
@@ -3300,7 +2890,7 @@ func (e TransferEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// From
 		var hash common.Hash
-		if _, err := EncodeAddress(e.From, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.From, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -3308,7 +2898,7 @@ func (e TransferEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// To
 		var hash common.Hash
-		if _, err := EncodeAddress(e.To, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.To, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -3325,11 +2915,11 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 		return fmt.Errorf("invalid event topic for Transfer event")
 	}
 	var err error
-	e.From, _, err = DecodeAddress(topics[1][:])
+	e.From, _, err = abi.DecodeAddress(topics[1][:])
 	if err != nil {
 		return err
 	}
-	e.To, _, err = DecodeAddress(topics[2][:])
+	e.To, _, err = abi.DecodeAddress(topics[2][:])
 	if err != nil {
 		return err
 	}
@@ -3355,7 +2945,7 @@ func (value TransferEventData) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferEventDataStaticSize // Start dynamic data after static section
 	// Field Value: uint256
-	if _, err := EncodeUint256(value.Value, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Value, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -3381,7 +2971,7 @@ func (t *TransferEventData) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Value: uint256
-	t.Value, _, err = DecodeUint256(data[0:])
+	t.Value, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -3421,7 +3011,7 @@ func (e UserCreatedEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// Creator
 		var hash common.Hash
-		if _, err := EncodeAddress(e.Creator, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.Creator, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -3438,7 +3028,7 @@ func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
 		return fmt.Errorf("invalid event topic for UserCreated event")
 	}
 	var err error
-	e.Creator, _, err = DecodeAddress(topics[1][:])
+	e.Creator, _, err = abi.DecodeAddress(topics[1][:])
 	if err != nil {
 		return err
 	}
