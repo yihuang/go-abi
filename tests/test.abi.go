@@ -10,6 +10,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/yihuang/go-abi"
 )
 
@@ -2515,3 +2516,62 @@ func (t *UpdateProfileReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+// Event signatures
+var (
+	// DynamicIndexed(string)
+	DynamicIndexedEventTopic = common.Hash{0x3f, 0x9f, 0x17, 0xba, 0xc9, 0x56, 0x4d, 0x19, 0xb3, 0x0d, 0x61, 0xf0, 0xe5, 0x07, 0x81, 0x21, 0xfc, 0x40, 0xc7, 0x25, 0x4a, 0xa1, 0xba, 0xb6, 0x7e, 0xee, 0x77, 0x38, 0x8c, 0x00, 0x92, 0xbd}
+)
+
+// DynamicIndexedEvent represents the DynamicIndexed event
+type DynamicIndexedEvent struct {
+	DynamicIndexedEventIndexed
+	DynamicIndexedEventData
+}
+
+// NewDynamicIndexedEvent constructs a new DynamicIndexed event
+func NewDynamicIndexedEvent(
+	denom string,
+) DynamicIndexedEvent {
+	return DynamicIndexedEvent{
+		DynamicIndexedEventIndexed: DynamicIndexedEventIndexed{
+			Denom: denom,
+		},
+		DynamicIndexedEventData: DynamicIndexedEventData{},
+	}
+}
+
+// DynamicIndexed represents an ABI event
+type DynamicIndexedEventIndexed struct {
+	Denom string
+}
+
+// EncodeTopics encodes indexed fields of DynamicIndexed event to topics
+func (e DynamicIndexedEventIndexed) EncodeTopics() ([]common.Hash, error) {
+	topics := make([]common.Hash, 0, 2)
+	topics = append(topics, DynamicIndexedEventTopic)
+	{
+		// Denom
+		encodedSize := _TestSizeString(e.Denom)
+		buf := make([]byte, encodedSize)
+		if _, err := _TestEncodeString(e.Denom, buf); err != nil {
+			return nil, err
+		}
+		hash := crypto.Keccak256Hash(buf)
+		topics = append(topics, hash)
+	}
+	return topics, nil
+}
+
+// DecodeTopics decodes indexed fields of DynamicIndexed event from topics, ignore hash topics
+func (e *DynamicIndexedEventIndexed) DecodeTopics(topics []common.Hash) error {
+	if len(topics) != 2 {
+		return fmt.Errorf("invalid number of topics for DynamicIndexed event: expected 2, got %d", len(topics))
+	}
+	if topics[0] != DynamicIndexedEventTopic {
+		return fmt.Errorf("invalid event topic for DynamicIndexed event")
+	}
+	return nil
+}
+
+type DynamicIndexedEventData abi.EmptyTuple
