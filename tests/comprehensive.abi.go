@@ -156,7 +156,7 @@ func (value Item) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset += n
 
 	// Field Active: bool
-	if _, err := EncodeBool(value.Active, buf[64:]); err != nil {
+	if _, err := abi.EncodeBool(value.Active, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -200,7 +200,7 @@ func (t *Item) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	// Decode static field Active: bool
-	t.Active, _, err = DecodeBool(data[64:])
+	t.Active, _, err = abi.DecodeBool(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -857,14 +857,6 @@ func EncodeAddressSliceArray3Slice(value [][3][]common.Address, buf []byte) (int
 	return dynamicOffset + 32, nil
 }
 
-// EncodeBool encodes bool to ABI bytes
-func EncodeBool(value bool, buf []byte) (int, error) {
-	if value {
-		buf[31] = 1
-	}
-	return 32, nil
-}
-
 // EncodeBytes32Array2 encodes bytes32[2] to ABI bytes
 func EncodeBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
 	// Encode fixed-size array with static elements
@@ -1180,12 +1172,6 @@ func DecodeAddressSliceArray3Slice(data []byte) ([][3][]common.Address, int, err
 		dynamicOffset += n
 	}
 	return result, dynamicOffset + 32, nil
-}
-
-// DecodeBool decodes bool from ABI bytes
-func DecodeBool(data []byte) (bool, int, error) {
-	result := data[31] != 0
-	return result, 32, nil
 }
 
 // DecodeBytes32Array2 decodes bytes32[2] from ABI bytes
@@ -1508,7 +1494,7 @@ func (value TestComplexDynamicTuplesReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestComplexDynamicTuplesReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1534,7 +1520,7 @@ func (t *TestComplexDynamicTuplesReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1640,7 +1626,7 @@ func (value TestDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestDeeplyNestedReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1666,7 +1652,7 @@ func (t *TestDeeplyNestedReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1772,7 +1758,7 @@ func (value TestExternalTupleReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestExternalTupleReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1798,7 +1784,7 @@ func (t *TestExternalTupleReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1908,7 +1894,7 @@ func (value TestFixedArraysReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestFixedArraysReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1934,7 +1920,7 @@ func (t *TestFixedArraysReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1985,7 +1971,7 @@ func (value TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset += n
 
 	// Field Flag: bool
-	if _, err := EncodeBool(value.Flag, buf[64:]); err != nil {
+	if _, err := abi.EncodeBool(value.Flag, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -2044,7 +2030,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	// Decode static field Flag: bool
-	t.Flag, _, err = DecodeBool(data[64:])
+	t.Flag, _, err = abi.DecodeBool(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -2097,7 +2083,7 @@ func (value TestMixedTypesReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestMixedTypesReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2123,7 +2109,7 @@ func (t *TestMixedTypesReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -2277,7 +2263,7 @@ func (value TestNestedDynamicArraysReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestNestedDynamicArraysReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2303,7 +2289,7 @@ func (t *TestNestedDynamicArraysReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -2409,7 +2395,7 @@ func (value TestNestedStructReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestNestedStructReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2435,7 +2421,7 @@ func (t *TestNestedStructReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -2600,7 +2586,7 @@ func (value TestSmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestSmallIntegersReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2626,7 +2612,7 @@ func (t *TestSmallIntegersReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}

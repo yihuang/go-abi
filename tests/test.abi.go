@@ -430,14 +430,6 @@ func TestEncodeAddressArray10(value [10]common.Address, buf []byte) (int, error)
 	return 320, nil
 }
 
-// TestEncodeBool encodes bool to ABI bytes
-func TestEncodeBool(value bool, buf []byte) (int, error) {
-	if value {
-		buf[31] = 1
-	}
-	return 32, nil
-}
-
 // TestEncodeTuple45c89796Slice encodes (string,uint256)[] to ABI bytes
 func TestEncodeTuple45c89796Slice(value []Tuple45c89796, buf []byte) (int, error) {
 	// Encode length
@@ -604,12 +596,6 @@ func TestDecodeAddressArray10(data []byte) ([10]common.Address, int, error) {
 		return result, 0, err
 	}
 	return result, 320, nil
-}
-
-// TestDecodeBool decodes bool from ABI bytes
-func TestDecodeBool(data []byte) (bool, int, error) {
-	result := data[31] != 0
-	return result, 32, nil
 }
 
 // TestDecodeTuple45c89796Slice decodes (string,uint256)[] from ABI bytes
@@ -956,7 +942,7 @@ func (value BatchProcessReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := BatchProcessReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := TestEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -982,7 +968,7 @@ func (t *BatchProcessReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = TestDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1331,7 +1317,7 @@ func (value ProcessUserDataReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := ProcessUserDataReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := TestEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1357,7 +1343,7 @@ func (t *ProcessUserDataReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = TestDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1559,7 +1545,7 @@ func (value SetMessageReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := SetMessageReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := TestEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1585,7 +1571,7 @@ func (t *SetMessageReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = TestDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1750,7 +1736,7 @@ func (value SmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := SmallIntegersReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := TestEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1776,7 +1762,7 @@ func (t *SmallIntegersReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = TestDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1875,7 +1861,7 @@ func (value TransferReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := TestEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1901,7 +1887,7 @@ func (t *TransferReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = TestDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -2031,7 +2017,7 @@ func (value TransferBatchReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferBatchReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := TestEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2057,7 +2043,7 @@ func (t *TransferBatchReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = TestDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -2185,7 +2171,7 @@ func (value UpdateProfileReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := UpdateProfileReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := TestEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2211,7 +2197,7 @@ func (t *UpdateProfileReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = TestDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}

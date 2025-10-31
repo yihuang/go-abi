@@ -35,20 +35,6 @@ const (
 	Overloaded20ID = 822703915
 )
 
-// OverloadEncodeBool encodes bool to ABI bytes
-func OverloadEncodeBool(value bool, buf []byte) (int, error) {
-	if value {
-		buf[31] = 1
-	}
-	return 32, nil
-}
-
-// OverloadDecodeBool decodes bool from ABI bytes
-func OverloadDecodeBool(data []byte) (bool, int, error) {
-	result := data[31] != 0
-	return result, 32, nil
-}
-
 const Overloaded1CallStaticSize = 64
 
 // Overloaded1Call represents an ABI tuple
@@ -141,7 +127,7 @@ func (value Overloaded1Return) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := Overloaded1ReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := OverloadEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -167,7 +153,7 @@ func (t *Overloaded1Return) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = OverloadDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -277,7 +263,7 @@ func (value Overloaded10Return) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := Overloaded10ReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := OverloadEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -303,7 +289,7 @@ func (t *Overloaded10Return) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = OverloadDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -442,7 +428,7 @@ func (value Overloaded11Return) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := Overloaded11ReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := OverloadEncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -468,7 +454,7 @@ func (t *Overloaded11Return) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = OverloadDecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}

@@ -9,7 +9,7 @@ import (
 //go:generate go run ./cmd -var StdlibABI -module=stdlib -stdlib
 
 var StdlibABI = []string{
-	"function stdlib(uint8,uint16,uint32,uint64,uint256, int8,int16,int32,int64,int256, address,bytes32,string,bytes, uint8[],uint16[],uint32[],uint64[],uint256[], int8[],int16[],int32[],int64[],int256[], address[],bytes32[],string[],bytes[]) view returns ()",
+	"function stdlib(bool,uint8,uint16,uint32,uint64,uint256, int8,int16,int32,int64,int256, address,bytes32,string,bytes, bool[],uint8[],uint16[],uint32[],uint64[],uint256[], int8[],int16[],int32[],int64[],int256[], address[],bytes32[],string[],bytes[]) view returns ()",
 }
 
 var stdlibTypes map[string]struct{}

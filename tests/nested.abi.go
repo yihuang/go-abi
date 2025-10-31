@@ -288,7 +288,7 @@ func (value DeeplyNested) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset += n
 
 	// Field Flag: bool
-	if _, err := NestedEncodeBool(value.Flag, buf[64:]); err != nil {
+	if _, err := abi.EncodeBool(value.Flag, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -342,7 +342,7 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	// Decode static field Flag: bool
-	t.Flag, _, err = NestedDecodeBool(data[64:])
+	t.Flag, _, err = abi.DecodeBool(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -563,14 +563,6 @@ func NestedEncodeAddressStringPairSlice(value []AddressStringPair, buf []byte) (
 	return dynamicOffset + 32, nil
 }
 
-// NestedEncodeBool encodes bool to ABI bytes
-func NestedEncodeBool(value bool, buf []byte) (int, error) {
-	if value {
-		buf[31] = 1
-	}
-	return 32, nil
-}
-
 // NestedEncodeComplexNestedSlice encodes (uint256,address,string,bytes)[] to ABI bytes
 func NestedEncodeComplexNestedSlice(value []ComplexNested, buf []byte) (int, error) {
 	// Encode length
@@ -671,12 +663,6 @@ func NestedDecodeAddressStringPairSlice(data []byte) ([]AddressStringPair, int, 
 		dynamicOffset += n
 	}
 	return result, dynamicOffset + 32, nil
-}
-
-// NestedDecodeBool decodes bool from ABI bytes
-func NestedDecodeBool(data []byte) (bool, int, error) {
-	result := data[31] != 0
-	return result, 32, nil
 }
 
 // NestedDecodeComplexNestedSlice decodes (uint256,address,string,bytes)[] from ABI bytes
@@ -1052,7 +1038,7 @@ func (value GetMultipleReturnsReturn) EncodeTo(buf []byte) (int, error) {
 	dynamicOffset += n
 
 	// Field Field3: bool
-	if _, err := NestedEncodeBool(value.Field3, buf[64:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field3, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -1096,7 +1082,7 @@ func (t *GetMultipleReturnsReturn) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	// Decode static field Field3: bool
-	t.Field3, _, err = NestedDecodeBool(data[64:])
+	t.Field3, _, err = abi.DecodeBool(data[64:])
 	if err != nil {
 		return 0, err
 	}
