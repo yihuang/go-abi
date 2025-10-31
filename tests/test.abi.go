@@ -929,7 +929,8 @@ func TestDecodeTuple45c89796Slice(data []byte) ([]Tuple45c89796, int, error) {
 
 // TestDecodeUint16 decodes uint16 from ABI bytes
 func TestDecodeUint16(data []byte) (uint16, int, error) {
-	result := binary.BigEndian.Uint16(data[30:32])
+	var result uint16
+	result = binary.BigEndian.Uint16(data[30:32])
 	return result, 32, nil
 }
 
@@ -1035,19 +1036,22 @@ func TestDecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
 
 // TestDecodeUint32 decodes uint32 from ABI bytes
 func TestDecodeUint32(data []byte) (uint32, int, error) {
-	result := binary.BigEndian.Uint32(data[28:32])
+	var result uint32
+	result = binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
 // TestDecodeUint64 decodes uint64 from ABI bytes
 func TestDecodeUint64(data []byte) (uint64, int, error) {
-	result := binary.BigEndian.Uint64(data[24:32])
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // TestDecodeUint8 decodes uint8 from ABI bytes
 func TestDecodeUint8(data []byte) (uint8, int, error) {
-	result := uint8(data[31])
+	var result uint8
+	result = uint8(data[31])
 	return result, 32, nil
 }
 

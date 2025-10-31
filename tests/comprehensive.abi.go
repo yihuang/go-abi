@@ -935,7 +935,13 @@ func EncodeInt16(value int16, buf []byte) (int, error) {
 }
 
 // EncodeInt24 encodes int24 to ABI bytes
-func EncodeInt24(value *big.Int, buf []byte) (int, error) {
+func EncodeInt24(value int32, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 28; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
 	return 32, nil
 }
 
@@ -959,12 +965,24 @@ func EncodeInt32(value int32, buf []byte) (int, error) {
 }
 
 // EncodeInt36 encodes int36 to ABI bytes
-func EncodeInt36(value *big.Int, buf []byte) (int, error) {
+func EncodeInt36(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 24; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
 	return 32, nil
 }
 
 // EncodeInt48 encodes int48 to ABI bytes
-func EncodeInt48(value *big.Int, buf []byte) (int, error) {
+func EncodeInt48(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 24; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
 	return 32, nil
 }
 
@@ -1083,7 +1101,8 @@ func EncodeUint16(value uint16, buf []byte) (int, error) {
 }
 
 // EncodeUint24 encodes uint24 to ABI bytes
-func EncodeUint24(value *big.Int, buf []byte) (int, error) {
+func EncodeUint24(value uint32, buf []byte) (int, error) {
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
 	return 32, nil
 }
 
@@ -1162,12 +1181,14 @@ func EncodeUint32(value uint32, buf []byte) (int, error) {
 }
 
 // EncodeUint36 encodes uint36 to ABI bytes
-func EncodeUint36(value *big.Int, buf []byte) (int, error) {
+func EncodeUint36(value uint64, buf []byte) (int, error) {
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
 	return 32, nil
 }
 
 // EncodeUint48 encodes uint48 to ABI bytes
-func EncodeUint48(value *big.Int, buf []byte) (int, error) {
+func EncodeUint48(value uint64, buf []byte) (int, error) {
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
 	return 32, nil
 }
 
@@ -1525,7 +1546,12 @@ func DecodeInt16(data []byte) (int16, int, error) {
 }
 
 // DecodeInt24 decodes int24 from ABI bytes
-func DecodeInt24(data []byte) (*big.Int, int, error) {
+func DecodeInt24(data []byte) (int32, int, error) {
+	var result int32
+	result = int32(binary.BigEndian.Uint32(data[28:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffff // Sign extend
+	}
 	return result, 32, nil
 }
 
@@ -1549,12 +1575,22 @@ func DecodeInt32(data []byte) (int32, int, error) {
 }
 
 // DecodeInt36 decodes int36 from ABI bytes
-func DecodeInt36(data []byte) (*big.Int, int, error) {
+func DecodeInt36(data []byte) (int64, int, error) {
+	var result int64
+	result = int64(binary.BigEndian.Uint64(data[24:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffffffffffff // Sign extend
+	}
 	return result, 32, nil
 }
 
 // DecodeInt48 decodes int48 from ABI bytes
-func DecodeInt48(data []byte) (*big.Int, int, error) {
+func DecodeInt48(data []byte) (int64, int, error) {
+	var result int64
+	result = int64(binary.BigEndian.Uint64(data[24:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffffffffffff // Sign extend
+	}
 	return result, 32, nil
 }
 
@@ -1695,12 +1731,15 @@ func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 
 // DecodeUint16 decodes uint16 from ABI bytes
 func DecodeUint16(data []byte) (uint16, int, error) {
-	result := binary.BigEndian.Uint16(data[30:32])
+	var result uint16
+	result = binary.BigEndian.Uint16(data[30:32])
 	return result, 32, nil
 }
 
 // DecodeUint24 decodes uint24 from ABI bytes
-func DecodeUint24(data []byte) (*big.Int, int, error) {
+func DecodeUint24(data []byte) (uint32, int, error) {
+	var result uint32
+	result = binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
@@ -1805,29 +1844,36 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 
 // DecodeUint32 decodes uint32 from ABI bytes
 func DecodeUint32(data []byte) (uint32, int, error) {
-	result := binary.BigEndian.Uint32(data[28:32])
+	var result uint32
+	result = binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
 // DecodeUint36 decodes uint36 from ABI bytes
-func DecodeUint36(data []byte) (*big.Int, int, error) {
+func DecodeUint36(data []byte) (uint64, int, error) {
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // DecodeUint48 decodes uint48 from ABI bytes
-func DecodeUint48(data []byte) (*big.Int, int, error) {
+func DecodeUint48(data []byte) (uint64, int, error) {
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // DecodeUint64 decodes uint64 from ABI bytes
 func DecodeUint64(data []byte) (uint64, int, error) {
-	result := binary.BigEndian.Uint64(data[24:32])
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // DecodeUint8 decodes uint8 from ABI bytes
 func DecodeUint8(data []byte) (uint8, int, error) {
-	result := uint8(data[31])
+	var result uint8
+	result = uint8(data[31])
 	return result, 32, nil
 }
 
@@ -2936,15 +2982,15 @@ const TestNonStandardIntegersCallStaticSize = 384
 
 // TestNonStandardIntegersCall represents an ABI tuple
 type TestNonStandardIntegersCall struct {
-	U24  *big.Int
-	U36  *big.Int
-	U48  *big.Int
+	U24  uint32
+	U36  uint64
+	U48  uint64
 	U72  *big.Int
 	U96  *big.Int
 	U120 *big.Int
-	I24  *big.Int
-	I36  *big.Int
-	I48  *big.Int
+	I24  int32
+	I36  int64
+	I48  int64
 	I72  *big.Int
 	I96  *big.Int
 	I120 *big.Int

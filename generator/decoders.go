@@ -19,54 +19,78 @@ func (g *Generator) genIntDecoding(t abi.Type) {
 // genSmallIntDecoding generates optimized decoding for small integer types
 func (g *Generator) genSmallIntDecoding(t abi.Type) {
 	// For small integers, we can use direct binary decoding without big.Int
-	switch t.Size {
-	case 8:
-		if t.T == abi.IntTy {
-			// int8 - sign extend
-			g.L("\tvar result int8")
+	// Use the closest native integer type that fits
+	var nativeType string
+
+	if t.T == abi.IntTy {
+		// Signed integers: use next larger signed type
+		if t.Size <= 8 {
+			nativeType = "int8"
+		} else if t.Size <= 16 {
+			nativeType = "int16"
+		} else if t.Size <= 32 {
+			nativeType = "int32"
+		} else if t.Size <= 64 {
+			nativeType = "int64"
+		} else {
+			// > 64 bits: use big.Int
+			g.genBigIntDecoding(t)
+			return
+		}
+	} else {
+		// Unsigned integers: use next larger unsigned type
+		if t.Size <= 8 {
+			nativeType = "uint8"
+		} else if t.Size <= 16 {
+			nativeType = "uint16"
+		} else if t.Size <= 32 {
+			nativeType = "uint32"
+		} else if t.Size <= 64 {
+			nativeType = "uint64"
+		} else {
+			// > 64 bits: use big.Int
+			g.genBigIntDecoding(t)
+			return
+		}
+	}
+
+	g.L("\tvar result %s", nativeType)
+
+	if t.T == abi.IntTy {
+		// Signed: use the appropriate integer size and sign extend
+		switch nativeType {
+		case "int8":
 			g.L("\tresult = int8(data[31])")
 			g.L("\tif data[0]&0x80 != 0 { // Check sign bit")
 			g.L("\t\tresult = result | ^0x7f // Sign extend")
 			g.L("\t}")
-		} else {
-			// uint8
-			g.L("\tresult := uint8(data[31])")
-		}
-	case 16:
-		if t.T == abi.IntTy {
-			// int16 - sign extend
-			g.L("\tvar result int16")
+		case "int16":
 			g.L("\tresult = int16(binary.BigEndian.Uint16(data[30:32]))")
 			g.L("\tif data[0]&0x80 != 0 { // Check sign bit")
 			g.L("\t\tresult = result | ^0x7fff // Sign extend")
 			g.L("\t}")
-		} else {
-			// uint16
-			g.L("\tresult := binary.BigEndian.Uint16(data[30:32])")
-		}
-	case 32:
-		if t.T == abi.IntTy {
-			// int32 - sign extend
-			g.L("\tvar result int32")
+		case "int32":
 			g.L("\tresult = int32(binary.BigEndian.Uint32(data[28:32]))")
 			g.L("\tif data[0]&0x80 != 0 { // Check sign bit")
 			g.L("\t\tresult = result | ^0x7fffffff // Sign extend")
 			g.L("\t}")
-		} else {
-			// uint32
-			g.L("\tresult := binary.BigEndian.Uint32(data[28:32])")
-		}
-	case 64:
-		if t.T == abi.IntTy {
-			// int64 - sign extend
-			g.L("\tvar result int64")
+		case "int64":
 			g.L("\tresult = int64(binary.BigEndian.Uint64(data[24:32]))")
 			g.L("\tif data[0]&0x80 != 0 { // Check sign bit")
 			g.L("\t\tresult = result | ^0x7fffffffffffffff // Sign extend")
 			g.L("\t}")
-		} else {
-			// uint64
-			g.L("\tresult := binary.BigEndian.Uint64(data[24:32])")
+		}
+	} else {
+		// Unsigned: use the appropriate integer size
+		switch nativeType {
+		case "uint8":
+			g.L("\tresult = uint8(data[31])")
+		case "uint16":
+			g.L("\tresult = binary.BigEndian.Uint16(data[30:32])")
+		case "uint32":
+			g.L("\tresult = binary.BigEndian.Uint32(data[28:32])")
+		case "uint64":
+			g.L("\tresult = binary.BigEndian.Uint64(data[24:32])")
 		}
 	}
 

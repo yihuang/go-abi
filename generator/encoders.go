@@ -19,49 +19,75 @@ func (g *Generator) genIntEncoding(t abi.Type) {
 // genSmallIntEncoding generates optimized encoding for small integer types
 func (g *Generator) genSmallIntEncoding(t abi.Type) {
 	// For small integers, we can use direct binary encoding without big.Int
-	switch t.Size {
-	case 8:
-		if t.T == abi.IntTy {
-			// int8 - sign extend
+	// Use the closest native integer type that fits
+	var nativeType string
+
+	if t.T == abi.IntTy {
+		// Signed integers: use next larger signed type
+		if t.Size <= 8 {
+			nativeType = "int8"
+		} else if t.Size <= 16 {
+			nativeType = "int16"
+		} else if t.Size <= 32 {
+			nativeType = "int32"
+		} else if t.Size <= 64 {
+			nativeType = "int64"
+		} else {
+			// > 64 bits: use big.Int
+			g.genBigIntEncoding(t)
+			return
+		}
+	} else {
+		// Unsigned integers: use next larger unsigned type
+		if t.Size <= 8 {
+			nativeType = "uint8"
+		} else if t.Size <= 16 {
+			nativeType = "uint16"
+		} else if t.Size <= 32 {
+			nativeType = "uint32"
+		} else if t.Size <= 64 {
+			nativeType = "uint64"
+		} else {
+			// > 64 bits: use big.Int
+			g.genBigIntEncoding(t)
+			return
+		}
+	}
+
+	if t.T == abi.IntTy {
+		// Signed: use the appropriate integer size and sign extend
+		switch nativeType {
+		case "int8":
 			g.L("\tif value < 0 {")
 			g.L("\t\tfor i := 0; i < 31; i++ { buf[i] = 0xff }")
 			g.L("\t}")
 			g.L("\tbuf[31] = byte(value)")
-		} else {
-			// uint8
-			g.L("\tbuf[31] = byte(value)")
-		}
-	case 16:
-		if t.T == abi.IntTy {
-			// int16 - sign extend
+		case "int16":
 			g.L("\tif value < 0 {")
 			g.L("\t\tfor i := 0; i < 30; i++ { buf[i] = 0xff }")
 			g.L("\t}")
 			g.L("\tbinary.BigEndian.PutUint16(buf[30:32], uint16(value))")
-		} else {
-			// uint16
-			g.L("\tbinary.BigEndian.PutUint16(buf[30:32], uint16(value))")
-		}
-	case 32:
-		if t.T == abi.IntTy {
-			// int32 - sign extend
+		case "int32":
 			g.L("\tif value < 0 {")
 			g.L("\t\tfor i := 0; i < 28; i++ { buf[i] = 0xff }")
 			g.L("\t}")
 			g.L("\tbinary.BigEndian.PutUint32(buf[28:32], uint32(value))")
-		} else {
-			// uint32
-			g.L("\tbinary.BigEndian.PutUint32(buf[28:32], uint32(value))")
-		}
-	case 64:
-		if t.T == abi.IntTy {
-			// int64 - sign extend
+		case "int64":
 			g.L("\tif value < 0 {")
 			g.L("\t\tfor i := 0; i < 24; i++ { buf[i] = 0xff }")
 			g.L("\t}")
 			g.L("\tbinary.BigEndian.PutUint64(buf[24:32], uint64(value))")
-		} else {
-			// uint64
+		}
+	} else {
+		// Unsigned: use the appropriate integer size
+		switch nativeType {
+		case "uint8":
+			g.L("\tbuf[31] = byte(value)")
+		case "uint16":
+			g.L("\tbinary.BigEndian.PutUint16(buf[30:32], uint16(value))")
+		case "uint32":
+			g.L("\tbinary.BigEndian.PutUint32(buf[28:32], uint32(value))")
+		case "uint64":
 			g.L("\tbinary.BigEndian.PutUint64(buf[24:32], uint64(value))")
 		}
 	}
