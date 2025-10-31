@@ -80,7 +80,7 @@ func (g *Generator) genBigIntDecoding(t abi.Type) {
 		signed = "true"
 	}
 
-	g.L("\tresult, err := abi.DecodeBigInt(data[:32], %s)", signed)
+	g.L("\tresult, err := %sDecodeBigInt(data[:32], %s)", g.StdPrefix, signed)
 	g.L("\tif err != nil {")
 	g.L("\t\treturn nil, 0, err")
 	g.L("\t}")
@@ -104,27 +104,27 @@ func (g *Generator) genBoolDecoding() {
 func (g *Generator) genStringDecoding() {
 	g.L("\t// Decode length")
 	g.L("\tlength := int(binary.BigEndian.Uint64(data[24:32]))")
-	g.L("\tif len(data) < 32 + abi.Pad32(length) {")
+	g.L("\tif len(data) < 32 + %sPad32(length) {", g.StdPrefix)
 	g.L("\t\treturn \"\", 0, io.ErrUnexpectedEOF")
 	g.L("\t}")
 	g.L("")
 	g.L("\t// Decode data")
 	g.L("\tresult := string(data[32:32+length])")
-	g.L("\treturn result, 32 + abi.Pad32(length), nil")
+	g.L("\treturn result, 32 + %sPad32(length), nil", g.StdPrefix)
 }
 
 // genBytesDecoding generates decoding for bytes types
 func (g *Generator) genBytesDecoding() {
 	g.L("\t// Decode length")
 	g.L("\tlength := int(binary.BigEndian.Uint64(data[24:32]))")
-	g.L("\tif len(data) < 32 + abi.Pad32(length) {")
+	g.L("\tif len(data) < 32 + %sPad32(length) {", g.StdPrefix)
 	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 	g.L("\t}")
 	g.L("")
 	g.L("\t// Decode data")
 	g.L("\tresult := make([]byte, length)")
 	g.L("\tcopy(result, data[32:32+length])")
-	g.L("\treturn result, 32 + abi.Pad32(length), nil")
+	g.L("\treturn result, 32 + %sPad32(length), nil", g.StdPrefix)
 }
 
 // genFixedBytesDecoding generates decoding for fixed bytes types

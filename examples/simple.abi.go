@@ -21,36 +21,6 @@ const (
 	SendID = 3496451380
 )
 
-// EncodeAddress encodes address to ABI bytes
-func EncodeAddress(value common.Address, buf []byte) (int, error) {
-	copy(buf[12:32], value[:])
-	return 32, nil
-}
-
-// EncodeUint256 encodes uint256 to ABI bytes
-func EncodeUint256(value *big.Int, buf []byte) (int, error) {
-	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
-		return 0, err
-	}
-	return 32, nil
-}
-
-// DecodeAddress decodes address from ABI bytes
-func DecodeAddress(data []byte) (common.Address, int, error) {
-	var result common.Address
-	copy(result[:], data[12:32])
-	return result, 32, nil
-}
-
-// DecodeUint256 decodes uint256 from ABI bytes
-func DecodeUint256(data []byte) (*big.Int, int, error) {
-	result, err := abi.DecodeBigInt(data[:32], false)
-	if err != nil {
-		return nil, 0, err
-	}
-	return result, 32, nil
-}
-
 const SendCallStaticSize = 64
 
 // SendCall represents an ABI tuple
@@ -71,12 +41,12 @@ func (value SendCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := SendCallStaticSize // Start dynamic data after static section
 	// Field To: address
-	if _, err := EncodeAddress(value.To, buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value.To, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field Amount: uint256
-	if _, err := EncodeUint256(value.Amount, buf[32:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Amount, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -102,12 +72,12 @@ func (t *SendCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field To: address
-	t.To, _, err = DecodeAddress(data[0:])
+	t.To, _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Amount: uint256
-	t.Amount, _, err = DecodeUint256(data[32:])
+	t.Amount, _, err = abi.DecodeUint256(data[32:])
 	if err != nil {
 		return 0, err
 	}

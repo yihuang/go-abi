@@ -2,8 +2,6 @@ package generator
 
 import (
 	"cmp"
-	"encoding/hex"
-	"fmt"
 	"slices"
 	"strings"
 
@@ -11,7 +9,6 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/crypto"
 )
 
 var Title = cases.Title(language.English, cases.NoLower)
@@ -83,30 +80,6 @@ func GetTupleSize(elems []*abi.Type) int {
 		total += GetTypeSize(*elem)
 	}
 	return total
-}
-
-// GenTupleIdentifier generates a unique identifier for a tuple type
-func GenTupleIdentifier(t abi.Type) string {
-	// Create a signature based on tuple element types
-	types := make([]string, len(t.TupleElems))
-	for i, elem := range t.TupleElems {
-		types[i] = elem.String()
-	}
-
-	sig := fmt.Sprintf("(%v)", strings.Join(types, ","))
-	id := crypto.Keccak256([]byte(sig))
-	return "Tuple" + hex.EncodeToString(id)[:8] // Use first 8 chars for readability
-}
-
-// TupleStructName generates a unique struct name for a tuple type
-func TupleStructName(t abi.Type) string {
-	if t.TupleRawName != "" {
-		return t.TupleRawName
-	}
-
-	// Use the tuple's string representation as the basis for the struct name
-	// This creates a deterministic name based on the tuple structure
-	return GenTupleIdentifier(t)
 }
 
 // RequiresLengthPrefix returns whether the type requires any sort of length
