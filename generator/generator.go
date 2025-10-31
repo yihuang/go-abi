@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -52,7 +53,7 @@ type Generator struct {
 func NewGenerator(opts ...Option) *Generator {
 	opt := NewOptions(opts...)
 
-	defaultImports := DefaultImports
+	defaultImports := slices.Clone(DefaultImports)
 	stdPrefix := ""
 	if !opt.Stdlib {
 		defaultImports = append(defaultImports, ImportSpec{Path: "github.com/yihuang/go-abi"})
@@ -61,7 +62,7 @@ func NewGenerator(opts ...Option) *Generator {
 
 	return &Generator{
 		Options:   *opt,
-		Imports:   append(DefaultImports, opt.ExtraImports...),
+		Imports:   append(defaultImports, opt.ExtraImports...),
 		Selectors: []SelectorInfo{},
 		StdPrefix: stdPrefix,
 	}
