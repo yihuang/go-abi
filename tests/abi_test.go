@@ -31,6 +31,7 @@ var TestABI = []string{
 	"function smallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
 	"function communityPool() view returns ((string denom, uint256 amount)[] coins)",
 	"event DynamicIndexed(string indexed denom)",
+	"function emptyArgs() returns ()",
 }
 
 var TestABIDef ethabi.ABI
@@ -200,6 +201,23 @@ func TestSmallIntegers(t *testing.T) {
 		args.U8, args.U16, args.U32, args.U64,
 		args.I8, args.I16, args.I32, args.I64,
 	)
+	require.NoError(t, err)
+
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
+}
+
+func TestEmptyFuncCall(t *testing.T) {
+	// Get our generated encoding
+	args := &EmptyArgsCall{}
+
+	// Test encoding with selector
+	encoded, err := args.EncodeWithSelector()
+	require.NoError(t, err)
+
+	// Get go-ethereum encoding
+	goEthEncoded, err := TestABIDef.Pack("emptyArgs")
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)

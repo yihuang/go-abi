@@ -123,3 +123,8 @@ func (t SendCall) EncodeWithSelector() ([]byte, error) {
 	}
 	return result, nil
 }
+
+// SendReturn represents the input arguments for send function
+type SendReturn struct {
+	abi.EmptyTuple
+}

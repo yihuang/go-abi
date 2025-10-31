@@ -650,6 +650,21 @@ func (t *Overloaded2Return) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// Overloaded20Call represents the input arguments for overloaded20 function
+type Overloaded20Call struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes overloaded20 arguments to ABI bytes including function selector
+func (t Overloaded20Call) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], Overloaded20Selector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const Overloaded20ReturnStaticSize = 32
 
 // Overloaded20Return represents an ABI tuple

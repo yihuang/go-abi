@@ -845,6 +845,21 @@ func _NestedTupleReturnsDecodeUint256(data []byte) (*big.Int, int, error) {
 	return result, 32, nil
 }
 
+// GetAddressStringPairCall represents the input arguments for getAddressStringPair function
+type GetAddressStringPairCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getAddressStringPair arguments to ABI bytes including function selector
+func (t GetAddressStringPairCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetAddressStringPairSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const GetAddressStringPairReturnStaticSize = 32
 
 // GetAddressStringPairReturn represents an ABI tuple
@@ -913,6 +928,21 @@ func (t *GetAddressStringPairReturn) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// GetComplexNestedCall represents the input arguments for getComplexNested function
+type GetComplexNestedCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getComplexNested arguments to ABI bytes including function selector
+func (t GetComplexNestedCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetComplexNestedSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 const GetComplexNestedReturnStaticSize = 32
@@ -985,6 +1015,21 @@ func (t *GetComplexNestedReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetDeeplyNestedCall represents the input arguments for getDeeplyNested function
+type GetDeeplyNestedCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getDeeplyNested arguments to ABI bytes including function selector
+func (t GetDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetDeeplyNestedSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const GetDeeplyNestedReturnStaticSize = 32
 
 // GetDeeplyNestedReturn represents an ABI tuple
@@ -1053,6 +1098,21 @@ func (t *GetDeeplyNestedReturn) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// GetMultipleReturnsCall represents the input arguments for getMultipleReturns function
+type GetMultipleReturnsCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getMultipleReturns arguments to ABI bytes including function selector
+func (t GetMultipleReturnsCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetMultipleReturnsSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 const GetMultipleReturnsReturnStaticSize = 96
@@ -1147,6 +1207,21 @@ func (t *GetMultipleReturnsReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetNestedTupleArrayCall represents the input arguments for getNestedTupleArray function
+type GetNestedTupleArrayCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getNestedTupleArray arguments to ABI bytes including function selector
+func (t GetNestedTupleArrayCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetNestedTupleArraySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const GetNestedTupleArrayReturnStaticSize = 32
 
 // GetNestedTupleArrayReturn represents an ABI tuple
@@ -1217,6 +1292,21 @@ func (t *GetNestedTupleArrayReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetSimplePairCall represents the input arguments for getSimplePair function
+type GetSimplePairCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getSimplePair arguments to ABI bytes including function selector
+func (t GetSimplePairCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetSimplePairSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const GetSimplePairReturnStaticSize = 64
 
 // GetSimplePairReturn represents an ABI tuple
@@ -1267,6 +1357,21 @@ func (t *GetSimplePairReturn) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetTupleArrayCall represents the input arguments for getTupleArray function
+type GetTupleArrayCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getTupleArray arguments to ABI bytes including function selector
+func (t GetTupleArrayCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetTupleArraySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 const GetTupleArrayReturnStaticSize = 32
@@ -1339,6 +1444,21 @@ func (t *GetTupleArrayReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetUserWithMetadataCall represents the input arguments for getUserWithMetadata function
+type GetUserWithMetadataCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getUserWithMetadata arguments to ABI bytes including function selector
+func (t GetUserWithMetadataCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetUserWithMetadataSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const GetUserWithMetadataReturnStaticSize = 32
 
 // GetUserWithMetadataReturn represents an ABI tuple
@@ -1407,6 +1527,21 @@ func (t *GetUserWithMetadataReturn) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// GetUsersArrayCall represents the input arguments for getUsersArray function
+type GetUsersArrayCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes getUsersArray arguments to ABI bytes including function selector
+func (t GetUsersArrayCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetUsersArraySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 const GetUsersArrayReturnStaticSize = 32

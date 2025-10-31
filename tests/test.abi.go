@@ -22,6 +22,8 @@ var (
 	BatchProcessSelector = [4]byte{0xb7, 0x78, 0x31, 0x64}
 	// communityPool()
 	CommunityPoolSelector = [4]byte{0x14, 0xd1, 0x40, 0xb0}
+	// emptyArgs()
+	EmptyArgsSelector = [4]byte{0xf9, 0xce, 0x95, 0xfe}
 	// getBalances(address[10])
 	GetBalancesSelector = [4]byte{0x51, 0x68, 0x3d, 0x7d}
 	// processUserData((address,string,uint256),(address,string,uint256))
@@ -45,6 +47,7 @@ const (
 	BalanceOfID       = 1889567281
 	BatchProcessID    = 3078107492
 	CommunityPoolID   = 349257904
+	EmptyArgsID       = 4191065598
 	GetBalancesID     = 1365785981
 	ProcessUserDataID = 3761447940
 	SetDataID         = 2133027084
@@ -1328,6 +1331,21 @@ func (t *BatchProcessReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// CommunityPoolCall represents the input arguments for communityPool function
+type CommunityPoolCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes communityPool arguments to ABI bytes including function selector
+func (t CommunityPoolCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], CommunityPoolSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const CommunityPoolReturnStaticSize = 32
 
 // CommunityPoolReturn represents an ABI tuple
@@ -1396,6 +1414,26 @@ func (t *CommunityPoolReturn) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// EmptyArgsCall represents the input arguments for emptyArgs function
+type EmptyArgsCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes emptyArgs arguments to ABI bytes including function selector
+func (t EmptyArgsCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], EmptyArgsSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// EmptyArgsReturn represents the input arguments for emptyArgs function
+type EmptyArgsReturn struct {
+	abi.EmptyTuple
 }
 
 const GetBalancesCallStaticSize = 320
@@ -1757,6 +1795,11 @@ func (t SetDataCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// SetDataReturn represents the input arguments for setData function
+type SetDataReturn struct {
+	abi.EmptyTuple
 }
 
 const SetMessageCallStaticSize = 32

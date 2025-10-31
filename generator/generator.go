@@ -617,27 +617,39 @@ func (g *Generator) genStructDecode(s Struct) {
 
 func (g *Generator) genFunction(method abi.Method) {
 	// Generate struct and methods for functions with inputs
+	name := fmt.Sprintf("%sCall", Title.String(method.Name))
 	if len(method.Inputs) > 0 {
-		name := fmt.Sprintf("%sCall", Title.String(method.Name))
 		s := StructFromArguments(name, method.Inputs)
 		g.genStruct(s)
-
+	} else {
 		g.L("")
-		g.L("// EncodeWithSelector encodes %s arguments to ABI bytes including function selector", method.Name)
-		g.L("func (t %s) EncodeWithSelector() ([]byte, error) {", s.Name)
-		g.L("\tresult := make([]byte, 4 + t.EncodedSize())")
-		g.L("\tcopy(result[:4], %sSelector[:])", Title.String(method.Name))
-		g.L("\tif _, err := t.EncodeTo(result[4:]); err != nil {")
-		g.L("\t\treturn nil, err")
-		g.L("\t}")
-		g.L("\treturn result, nil")
+		g.L("// %s represents the input arguments for %s function", name, method.Name)
+		g.L("type %s struct {", name)
+		g.L("\tabi.EmptyTuple")
 		g.L("}")
 	}
 
+	g.L("")
+	g.L("// EncodeWithSelector encodes %s arguments to ABI bytes including function selector", method.Name)
+	g.L("func (t %s) EncodeWithSelector() ([]byte, error) {", name)
+	g.L("\tresult := make([]byte, 4 + t.EncodedSize())")
+	g.L("\tcopy(result[:4], %sSelector[:])", Title.String(method.Name))
+	g.L("\tif _, err := t.EncodeTo(result[4:]); err != nil {")
+	g.L("\t\treturn nil, err")
+	g.L("\t}")
+	g.L("\treturn result, nil")
+	g.L("}")
+
+	name = fmt.Sprintf("%sReturn", Title.String(method.Name))
 	if len(method.Outputs) > 0 {
-		name := fmt.Sprintf("%sReturn", Title.String(method.Name))
 		s := StructFromArguments(name, method.Outputs)
 		g.genStruct(s)
+	} else {
+		g.L("")
+		g.L("// %s represents the input arguments for %s function", name, method.Name)
+		g.L("type %s struct {", name)
+		g.L("\tabi.EmptyTuple")
+		g.L("}")
 	}
 }
 

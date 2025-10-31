@@ -498,6 +498,21 @@ func (t *BalanceOfReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// DecimalsCall represents the input arguments for decimals function
+type DecimalsCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes decimals arguments to ABI bytes including function selector
+func (t DecimalsCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], DecimalsSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const DecimalsReturnStaticSize = 32
 
 // DecimalsReturn represents an ABI tuple
@@ -548,6 +563,21 @@ func (t *DecimalsReturn) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// NameCall represents the input arguments for name function
+type NameCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes name arguments to ABI bytes including function selector
+func (t NameCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], NameSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 const NameReturnStaticSize = 32
@@ -620,6 +650,21 @@ func (t *NameReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// SymbolCall represents the input arguments for symbol function
+type SymbolCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes symbol arguments to ABI bytes including function selector
+func (t SymbolCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], SymbolSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 const SymbolReturnStaticSize = 32
 
 // SymbolReturn represents an ABI tuple
@@ -688,6 +733,21 @@ func (t *SymbolReturn) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// TotalSupplyCall represents the input arguments for totalSupply function
+type TotalSupplyCall struct {
+	abi.EmptyTuple
+}
+
+// EncodeWithSelector encodes totalSupply arguments to ABI bytes including function selector
+func (t TotalSupplyCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], TotalSupplySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 const TotalSupplyReturnStaticSize = 32

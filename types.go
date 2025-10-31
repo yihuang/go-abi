@@ -14,12 +14,20 @@ type Decode interface {
 
 type EmptyTuple struct{}
 
+func (e EmptyTuple) EncodedSize() int {
+	return 0
+}
+
 func (e EmptyTuple) Encode() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (e *EmptyTuple) Decode(data []byte) error {
-	return nil
+func (e EmptyTuple) EncodeTo(data []byte) (int, error) {
+	return 0, nil
+}
+
+func (e *EmptyTuple) Decode(data []byte) (int, error) {
+	return 0, nil
 }
 
 type EmptyIndexed struct{}
