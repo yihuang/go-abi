@@ -3,7 +3,7 @@
 package examples
 
 import (
-	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -21,6 +21,36 @@ const (
 	SendID = 3496451380
 )
 
+// _SimpleEncodeAddress encodes address to ABI bytes
+func _SimpleEncodeAddress(value common.Address, buf []byte) (int, error) {
+	copy(buf[12:32], value[:])
+	return 32, nil
+}
+
+// _SimpleEncodeUint256 encodes uint256 to ABI bytes
+func _SimpleEncodeUint256(value *big.Int, buf []byte) (int, error) {
+	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
+		return 0, err
+	}
+	return 32, nil
+}
+
+// _SimpleDecodeAddress decodes address from ABI bytes
+func _SimpleDecodeAddress(data []byte) (common.Address, int, error) {
+	var result common.Address
+	copy(result[:], data[12:32])
+	return result, 32, nil
+}
+
+// _SimpleDecodeUint256 decodes uint256 from ABI bytes
+func _SimpleDecodeUint256(data []byte) (*big.Int, int, error) {
+	result, err := abi.DecodeBigInt(data[:32], false)
+	if err != nil {
+		return nil, 0, err
+	}
+	return result, 32, nil
+}
+
 const SendCallStaticSize = 64
 
 // SendCall represents an ABI tuple
@@ -37,15 +67,16 @@ func (t SendCall) EncodedSize() int {
 }
 
 // EncodeTo encodes SendCall to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t SendCall) EncodeTo(buf []byte) (int, error) {
+func (value SendCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := SendCallStaticSize // Start dynamic data after static section
+	// Field To: address
+	if _, err := _SimpleEncodeAddress(value.To, buf[0:]); err != nil {
+		return 0, err
+	}
 
-	// To (static)
-	copy(buf[0+12:0+32], t.To[:])
-	// Amount (static)
-
-	if err := abi.EncodeBigInt(t.Amount, buf[32:64], false); err != nil {
+	// Field Amount: uint256
+	if _, err := _SimpleEncodeUint256(value.Amount, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -53,26 +84,34 @@ func (t SendCall) EncodeTo(buf []byte) (int, error) {
 }
 
 // Encode encodes SendCall to ABI bytes
-func (t SendCall) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value SendCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes SendCall from ABI bytes in the provided buffer
-func (t *SendCall) Decode(data0 []byte) error {
-	if len(data0) < SendCallStaticSize {
-		return fmt.Errorf("insufficient data for SendCall")
+func (t *SendCall) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.To (static)
-	copy(t.To[:], data0[0+12:0+32])
-	// t.Amount (static)
-	t.Amount = new(big.Int).SetBytes(data0[32:64])
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 64
+	// Decode static field To: address
+	t.To, _, err = _SimpleDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Amount: uint256
+	t.Amount, _, err = _SimpleDecodeUint256(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 // EncodeWithSelector encodes send arguments to ABI bytes including function selector

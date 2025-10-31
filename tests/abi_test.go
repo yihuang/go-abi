@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var TestABI -output test.abi.go
+//go:generate go run ../cmd -var TestABI -module test
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{
@@ -30,6 +30,7 @@ var TestABI = []string{
 	"function batchProcess(UserData[] users) returns (bool)",
 	"function smallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
 	"function communityPool() view returns ((string denom, uint256 amount)[] coins)",
+	"event DynamicIndexed(string indexed denom)",
 }
 
 var TestABIDef ethabi.ABI

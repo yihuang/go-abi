@@ -4,7 +4,9 @@ package tests
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -57,67 +59,74 @@ type AddressStringPair struct {
 // EncodedSize returns the total encoded size of AddressStringPair
 func (t AddressStringPair) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Str)) // length + padded string data
+	dynamicSize += _NestedTupleReturnsSizeString(t.Str)
 
 	return AddressStringPairStaticSize + dynamicSize
 }
 
 // EncodeTo encodes AddressStringPair to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t AddressStringPair) EncodeTo(buf []byte) (int, error) {
+func (value AddressStringPair) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := AddressStringPairStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Addr: address
+	if _, err := _NestedTupleReturnsEncodeAddress(value.Addr, buf[0:]); err != nil {
+		return 0, err
+	}
 
-	// Addr (static)
-	copy(buf[0+12:0+32], t.Addr[:])
-
-	// Str (offset)
+	// Field Str: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Str (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Str)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Str))
-	dynamicOffset += abi.Pad32(len(t.Str))
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeString(value.Str, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes AddressStringPair to ABI bytes
-func (t AddressStringPair) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value AddressStringPair) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes AddressStringPair from ABI bytes in the provided buffer
-func (t *AddressStringPair) Decode(data0 []byte) error {
-	if len(data0) < AddressStringPairStaticSize {
-		return fmt.Errorf("insufficient data for AddressStringPair")
+func (t *AddressStringPair) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Addr (static)
-	copy(t.Addr[:], data0[0+12:0+32])
-	// Str
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 64
+	// Decode static field Addr: address
+	t.Addr, _, err = _NestedTupleReturnsDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Str
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Str (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Str")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// string data
-		t.Str = string(data0[offset : offset+length])
+		t.Str, n, err = _NestedTupleReturnsDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const ComplexNestedStaticSize = 128
@@ -133,101 +142,107 @@ type ComplexNested struct {
 // EncodedSize returns the total encoded size of ComplexNested
 func (t ComplexNested) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Str))  // length + padded string data
-	dynamicSize += 32 + abi.Pad32(len(t.Data)) // length + padded bytes data
+	dynamicSize += _NestedTupleReturnsSizeString(t.Str)
+	dynamicSize += _NestedTupleReturnsSizeBytes(t.Data)
 
 	return ComplexNestedStaticSize + dynamicSize
 }
 
 // EncodeTo encodes ComplexNested to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t ComplexNested) EncodeTo(buf []byte) (int, error) {
+func (value ComplexNested) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := ComplexNestedStaticSize // Start dynamic data after static section
-
-	// Num (static)
-
-	if err := abi.EncodeBigInt(t.Num, buf[0:32], false); err != nil {
+	var (
+		err error
+		n   int
+	)
+	// Field Num: uint256
+	if _, err := _NestedTupleReturnsEncodeUint256(value.Num, buf[0:]); err != nil {
 		return 0, err
 	}
 
-	// Addr (static)
-	copy(buf[32+12:32+32], t.Addr[:])
+	// Field Addr: address
+	if _, err := _NestedTupleReturnsEncodeAddress(value.Addr, buf[32:]); err != nil {
+		return 0, err
+	}
 
-	// Str (offset)
+	// Field Str: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeString(value.Str, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
-	// Str (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Str)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Str))
-	dynamicOffset += abi.Pad32(len(t.Str))
-
-	// Data (offset)
+	// Field Data: bytes
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[96+24:96+32], uint64(dynamicOffset))
-
-	// Data (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Data)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], t.Data)
-	dynamicOffset += abi.Pad32(len(t.Data))
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeBytes(value.Data, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes ComplexNested to ABI bytes
-func (t ComplexNested) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value ComplexNested) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes ComplexNested from ABI bytes in the provided buffer
-func (t *ComplexNested) Decode(data0 []byte) error {
-	if len(data0) < ComplexNestedStaticSize {
-		return fmt.Errorf("insufficient data for ComplexNested")
+func (t *ComplexNested) Decode(data []byte) (int, error) {
+	if len(data) < 128 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Num (static)
-	t.Num = new(big.Int).SetBytes(data0[0:32])
-	// t.Addr (static)
-	copy(t.Addr[:], data0[32+12:32+32])
-	// Str
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 128
+	// Decode static field Num: uint256
+	t.Num, _, err = _NestedTupleReturnsDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Addr: address
+	t.Addr, _, err = _NestedTupleReturnsDecodeAddress(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Str
 	{
-		offset := int(binary.BigEndian.Uint64(data0[64+24 : 64+32]))
-
-		// t.Str (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Str")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// string data
-		t.Str = string(data0[offset : offset+length])
+		t.Str, n, err = _NestedTupleReturnsDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// Data
+	// Decode dynamic field Data
 	{
-		offset := int(binary.BigEndian.Uint64(data0[96+24 : 96+32]))
-
-		// t.Data (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Data")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// bytes data
-		t.Data = data0[offset : offset+length]
+		t.Data, n, err = _NestedTupleReturnsDecodeBytes(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const DeeplyNestedStaticSize = 160
@@ -244,85 +259,104 @@ type DeeplyNested struct {
 // EncodedSize returns the total encoded size of DeeplyNested
 func (t DeeplyNested) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Str)) // length + padded string data
+	dynamicSize += _NestedTupleReturnsSizeString(t.Str)
 
 	return DeeplyNestedStaticSize + dynamicSize
 }
 
 // EncodeTo encodes DeeplyNested to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t DeeplyNested) EncodeTo(buf []byte) (int, error) {
+func (value DeeplyNested) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := DeeplyNestedStaticSize // Start dynamic data after static section
-
-	// Num (static)
-
-	if err := abi.EncodeBigInt(t.Num, buf[0:32], false); err != nil {
+	var (
+		err error
+		n   int
+	)
+	// Field Num: uint256
+	if _, err := _NestedTupleReturnsEncodeUint256(value.Num, buf[0:]); err != nil {
 		return 0, err
 	}
 
-	// Str (offset)
+	// Field Str: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Str (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Str)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Str))
-	dynamicOffset += abi.Pad32(len(t.Str))
-
-	// Flag (static)
-	if t.Flag {
-		buf[64+31] = 1
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeString(value.Str, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
-	// Addr (static)
-	copy(buf[96+12:96+32], t.Addr[:])
-	// Hash (static)
-	copy(buf[128:128+32], t.Hash[:])
+	dynamicOffset += n
+
+	// Field Flag: bool
+	if _, err := _NestedTupleReturnsEncodeBool(value.Flag, buf[64:]); err != nil {
+		return 0, err
+	}
+
+	// Field Addr: address
+	if _, err := _NestedTupleReturnsEncodeAddress(value.Addr, buf[96:]); err != nil {
+		return 0, err
+	}
+
+	// Field Hash: bytes32
+	if _, err := _NestedTupleReturnsEncodeBytes32(value.Hash, buf[128:]); err != nil {
+		return 0, err
+	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes DeeplyNested to ABI bytes
-func (t DeeplyNested) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value DeeplyNested) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes DeeplyNested from ABI bytes in the provided buffer
-func (t *DeeplyNested) Decode(data0 []byte) error {
-	if len(data0) < DeeplyNestedStaticSize {
-		return fmt.Errorf("insufficient data for DeeplyNested")
+func (t *DeeplyNested) Decode(data []byte) (int, error) {
+	if len(data) < 160 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Num (static)
-	t.Num = new(big.Int).SetBytes(data0[0:32])
-	// Str
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 160
+	// Decode static field Num: uint256
+	t.Num, _, err = _NestedTupleReturnsDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Str
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Str (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Str")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// string data
-		t.Str = string(data0[offset : offset+length])
+		t.Str, n, err = _NestedTupleReturnsDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// t.Flag (static)
-	t.Flag = data0[64+31] == 1
-	// t.Addr (static)
-	copy(t.Addr[:], data0[96+12:96+32])
-	// t.Hash (static)
-	copy(t.Hash[:], data0[128:128+32])
-
-	return nil
+	// Decode static field Flag: bool
+	t.Flag, _, err = _NestedTupleReturnsDecodeBool(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Addr: address
+	t.Addr, _, err = _NestedTupleReturnsDecodeAddress(data[96:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Hash: bytes32
+	t.Hash, _, err = _NestedTupleReturnsDecodeBytes32(data[128:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const SimplePairStaticSize = 64
@@ -341,19 +375,16 @@ func (t SimplePair) EncodedSize() int {
 }
 
 // EncodeTo encodes SimplePair to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t SimplePair) EncodeTo(buf []byte) (int, error) {
+func (value SimplePair) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := SimplePairStaticSize // Start dynamic data after static section
-
-	// First (static)
-
-	if err := abi.EncodeBigInt(t.First, buf[0:32], false); err != nil {
+	// Field First: uint256
+	if _, err := _NestedTupleReturnsEncodeUint256(value.First, buf[0:]); err != nil {
 		return 0, err
 	}
 
-	// Second (static)
-
-	if err := abi.EncodeBigInt(t.Second, buf[32:64], false); err != nil {
+	// Field Second: uint256
+	if _, err := _NestedTupleReturnsEncodeUint256(value.Second, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -361,26 +392,34 @@ func (t SimplePair) EncodeTo(buf []byte) (int, error) {
 }
 
 // Encode encodes SimplePair to ABI bytes
-func (t SimplePair) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value SimplePair) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes SimplePair from ABI bytes in the provided buffer
-func (t *SimplePair) Decode(data0 []byte) error {
-	if len(data0) < SimplePairStaticSize {
-		return fmt.Errorf("insufficient data for SimplePair")
+func (t *SimplePair) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.First (static)
-	t.First = new(big.Int).SetBytes(data0[0:32])
-	// t.Second (static)
-	t.Second = new(big.Int).SetBytes(data0[32:64])
-
-	return nil
+	var (
+		err error
+	)
+	dynamicOffset := 64
+	// Decode static field First: uint256
+	t.First, _, err = _NestedTupleReturnsDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Second: uint256
+	t.Second, _, err = _NestedTupleReturnsDecodeUint256(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const UserWithMetadataStaticSize = 128
@@ -396,513 +435,793 @@ type UserWithMetadata struct {
 // EncodedSize returns the total encoded size of UserWithMetadata
 func (t UserWithMetadata) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + abi.Pad32(len(t.Name))     // length + padded string data
-	dynamicSize += 32 + abi.Pad32(len(t.Metadata)) // length + padded string data
+	dynamicSize += _NestedTupleReturnsSizeString(t.Name)
+	dynamicSize += _NestedTupleReturnsSizeString(t.Metadata)
 
 	return UserWithMetadataStaticSize + dynamicSize
 }
 
 // EncodeTo encodes UserWithMetadata to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t UserWithMetadata) EncodeTo(buf []byte) (int, error) {
+func (value UserWithMetadata) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := UserWithMetadataStaticSize // Start dynamic data after static section
-
-	// Name (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Name: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeString(value.Name, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
-	// Name (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Name)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Name))
-	dynamicOffset += abi.Pad32(len(t.Name))
-
-	// Id (static)
-
-	if err := abi.EncodeBigInt(t.Id, buf[32:64], false); err != nil {
+	// Field Id: uint256
+	if _, err := _NestedTupleReturnsEncodeUint256(value.Id, buf[32:]); err != nil {
 		return 0, err
 	}
 
-	// Age (static)
-
-	if err := abi.EncodeBigInt(t.Age, buf[64:96], false); err != nil {
+	// Field Age: uint256
+	if _, err := _NestedTupleReturnsEncodeUint256(value.Age, buf[64:]); err != nil {
 		return 0, err
 	}
 
-	// Metadata (offset)
+	// Field Metadata: string
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[96+24:96+32], uint64(dynamicOffset))
-
-	// Metadata (dynamic)
-	// length
-	binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Metadata)))
-	dynamicOffset += 32
-
-	// data
-	copy(buf[dynamicOffset:], []byte(t.Metadata))
-	dynamicOffset += abi.Pad32(len(t.Metadata))
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeString(value.Metadata, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes UserWithMetadata to ABI bytes
-func (t UserWithMetadata) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value UserWithMetadata) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes UserWithMetadata from ABI bytes in the provided buffer
-func (t *UserWithMetadata) Decode(data0 []byte) error {
-	if len(data0) < UserWithMetadataStaticSize {
-		return fmt.Errorf("insufficient data for UserWithMetadata")
+func (t *UserWithMetadata) Decode(data []byte) (int, error) {
+	if len(data) < 128 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Name
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 128
+	// Decode dynamic field Name
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Name (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Name")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// string data
-		t.Name = string(data0[offset : offset+length])
+		t.Name, n, err = _NestedTupleReturnsDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// t.Id (static)
-	t.Id = new(big.Int).SetBytes(data0[32:64])
-	// t.Age (static)
-	t.Age = new(big.Int).SetBytes(data0[64:96])
-	// Metadata
+	// Decode static field Id: uint256
+	t.Id, _, err = _NestedTupleReturnsDecodeUint256(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Age: uint256
+	t.Age, _, err = _NestedTupleReturnsDecodeUint256(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Metadata
 	{
-		offset := int(binary.BigEndian.Uint64(data0[96+24 : 96+32]))
-
-		// t.Metadata (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Metadata")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
+		t.Metadata, n, err = _NestedTupleReturnsDecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
+}
+
+// _NestedTupleReturnsEncodeAddress encodes address to ABI bytes
+func _NestedTupleReturnsEncodeAddress(value common.Address, buf []byte) (int, error) {
+	copy(buf[12:32], value[:])
+	return 32, nil
+}
+
+// _NestedTupleReturnsEncodeAddressStringPairSlice encodes (address,string)[] to ABI bytes
+func _NestedTupleReturnsEncodeAddressStringPairSlice(value []AddressStringPair, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
 		offset += 32
-		// string data
-		t.Metadata = string(data0[offset : offset+length])
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
+
+		// Write element at dynamic region
+		n, err := elem.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
 
-	return nil
+	return dynamicOffset + 32, nil
+}
+
+// _NestedTupleReturnsEncodeBool encodes bool to ABI bytes
+func _NestedTupleReturnsEncodeBool(value bool, buf []byte) (int, error) {
+	if value {
+		buf[31] = 1
+	}
+	return 32, nil
+}
+
+// _NestedTupleReturnsEncodeBytes encodes bytes to ABI bytes
+func _NestedTupleReturnsEncodeBytes(value []byte, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode data
+	copy(buf[32:], value)
+
+	return 32 + abi.Pad32(len(value)), nil
+}
+
+// _NestedTupleReturnsEncodeBytes32 encodes bytes32 to ABI bytes
+func _NestedTupleReturnsEncodeBytes32(value [32]byte, buf []byte) (int, error) {
+	copy(buf[:32], value[:])
+	return 32, nil
+}
+
+// _NestedTupleReturnsEncodeComplexNestedSlice encodes (uint256,address,string,bytes)[] to ABI bytes
+func _NestedTupleReturnsEncodeComplexNestedSlice(value []ComplexNested, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with dynamic types
+	var offset int
+	dynamicOffset := len(value) * 32
+	for _, elem := range value {
+		// Write offset for element
+		offset += 32
+		binary.BigEndian.PutUint64(buf[offset-8:offset], uint64(dynamicOffset))
+
+		// Write element at dynamic region
+		n, err := elem.EncodeTo(buf[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+
+	return dynamicOffset + 32, nil
+}
+
+// _NestedTupleReturnsEncodeSimplePairSlice encodes (uint256,uint256)[] to ABI bytes
+func _NestedTupleReturnsEncodeSimplePairSlice(value []SimplePair, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := elem.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// _NestedTupleReturnsEncodeString encodes string to ABI bytes
+func _NestedTupleReturnsEncodeString(value string, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+
+	// Encode data
+	copy(buf[32:], []byte(value))
+
+	return 32 + abi.Pad32(len(value)), nil
+}
+
+// _NestedTupleReturnsEncodeUint256 encodes uint256 to ABI bytes
+func _NestedTupleReturnsEncodeUint256(value *big.Int, buf []byte) (int, error) {
+	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
+		return 0, err
+	}
+	return 32, nil
+}
+
+// _NestedTupleReturnsSizeAddressStringPairSlice returns the encoded size of (address,string)[]
+func _NestedTupleReturnsSizeAddressStringPairSlice(value []AddressStringPair) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += elem.EncodedSize()
+	}
+	return size
+}
+
+// _NestedTupleReturnsSizeBytes returns the encoded size of bytes
+func _NestedTupleReturnsSizeBytes(value []byte) int {
+	size := 32 + abi.Pad32(len(value)) // length + padded bytes data
+	return size
+}
+
+// _NestedTupleReturnsSizeComplexNestedSlice returns the encoded size of (uint256,address,string,bytes)[]
+func _NestedTupleReturnsSizeComplexNestedSlice(value []ComplexNested) int {
+	size := 32 + 32*len(value) // length + offset pointers for dynamic elements
+	for _, elem := range value {
+		size += elem.EncodedSize()
+	}
+	return size
+}
+
+// _NestedTupleReturnsSizeSimplePairSlice returns the encoded size of (uint256,uint256)[]
+func _NestedTupleReturnsSizeSimplePairSlice(value []SimplePair) int {
+	size := 32 + 64*len(value) // length + static elements
+	return size
+}
+
+// _NestedTupleReturnsSizeString returns the encoded size of string
+func _NestedTupleReturnsSizeString(value string) int {
+	size := 32 + abi.Pad32(len(value)) // length + padded string data
+	return size
+}
+
+// _NestedTupleReturnsDecodeAddress decodes address from ABI bytes
+func _NestedTupleReturnsDecodeAddress(data []byte) (common.Address, int, error) {
+	var result common.Address
+	copy(result[:], data[12:32])
+	return result, 32, nil
+}
+
+// _NestedTupleReturnsDecodeAddressStringPairSlice decodes (address,string)[] from ABI bytes
+func _NestedTupleReturnsDecodeAddressStringPairSlice(data []byte) ([]AddressStringPair, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([]AddressStringPair, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		n, err = result[i].Decode(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _NestedTupleReturnsDecodeBool decodes bool from ABI bytes
+func _NestedTupleReturnsDecodeBool(data []byte) (bool, int, error) {
+	result := data[31] != 0
+	return result, 32, nil
+}
+
+// _NestedTupleReturnsDecodeBytes decodes bytes from ABI bytes
+func _NestedTupleReturnsDecodeBytes(data []byte) ([]byte, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32+abi.Pad32(length) {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+
+	// Decode data
+	result := make([]byte, length)
+	copy(result, data[32:32+length])
+	return result, 32 + abi.Pad32(length), nil
+}
+
+// _NestedTupleReturnsDecodeBytes32 decodes bytes32 from ABI bytes
+func _NestedTupleReturnsDecodeBytes32(data []byte) ([32]byte, int, error) {
+	var result [32]byte
+	copy(result[:], data[:32])
+	return result, 32, nil
+}
+
+// _NestedTupleReturnsDecodeComplexNestedSlice decodes (uint256,address,string,bytes)[] from ABI bytes
+func _NestedTupleReturnsDecodeComplexNestedSlice(data []byte) ([]ComplexNested, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with dynamic types
+	result := make([]ComplexNested, length)
+	dynamicOffset := length * 32
+	for i := 0; i < length; i++ {
+		offset += 32
+		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+		if dynamicOffset != tmp {
+			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+		}
+		n, err = result[i].Decode(data[dynamicOffset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		dynamicOffset += n
+	}
+	return result, dynamicOffset + 32, nil
+}
+
+// _NestedTupleReturnsDecodeSimplePairSlice decodes (uint256,uint256)[] from ABI bytes
+func _NestedTupleReturnsDecodeSimplePairSlice(data []byte) ([]SimplePair, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 64*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]SimplePair, length)
+	for i := 0; i < length; i++ {
+		n, err = result[i].Decode(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// _NestedTupleReturnsDecodeString decodes string from ABI bytes
+func _NestedTupleReturnsDecodeString(data []byte) (string, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32+abi.Pad32(length) {
+		return "", 0, io.ErrUnexpectedEOF
+	}
+
+	// Decode data
+	result := string(data[32 : 32+length])
+	return result, 32 + abi.Pad32(length), nil
+}
+
+// _NestedTupleReturnsDecodeUint256 decodes uint256 from ABI bytes
+func _NestedTupleReturnsDecodeUint256(data []byte) (*big.Int, int, error) {
+	result, err := abi.DecodeBigInt(data[:32], false)
+	if err != nil {
+		return nil, 0, err
+	}
+	return result, 32, nil
 }
 
 const GetAddressStringPairReturnStaticSize = 32
 
 // GetAddressStringPairReturn represents an ABI tuple
 type GetAddressStringPairReturn struct {
-	Result1 AddressStringPair
+	Field1 AddressStringPair
 }
 
 // EncodedSize returns the total encoded size of GetAddressStringPairReturn
 func (t GetAddressStringPairReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Result1.EncodedSize() // dynamic tuple
+	dynamicSize += t.Field1.EncodedSize()
 
 	return GetAddressStringPairReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetAddressStringPairReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetAddressStringPairReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetAddressStringPairReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetAddressStringPairReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (address,string)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Result1 (dynamic)
-	{
-		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Field1.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetAddressStringPairReturn to ABI bytes
-func (t GetAddressStringPairReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetAddressStringPairReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetAddressStringPairReturn from ABI bytes in the provided buffer
-func (t *GetAddressStringPairReturn) Decode(data0 []byte) error {
-	if len(data0) < GetAddressStringPairReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetAddressStringPairReturn")
+func (t *GetAddressStringPairReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Result1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Result1 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Result1")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		if err := t.Result1.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Field1.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const GetComplexNestedReturnStaticSize = 32
 
 // GetComplexNestedReturn represents an ABI tuple
 type GetComplexNestedReturn struct {
-	Result1 ComplexNested
+	Field1 ComplexNested
 }
 
 // EncodedSize returns the total encoded size of GetComplexNestedReturn
 func (t GetComplexNestedReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Result1.EncodedSize() // dynamic tuple
+	dynamicSize += t.Field1.EncodedSize()
 
 	return GetComplexNestedReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetComplexNestedReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetComplexNestedReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetComplexNestedReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetComplexNestedReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (uint256,address,string,bytes)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Result1 (dynamic)
-	{
-		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Field1.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetComplexNestedReturn to ABI bytes
-func (t GetComplexNestedReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetComplexNestedReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetComplexNestedReturn from ABI bytes in the provided buffer
-func (t *GetComplexNestedReturn) Decode(data0 []byte) error {
-	if len(data0) < GetComplexNestedReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetComplexNestedReturn")
+func (t *GetComplexNestedReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Result1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Result1 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Result1")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		if err := t.Result1.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Field1.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const GetDeeplyNestedReturnStaticSize = 32
 
 // GetDeeplyNestedReturn represents an ABI tuple
 type GetDeeplyNestedReturn struct {
-	Result1 DeeplyNested
+	Field1 DeeplyNested
 }
 
 // EncodedSize returns the total encoded size of GetDeeplyNestedReturn
 func (t GetDeeplyNestedReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Result1.EncodedSize() // dynamic tuple
+	dynamicSize += t.Field1.EncodedSize()
 
 	return GetDeeplyNestedReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetDeeplyNestedReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetDeeplyNestedReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (uint256,string,bool,address,bytes32)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Result1 (dynamic)
-	{
-		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Field1.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetDeeplyNestedReturn to ABI bytes
-func (t GetDeeplyNestedReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetDeeplyNestedReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetDeeplyNestedReturn from ABI bytes in the provided buffer
-func (t *GetDeeplyNestedReturn) Decode(data0 []byte) error {
-	if len(data0) < GetDeeplyNestedReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetDeeplyNestedReturn")
+func (t *GetDeeplyNestedReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Result1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Result1 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Result1")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		if err := t.Result1.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Field1.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const GetMultipleReturnsReturnStaticSize = 96
 
 // GetMultipleReturnsReturn represents an ABI tuple
 type GetMultipleReturnsReturn struct {
-	Result1 *big.Int
-	Result2 AddressStringPair
-	Result3 bool
+	Field1 *big.Int
+	Field2 AddressStringPair
+	Field3 bool
 }
 
 // EncodedSize returns the total encoded size of GetMultipleReturnsReturn
 func (t GetMultipleReturnsReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Result2.EncodedSize() // dynamic tuple
+	dynamicSize += t.Field2.EncodedSize()
 
 	return GetMultipleReturnsReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetMultipleReturnsReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetMultipleReturnsReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetMultipleReturnsReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetMultipleReturnsReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-
-	if err := abi.EncodeBigInt(t.Result1, buf[0:32], false); err != nil {
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: uint256
+	if _, err := _NestedTupleReturnsEncodeUint256(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
-	// Result2 (offset)
+	// Field Field2: (address,string)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-
-	// Result2 (dynamic)
-	{
-		n, err := t.Result2.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Field2.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
-	// Result3 (static)
-	if t.Result3 {
-		buf[64+31] = 1
+	dynamicOffset += n
+
+	// Field Field3: bool
+	if _, err := _NestedTupleReturnsEncodeBool(value.Field3, buf[64:]); err != nil {
+		return 0, err
 	}
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetMultipleReturnsReturn to ABI bytes
-func (t GetMultipleReturnsReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetMultipleReturnsReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetMultipleReturnsReturn from ABI bytes in the provided buffer
-func (t *GetMultipleReturnsReturn) Decode(data0 []byte) error {
-	if len(data0) < GetMultipleReturnsReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetMultipleReturnsReturn")
+func (t *GetMultipleReturnsReturn) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	t.Result1 = new(big.Int).SetBytes(data0[0:32])
-	// Result2
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 96
+	// Decode static field Field1: uint256
+	t.Field1, _, err = _NestedTupleReturnsDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Field2
 	{
-		offset := int(binary.BigEndian.Uint64(data0[32+24 : 32+32]))
-
-		// t.Result2 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Result2")
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field2")
 		}
-		if err := t.Result2.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Field2.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-	// t.Result3 (static)
-	t.Result3 = data0[64+31] == 1
-
-	return nil
+	// Decode static field Field3: bool
+	t.Field3, _, err = _NestedTupleReturnsDecodeBool(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
 }
 
 const GetNestedTupleArrayReturnStaticSize = 32
 
 // GetNestedTupleArrayReturn represents an ABI tuple
 type GetNestedTupleArrayReturn struct {
-	Result1 []ComplexNested
+	Field1 []ComplexNested
 }
 
 // EncodedSize returns the total encoded size of GetNestedTupleArrayReturn
 func (t GetNestedTupleArrayReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + 32*len(t.Result1) // length + offset pointers for dynamic elements
-	for _, elem := range t.Result1 {
-		dynamicSize += elem.EncodedSize() // dynamic tuple
-	}
+	dynamicSize += _NestedTupleReturnsSizeComplexNestedSlice(t.Field1)
 
 	return GetNestedTupleArrayReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetNestedTupleArrayReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetNestedTupleArrayReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetNestedTupleArrayReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetNestedTupleArrayReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (uint256,address,string,bytes)[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Result1 (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Result1)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Result1) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Result1 {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					n, err := item.EncodeTo(buf[dynamicOffset:])
-					if err != nil {
-						return 0, err
-					}
-					dynamicOffset += n
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeComplexNestedSlice(value.Field1, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetNestedTupleArrayReturn to ABI bytes
-func (t GetNestedTupleArrayReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetNestedTupleArrayReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetNestedTupleArrayReturn from ABI bytes in the provided buffer
-func (t *GetNestedTupleArrayReturn) Decode(data0 []byte) error {
-	if len(data0) < GetNestedTupleArrayReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetNestedTupleArrayReturn")
+func (t *GetNestedTupleArrayReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Result1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Result1 (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Result1 = make([]ComplexNested, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Result1[i0] (dynamic)
-			if offset >= len(data1) {
-				return fmt.Errorf("insufficient data for dynamic data, t.Result1[i0]")
-			}
-			if err := t.Result1[i0].Decode(data1[offset:]); err != nil {
-				return err
-			}
+		t.Field1, n, err = _NestedTupleReturnsDecodeComplexNestedSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const GetSimplePairReturnStaticSize = 64
 
 // GetSimplePairReturn represents an ABI tuple
 type GetSimplePairReturn struct {
-	Result1 SimplePair
+	Field1 SimplePair
 }
 
 // EncodedSize returns the total encoded size of GetSimplePairReturn
@@ -913,13 +1232,11 @@ func (t GetSimplePairReturn) EncodedSize() int {
 }
 
 // EncodeTo encodes GetSimplePairReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetSimplePairReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetSimplePairReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetSimplePairReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (static)
-	// Encode nested tuple t.Result1
-	if _, err := t.Result1.EncodeTo(buf[0:]); err != nil {
+	// Field Field1: (uint256,uint256)
+	if _, err := value.Field1.EncodeTo(buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -927,301 +1244,237 @@ func (t GetSimplePairReturn) EncodeTo(buf []byte) (int, error) {
 }
 
 // Encode encodes GetSimplePairReturn to ABI bytes
-func (t GetSimplePairReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetSimplePairReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetSimplePairReturn from ABI bytes in the provided buffer
-func (t *GetSimplePairReturn) Decode(data0 []byte) error {
-	if len(data0) < GetSimplePairReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetSimplePairReturn")
+func (t *GetSimplePairReturn) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// t.Result1 (static)
-	if err := t.Result1.Decode(data0[0:64]); err != nil {
-		return err
+	var (
+		err error
+	)
+	dynamicOffset := 64
+	// Decode static field Field1: (uint256,uint256)
+	_, err = t.Field1.Decode(data[0:])
+	if err != nil {
+		return 0, err
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const GetTupleArrayReturnStaticSize = 32
 
 // GetTupleArrayReturn represents an ABI tuple
 type GetTupleArrayReturn struct {
-	Result1 []SimplePair
+	Field1 []SimplePair
 }
 
 // EncodedSize returns the total encoded size of GetTupleArrayReturn
 func (t GetTupleArrayReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + 64*len(t.Result1) // length + static elements
+	dynamicSize += _NestedTupleReturnsSizeSimplePairSlice(t.Field1)
 
 	return GetTupleArrayReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetTupleArrayReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetTupleArrayReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetTupleArrayReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetTupleArrayReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (uint256,uint256)[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Result1 (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Result1)))
-		dynamicOffset += 32
-
-		// data without dynamic region
-		buf := buf[dynamicOffset:]
-		var offset int
-		for _, item := range t.Result1 {
-			tmpBuf := buf[offset:]
-
-			// Encode nested tuple item
-			if _, err := item.EncodeTo(tmpBuf[0:]); err != nil {
-				return 0, err
-			}
-
-			offset += 64
-		}
-		dynamicOffset += offset
-
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeSimplePairSlice(value.Field1, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetTupleArrayReturn to ABI bytes
-func (t GetTupleArrayReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetTupleArrayReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetTupleArrayReturn from ABI bytes in the provided buffer
-func (t *GetTupleArrayReturn) Decode(data0 []byte) error {
-	if len(data0) < GetTupleArrayReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetTupleArrayReturn")
+func (t *GetTupleArrayReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Result1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Result1 (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Result1 = make([]SimplePair, length)
-		data1 := data0[offset:]
-
-		offset = 0
-		for i0 := 0; i0 < length; i0++ {
-			// t.Result1[i0] (static)
-			if err := t.Result1[i0].Decode(data1[offset : offset+64]); err != nil {
-				return err
-			}
-			offset += 64
+		t.Field1, n, err = _NestedTupleReturnsDecodeSimplePairSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const GetUserWithMetadataReturnStaticSize = 32
 
 // GetUserWithMetadataReturn represents an ABI tuple
 type GetUserWithMetadataReturn struct {
-	Result1 UserWithMetadata
+	Field1 UserWithMetadata
 }
 
 // EncodedSize returns the total encoded size of GetUserWithMetadataReturn
 func (t GetUserWithMetadataReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += t.Result1.EncodedSize() // dynamic tuple
+	dynamicSize += t.Field1.EncodedSize()
 
 	return GetUserWithMetadataReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetUserWithMetadataReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetUserWithMetadataReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetUserWithMetadataReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetUserWithMetadataReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (string,uint256,uint256,string)
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Result1 (dynamic)
-	{
-		n, err := t.Result1.EncodeTo(buf[dynamicOffset:])
-		if err != nil {
-			return 0, err
-		}
-		dynamicOffset += n
+	// Encode dynamic data
+	n, err = value.Field1.EncodeTo(buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetUserWithMetadataReturn to ABI bytes
-func (t GetUserWithMetadataReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetUserWithMetadataReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetUserWithMetadataReturn from ABI bytes in the provided buffer
-func (t *GetUserWithMetadataReturn) Decode(data0 []byte) error {
-	if len(data0) < GetUserWithMetadataReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetUserWithMetadataReturn")
+func (t *GetUserWithMetadataReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Result1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Result1 (dynamic)
-		if offset >= len(data0) {
-			return fmt.Errorf("insufficient data for dynamic data, t.Result1")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		if err := t.Result1.Decode(data0[offset:]); err != nil {
-			return err
+		n, err = t.Field1.Decode(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }
 
 const GetUsersArrayReturnStaticSize = 32
 
 // GetUsersArrayReturn represents an ABI tuple
 type GetUsersArrayReturn struct {
-	Result1 []AddressStringPair
+	Field1 []AddressStringPair
 }
 
 // EncodedSize returns the total encoded size of GetUsersArrayReturn
 func (t GetUsersArrayReturn) EncodedSize() int {
 	dynamicSize := 0
-
-	dynamicSize += 32 + 32*len(t.Result1) // length + offset pointers for dynamic elements
-	for _, elem := range t.Result1 {
-		dynamicSize += elem.EncodedSize() // dynamic tuple
-	}
+	dynamicSize += _NestedTupleReturnsSizeAddressStringPairSlice(t.Field1)
 
 	return GetUsersArrayReturnStaticSize + dynamicSize
 }
 
 // EncodeTo encodes GetUsersArrayReturn to ABI bytes in the provided buffer
-// it panics if the buffer is not large enough
-func (t GetUsersArrayReturn) EncodeTo(buf []byte) (int, error) {
+func (value GetUsersArrayReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
 	dynamicOffset := GetUsersArrayReturnStaticSize // Start dynamic data after static section
-
-	// Result1 (offset)
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (address,string)[]
+	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-
-	// Result1 (dynamic)
-	{
-		// length
-		binary.BigEndian.PutUint64(buf[dynamicOffset+24:dynamicOffset+32], uint64(len(t.Result1)))
-		dynamicOffset += 32
-
-		var written int
-
-		// data with dynamic region
-		{
-			buf := buf[dynamicOffset:]
-			dynamicOffset := len(t.Result1) * 32 // start after static region
-
-			var offset int
-			for _, item := range t.Result1 {
-				// write offsets
-				binary.BigEndian.PutUint64(buf[offset+24:offset+32], uint64(dynamicOffset))
-				offset += 32
-
-				// write data (dynamic)
-
-				{
-					n, err := item.EncodeTo(buf[dynamicOffset:])
-					if err != nil {
-						return 0, err
-					}
-					dynamicOffset += n
-				}
-
-			}
-			written = dynamicOffset
-		}
-		dynamicOffset += written
-
+	// Encode dynamic data
+	n, err = _NestedTupleReturnsEncodeAddressStringPairSlice(value.Field1, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
 	}
+	dynamicOffset += n
 
 	return dynamicOffset, nil
 }
 
 // Encode encodes GetUsersArrayReturn to ABI bytes
-func (t GetUsersArrayReturn) Encode() ([]byte, error) {
-	buf := make([]byte, t.EncodedSize())
-	if _, err := t.EncodeTo(buf); err != nil {
+func (value GetUsersArrayReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
 }
 
 // Decode decodes GetUsersArrayReturn from ABI bytes in the provided buffer
-func (t *GetUsersArrayReturn) Decode(data0 []byte) error {
-	if len(data0) < GetUsersArrayReturnStaticSize {
-		return fmt.Errorf("insufficient data for GetUsersArrayReturn")
+func (t *GetUsersArrayReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
 	}
-
-	// Result1
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data0[0+24 : 0+32]))
-
-		// t.Result1 (dynamic)
-		if offset+32 > len(data0) {
-			return fmt.Errorf("insufficient data for length prefix")
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		length := int(binary.BigEndian.Uint64(data0[offset+24 : offset+32]))
-		offset += 32
-		// slice data
-		t.Result1 = make([]AddressStringPair, length)
-		data1 := data0[offset:]
-
-		// Dynamic elements with offsets (dynamic array)
-		for i0 := 0; i0 < length; i0++ {
-			// Read element offset
-			tmp := i0 * 32
-			if tmp+32 > len(data1) {
-				return fmt.Errorf("insufficient data for element offset")
-			}
-			offset := int(binary.BigEndian.Uint64(data1[tmp+24 : tmp+32]))
-			// Decode dynamic element at offset
-
-			// t.Result1[i0] (dynamic)
-			if offset >= len(data1) {
-				return fmt.Errorf("insufficient data for dynamic data, t.Result1[i0]")
-			}
-			if err := t.Result1[i0].Decode(data1[offset:]); err != nil {
-				return err
-			}
+		t.Field1, n, err = _NestedTupleReturnsDecodeAddressStringPairSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
 		}
+		dynamicOffset += n
 	}
-
-	return nil
+	return dynamicOffset, nil
 }

@@ -2,6 +2,7 @@ package generator
 
 // Options allows to customize the code generation process.
 type Options struct {
+	ModuleName   string
 	PackageName  string
 	ExtraImports []ImportSpec
 	// Map of tuple definitions to existing struct names,
@@ -26,6 +27,12 @@ type Option func(*Options)
 func PackageName(name string) Option {
 	return func(o *Options) {
 		o.PackageName = name
+	}
+}
+
+func ModuleName(name string) Option {
+	return func(o *Options) {
+		o.ModuleName = name
 	}
 }
 

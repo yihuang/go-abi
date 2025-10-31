@@ -16,6 +16,14 @@ import (
 
 var Title = cases.Title(language.English, cases.NoLower)
 
+func ToCamel(s string) string {
+	parts := strings.Split(s, "_")
+	for i, part := range parts {
+		parts[i] = Title.String(part)
+	}
+	return strings.Join(parts, "")
+}
+
 func SortedMapKeys[K cmp.Ordered, V any](m map[K]V) []K {
 	keys := make([]K, 0, len(m))
 	for k := range m {
@@ -84,10 +92,10 @@ func GenTupleIdentifier(t abi.Type) string {
 	for i, elem := range t.TupleElems {
 		types[i] = elem.String()
 	}
-	sig := fmt.Sprintf("(%v)", strings.Join(types, ","))
 
+	sig := fmt.Sprintf("(%v)", strings.Join(types, ","))
 	id := crypto.Keccak256([]byte(sig))
-	return "Tuple_" + hex.EncodeToString(id)[:8] // Use first 8 chars for readability
+	return "Tuple" + hex.EncodeToString(id)[:8] // Use first 8 chars for readability
 }
 
 // TupleStructName generates a unique struct name for a tuple type
@@ -105,4 +113,15 @@ func TupleStructName(t abi.Type) string {
 // prefixing.
 func RequiresLengthPrefix(t abi.Type) bool {
 	return t.T == abi.StringTy || t.T == abi.BytesTy || t.T == abi.SliceTy
+}
+
+func VisitABIType(t abi.Type, visit func(abi.Type)) {
+	visit(t)
+	if t.T == abi.TupleTy {
+		for _, elem := range t.TupleElems {
+			VisitABIType(*elem, visit)
+		}
+	} else if t.T == abi.ArrayTy || t.T == abi.SliceTy {
+		VisitABIType(*t.Elem, visit)
+	}
 }

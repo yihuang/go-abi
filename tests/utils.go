@@ -19,7 +19,7 @@ func DecodeRoundTrip[T any, PT Tuple[T]](t *testing.T, orig PT) {
 	require.NoError(t, err)
 
 	var decoded T
-	err = PT(&decoded).Decode(data)
+	_, err = PT(&decoded).Decode(data)
 	require.NoError(t, err)
 
 	require.Equal(t, orig, &decoded)

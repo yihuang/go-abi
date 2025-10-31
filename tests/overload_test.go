@@ -10,7 +10,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var OverloadABI -output overload.abi.go
+//go:generate go run ../cmd -var OverloadABI -module overload
 
 var OverloadABI = []string{
 	"function overloaded1(address to, uint256 amount) returns (bool)",

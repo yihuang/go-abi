@@ -48,7 +48,7 @@ func TestExternalTuples(t *testing.T) {
 	// Test with ExternalTuples option (should not generate tuple)
 	// The tuple name is generated from the tuple structure, not the function name
 	extTuples := map[string]string{
-		"Tuple_b53c1574": "MyCustomUserData",
+		"Tupleb53c1574": "MyCustomUserData",
 	}
 
 	generatorWithExternal := NewGenerator(ExternalTuples(extTuples))
