@@ -29,6 +29,8 @@ var (
 	TestNestedDynamicArraysSelector = [4]byte{0x1a, 0xdd, 0xf6, 0x20}
 	// testNestedStruct(((address,string,uint256)[]))
 	TestNestedStructSelector = [4]byte{0xe8, 0x3b, 0x85, 0x67}
+	// testNonStandardIntegers(uint24,uint36,uint48,uint72,uint96,uint120,int24,int36,int48,int72,int96,int120)
+	TestNonStandardIntegersSelector = [4]byte{0x06, 0xb2, 0xc0, 0x02}
 	// testSmallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
 	TestSmallIntegersSelector = [4]byte{0x29, 0x2b, 0xd2, 0x39}
 )
@@ -42,6 +44,7 @@ const (
 	TestMixedTypesID           = 2240472597
 	TestNestedDynamicArraysID  = 450754080
 	TestNestedStructID         = 3896214887
+	TestNonStandardIntegersID  = 112377858
 	TestSmallIntegersID        = 690737721
 )
 
@@ -931,6 +934,19 @@ func EncodeInt16(value int16, buf []byte) (int, error) {
 	return 32, nil
 }
 
+// EncodeInt24 encodes int24 to ABI bytes
+func EncodeInt24(value *big.Int, buf []byte) (int, error) {
+	return 32, nil
+}
+
+// EncodeInt256 encodes int72 to ABI bytes
+func EncodeInt256(value *big.Int, buf []byte) (int, error) {
+	if err := abi.EncodeBigInt(value, buf[:32], true); err != nil {
+		return 0, err
+	}
+	return 32, nil
+}
+
 // EncodeInt32 encodes int32 to ABI bytes
 func EncodeInt32(value int32, buf []byte) (int, error) {
 	if value < 0 {
@@ -939,6 +955,16 @@ func EncodeInt32(value int32, buf []byte) (int, error) {
 		}
 	}
 	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// EncodeInt36 encodes int36 to ABI bytes
+func EncodeInt36(value *big.Int, buf []byte) (int, error) {
+	return 32, nil
+}
+
+// EncodeInt48 encodes int48 to ABI bytes
+func EncodeInt48(value *big.Int, buf []byte) (int, error) {
 	return 32, nil
 }
 
@@ -1056,6 +1082,11 @@ func EncodeUint16(value uint16, buf []byte) (int, error) {
 	return 32, nil
 }
 
+// EncodeUint24 encodes uint24 to ABI bytes
+func EncodeUint24(value *big.Int, buf []byte) (int, error) {
+	return 32, nil
+}
+
 // EncodeUint256 encodes uint256 to ABI bytes
 func EncodeUint256(value *big.Int, buf []byte) (int, error) {
 	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
@@ -1127,6 +1158,16 @@ func EncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
 // EncodeUint32 encodes uint32 to ABI bytes
 func EncodeUint32(value uint32, buf []byte) (int, error) {
 	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// EncodeUint36 encodes uint36 to ABI bytes
+func EncodeUint36(value *big.Int, buf []byte) (int, error) {
+	return 32, nil
+}
+
+// EncodeUint48 encodes uint48 to ABI bytes
+func EncodeUint48(value *big.Int, buf []byte) (int, error) {
 	return 32, nil
 }
 
@@ -1483,6 +1524,20 @@ func DecodeInt16(data []byte) (int16, int, error) {
 	return result, 32, nil
 }
 
+// DecodeInt24 decodes int24 from ABI bytes
+func DecodeInt24(data []byte) (*big.Int, int, error) {
+	return result, 32, nil
+}
+
+// DecodeInt256 decodes int72 from ABI bytes
+func DecodeInt256(data []byte) (*big.Int, int, error) {
+	result, err := abi.DecodeBigInt(data[:32], true)
+	if err != nil {
+		return nil, 0, err
+	}
+	return result, 32, nil
+}
+
 // DecodeInt32 decodes int32 from ABI bytes
 func DecodeInt32(data []byte) (int32, int, error) {
 	var result int32
@@ -1490,6 +1545,16 @@ func DecodeInt32(data []byte) (int32, int, error) {
 	if data[0]&0x80 != 0 { // Check sign bit
 		result = result | ^0x7fffffff // Sign extend
 	}
+	return result, 32, nil
+}
+
+// DecodeInt36 decodes int36 from ABI bytes
+func DecodeInt36(data []byte) (*big.Int, int, error) {
+	return result, 32, nil
+}
+
+// DecodeInt48 decodes int48 from ABI bytes
+func DecodeInt48(data []byte) (*big.Int, int, error) {
 	return result, 32, nil
 }
 
@@ -1634,6 +1699,11 @@ func DecodeUint16(data []byte) (uint16, int, error) {
 	return result, 32, nil
 }
 
+// DecodeUint24 decodes uint24 from ABI bytes
+func DecodeUint24(data []byte) (*big.Int, int, error) {
+	return result, 32, nil
+}
+
 // DecodeUint256 decodes uint256 from ABI bytes
 func DecodeUint256(data []byte) (*big.Int, int, error) {
 	result, err := abi.DecodeBigInt(data[:32], false)
@@ -1736,6 +1806,16 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 // DecodeUint32 decodes uint32 from ABI bytes
 func DecodeUint32(data []byte) (uint32, int, error) {
 	result := binary.BigEndian.Uint32(data[28:32])
+	return result, 32, nil
+}
+
+// DecodeUint36 decodes uint36 from ABI bytes
+func DecodeUint36(data []byte) (*big.Int, int, error) {
+	return result, 32, nil
+}
+
+// DecodeUint48 decodes uint48 from ABI bytes
+func DecodeUint48(data []byte) (*big.Int, int, error) {
 	return result, 32, nil
 }
 
@@ -2837,6 +2917,241 @@ func (value TestNestedStructReturn) Encode() ([]byte, error) {
 
 // Decode decodes TestNestedStructReturn from ABI bytes in the provided buffer
 func (t *TestNestedStructReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bool
+	t.Field1, _, err = DecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+const TestNonStandardIntegersCallStaticSize = 384
+
+// TestNonStandardIntegersCall represents an ABI tuple
+type TestNonStandardIntegersCall struct {
+	U24  *big.Int
+	U36  *big.Int
+	U48  *big.Int
+	U72  *big.Int
+	U96  *big.Int
+	U120 *big.Int
+	I24  *big.Int
+	I36  *big.Int
+	I48  *big.Int
+	I72  *big.Int
+	I96  *big.Int
+	I120 *big.Int
+}
+
+// EncodedSize returns the total encoded size of TestNonStandardIntegersCall
+func (t TestNonStandardIntegersCall) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestNonStandardIntegersCallStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestNonStandardIntegersCall to ABI bytes in the provided buffer
+func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := TestNonStandardIntegersCallStaticSize // Start dynamic data after static section
+	// Field U24: uint24
+	if _, err := EncodeUint24(value.U24, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	// Field U36: uint36
+	if _, err := EncodeUint36(value.U36, buf[32:]); err != nil {
+		return 0, err
+	}
+
+	// Field U48: uint48
+	if _, err := EncodeUint48(value.U48, buf[64:]); err != nil {
+		return 0, err
+	}
+
+	// Field U72: uint72
+	if _, err := EncodeUint256(value.U72, buf[96:]); err != nil {
+		return 0, err
+	}
+
+	// Field U96: uint96
+	if _, err := EncodeUint256(value.U96, buf[128:]); err != nil {
+		return 0, err
+	}
+
+	// Field U120: uint120
+	if _, err := EncodeUint256(value.U120, buf[160:]); err != nil {
+		return 0, err
+	}
+
+	// Field I24: int24
+	if _, err := EncodeInt24(value.I24, buf[192:]); err != nil {
+		return 0, err
+	}
+
+	// Field I36: int36
+	if _, err := EncodeInt36(value.I36, buf[224:]); err != nil {
+		return 0, err
+	}
+
+	// Field I48: int48
+	if _, err := EncodeInt48(value.I48, buf[256:]); err != nil {
+		return 0, err
+	}
+
+	// Field I72: int72
+	if _, err := EncodeInt256(value.I72, buf[288:]); err != nil {
+		return 0, err
+	}
+
+	// Field I96: int96
+	if _, err := EncodeInt256(value.I96, buf[320:]); err != nil {
+		return 0, err
+	}
+
+	// Field I120: int120
+	if _, err := EncodeInt256(value.I120, buf[352:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestNonStandardIntegersCall to ABI bytes
+func (value TestNonStandardIntegersCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestNonStandardIntegersCall from ABI bytes in the provided buffer
+func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
+	if len(data) < 384 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 384
+	// Decode static field U24: uint24
+	t.U24, _, err = DecodeUint24(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U36: uint36
+	t.U36, _, err = DecodeUint36(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U48: uint48
+	t.U48, _, err = DecodeUint48(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U72: uint72
+	t.U72, _, err = DecodeUint256(data[96:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U96: uint96
+	t.U96, _, err = DecodeUint256(data[128:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field U120: uint120
+	t.U120, _, err = DecodeUint256(data[160:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I24: int24
+	t.I24, _, err = DecodeInt24(data[192:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I36: int36
+	t.I36, _, err = DecodeInt36(data[224:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I48: int48
+	t.I48, _, err = DecodeInt48(data[256:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I72: int72
+	t.I72, _, err = DecodeInt256(data[288:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I96: int96
+	t.I96, _, err = DecodeInt256(data[320:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I120: int120
+	t.I120, _, err = DecodeInt256(data[352:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// EncodeWithSelector encodes testNonStandardIntegers arguments to ABI bytes including function selector
+func (t TestNonStandardIntegersCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], TestNonStandardIntegersSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+const TestNonStandardIntegersReturnStaticSize = 32
+
+// TestNonStandardIntegersReturn represents an ABI tuple
+type TestNonStandardIntegersReturn struct {
+	Field1 bool
+}
+
+// EncodedSize returns the total encoded size of TestNonStandardIntegersReturn
+func (t TestNonStandardIntegersReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestNonStandardIntegersReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestNonStandardIntegersReturn to ABI bytes in the provided buffer
+func (value TestNonStandardIntegersReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := TestNonStandardIntegersReturnStaticSize // Start dynamic data after static section
+	// Field Field1: bool
+	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestNonStandardIntegersReturn to ABI bytes
+func (value TestNonStandardIntegersReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestNonStandardIntegersReturn from ABI bytes in the provided buffer
+func (t *TestNonStandardIntegersReturn) Decode(data []byte) (int, error) {
 	if len(data) < 32 {
 		return 0, io.ErrUnexpectedEOF
 	}

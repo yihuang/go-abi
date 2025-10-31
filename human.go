@@ -588,7 +588,7 @@ func normalizeType(typeStr string) (string, error) {
 
 		if len(typeStr) > len(prefix) {
 			sizeStr := typeStr[len(prefix):]
-			if size, err := strconv.Atoi(sizeStr); err == nil && size >= 8 && size <= 256 && size%8 == 0 {
+			if size, err := strconv.Atoi(sizeStr); err == nil && size >= 8 && size <= 256 {
 				return typeStr, nil
 			}
 		}
