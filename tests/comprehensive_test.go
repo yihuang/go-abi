@@ -117,13 +117,21 @@ func TestComprehensiveNonStandardIntegers(t *testing.T) {
 	_, err = decoded.Decode(encoded[4:])
 	require.NoError(t, err)
 
-	// Verify native types are correct (big.Int values may differ due to encoding differences)
+	// Verify native types are correct
 	require.Equal(t, args.U24, decoded.U24)   // uint32
 	require.Equal(t, args.U36, decoded.U36)   // uint64
 	require.Equal(t, args.U48, decoded.U48)   // uint64
 	require.Equal(t, args.I24, decoded.I24)   // int32
 	require.Equal(t, args.I36, decoded.I36)   // int64
 	require.Equal(t, args.I48, decoded.I48)   // int64
+
+	// Verify big.Int types are correct
+	require.Equal(t, args.U72, decoded.U72)   // uint72 - big.Int
+	require.Equal(t, args.U96, decoded.U96)   // uint96 - big.Int
+	require.Equal(t, args.U120, decoded.U120) // uint120 - big.Int
+	require.Equal(t, args.I72, decoded.I72)   // int72 - big.Int
+	require.Equal(t, args.I96, decoded.I96)   // int96 - big.Int
+	require.Equal(t, args.I120, decoded.I120) // int120 - big.Int
 }
 
 func TestComprehensiveFixedArrays(t *testing.T) {
