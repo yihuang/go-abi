@@ -8,6 +8,7 @@ type Options struct {
 	// Map of tuple definitions to existing struct names,
 	// to avoid generating duplicate structs
 	ExternalTuples map[string]string
+	Prefix         string
 }
 
 func NewOptions(opts ...Option) *Options {
@@ -33,6 +34,12 @@ func PackageName(name string) Option {
 func ModuleName(name string) Option {
 	return func(o *Options) {
 		o.ModuleName = name
+	}
+}
+
+func Prefix(p string) Option {
+	return func(o *Options) {
+		o.Prefix = p
 	}
 }
 

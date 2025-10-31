@@ -12,6 +12,7 @@ func main() {
 	var (
 		inputFile     = flag.String("input", os.Getenv("GOFILE"), "Input file (JSON ABI or Go source file)")
 		moduleName    = flag.String("module", "", "Output module, output file will be $module.abi.go")
+		prefix        = flag.String("prefix", "", "Prefix for generated types and functions")
 		packageName   = flag.String("package", os.Getenv("GOPACKAGE"), "Package name for generated code")
 		varName       = flag.String("var", "", "Variable name containing human-readable ABI (for Go source files)")
 		extTuplesFlag = flag.String("external-tuples", "", "External tuple mappings in format 'key1=value1,key2=value2'")
@@ -22,6 +23,7 @@ func main() {
 	opts := []generator.Option{
 		generator.PackageName(*packageName),
 		generator.ModuleName(*moduleName),
+		generator.Prefix(*prefix),
 	}
 
 	if *imports != "" {

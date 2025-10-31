@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var TestABI -module test
+//go:generate go run ../cmd -var TestABI -module test -prefix test
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{

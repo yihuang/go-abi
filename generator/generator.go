@@ -235,7 +235,7 @@ func (g *Generator) collectAllTypes(methods []abi.Method) []abi.Type {
 
 func (g *Generator) genFuncName(t abi.Type, fn string) string {
 	typeID := GenTypeIdentifier(t)
-	return fmt.Sprintf("_%s%s%s", ToCamel(g.Options.ModuleName), fn, typeID)
+	return fmt.Sprintf("%s%s%s", ToCamel(g.Options.Prefix), fn, typeID)
 }
 
 // genEncodingFunction generates a standalone encoding function for a specific ABI type
