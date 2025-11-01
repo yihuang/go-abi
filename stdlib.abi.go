@@ -3046,6 +3046,11 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t StdlibCall) GetMethodName() string {
+	return "stdlib"
+}
+
 // EncodeWithSelector encodes stdlib arguments to ABI bytes including function selector
 func (t StdlibCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())

@@ -781,6 +781,11 @@ func (t *BalanceOfCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t BalanceOfCall) GetMethodName() string {
+	return "balanceOf"
+}
+
 // EncodeWithSelector encodes balanceOf arguments to ABI bytes including function selector
 func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -913,6 +918,11 @@ func (t *BatchProcessCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t BatchProcessCall) GetMethodName() string {
+	return "batchProcess"
+}
+
 // EncodeWithSelector encodes batchProcess arguments to ABI bytes including function selector
 func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -978,6 +988,11 @@ func (t *BatchProcessReturn) Decode(data []byte) (int, error) {
 // CommunityPoolCall represents the input arguments for communityPool function
 type CommunityPoolCall struct {
 	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t CommunityPoolCall) GetMethodName() string {
+	return "communityPool"
 }
 
 // EncodeWithSelector encodes communityPool arguments to ABI bytes including function selector
@@ -1065,6 +1080,11 @@ type EmptyArgsCall struct {
 	abi.EmptyTuple
 }
 
+// GetMethodName returns the function name
+func (t EmptyArgsCall) GetMethodName() string {
+	return "emptyArgs"
+}
+
 // EncodeWithSelector encodes emptyArgs arguments to ABI bytes including function selector
 func (t EmptyArgsCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1130,6 +1150,11 @@ func (t *GetBalancesCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t GetBalancesCall) GetMethodName() string {
+	return "getBalances"
 }
 
 // EncodeWithSelector encodes getBalances arguments to ABI bytes including function selector
@@ -1288,6 +1313,11 @@ func (t *ProcessUserDataCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t ProcessUserDataCall) GetMethodName() string {
+	return "processUserData"
+}
+
 // EncodeWithSelector encodes processUserData arguments to ABI bytes including function selector
 func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1431,6 +1461,11 @@ func (t *SetDataCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t SetDataCall) GetMethodName() string {
+	return "setData"
+}
+
 // EncodeWithSelector encodes setData arguments to ABI bytes including function selector
 func (t SetDataCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1514,6 +1549,11 @@ func (t *SetMessageCall) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t SetMessageCall) GetMethodName() string {
+	return "setMessage"
 }
 
 // EncodeWithSelector encodes setMessage arguments to ABI bytes including function selector
@@ -1707,6 +1747,11 @@ func (t *SmallIntegersCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t SmallIntegersCall) GetMethodName() string {
+	return "smallIntegers"
+}
+
 // EncodeWithSelector encodes smallIntegers arguments to ABI bytes including function selector
 func (t SmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1830,6 +1875,11 @@ func (t *TransferCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TransferCall) GetMethodName() string {
+	return "transfer"
 }
 
 // EncodeWithSelector encodes transfer arguments to ABI bytes including function selector
@@ -1988,6 +2038,11 @@ func (t *TransferBatchCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t TransferBatchCall) GetMethodName() string {
+	return "transferBatch"
+}
+
 // EncodeWithSelector encodes transferBatch arguments to ABI bytes including function selector
 func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -2140,6 +2195,11 @@ func (t *UpdateProfileCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t UpdateProfileCall) GetMethodName() string {
+	return "updateProfile"
 }
 
 // EncodeWithSelector encodes updateProfile arguments to ABI bytes including function selector

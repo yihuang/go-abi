@@ -84,6 +84,11 @@ func (t *SendCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t SendCall) GetMethodName() string {
+	return "send"
+}
+
 // EncodeWithSelector encodes send arguments to ABI bytes including function selector
 func (t SendCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())

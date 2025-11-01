@@ -22,6 +22,8 @@ type Tuple interface {
 
 type MethodCall interface {
 	Tuple
+
+	GetMethodName() string
 	EncodeWithSelector() ([]byte, error)
 }
 

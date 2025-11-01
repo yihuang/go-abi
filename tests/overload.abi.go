@@ -98,6 +98,11 @@ func (t *Overloaded1Call) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t Overloaded1Call) GetMethodName() string {
+	return "overloaded1"
+}
+
 // EncodeWithSelector encodes overloaded1 arguments to ABI bytes including function selector
 func (t Overloaded1Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -232,6 +237,11 @@ func (t *Overloaded10Call) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t Overloaded10Call) GetMethodName() string {
+	return "overloaded10"
 }
 
 // EncodeWithSelector encodes overloaded10 arguments to ABI bytes including function selector
@@ -399,6 +409,11 @@ func (t *Overloaded11Call) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t Overloaded11Call) GetMethodName() string {
+	return "overloaded11"
+}
+
 // EncodeWithSelector encodes overloaded11 arguments to ABI bytes including function selector
 func (t Overloaded11Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -513,6 +528,11 @@ func (t *Overloaded2Call) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t Overloaded2Call) GetMethodName() string {
+	return "overloaded2"
+}
+
 // EncodeWithSelector encodes overloaded2 arguments to ABI bytes including function selector
 func (t Overloaded2Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -578,6 +598,11 @@ func (t *Overloaded2Return) Decode(data []byte) (int, error) {
 // Overloaded20Call represents the input arguments for overloaded20 function
 type Overloaded20Call struct {
 	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t Overloaded20Call) GetMethodName() string {
+	return "overloaded20"
 }
 
 // EncodeWithSelector encodes overloaded20 arguments to ABI bytes including function selector

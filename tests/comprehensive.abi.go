@@ -1502,6 +1502,11 @@ func (t *TestComplexDynamicTuplesCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t TestComplexDynamicTuplesCall) GetMethodName() string {
+	return "testComplexDynamicTuples"
+}
+
 // EncodeWithSelector encodes testComplexDynamicTuples arguments to ABI bytes including function selector
 func (t TestComplexDynamicTuplesCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1634,6 +1639,11 @@ func (t *TestDeeplyNestedCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t TestDeeplyNestedCall) GetMethodName() string {
+	return "testDeeplyNested"
+}
+
 // EncodeWithSelector encodes testDeeplyNested arguments to ABI bytes including function selector
 func (t TestDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1764,6 +1774,11 @@ func (t *TestExternalTupleCall) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TestExternalTupleCall) GetMethodName() string {
+	return "testExternalTuple"
 }
 
 // EncodeWithSelector encodes testExternalTuple arguments to ABI bytes including function selector
@@ -1900,6 +1915,11 @@ func (t *TestFixedArraysCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TestFixedArraysCall) GetMethodName() string {
+	return "testFixedArrays"
 }
 
 // EncodeWithSelector encodes testFixedArrays arguments to ABI bytes including function selector
@@ -2091,6 +2111,11 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t TestMixedTypesCall) GetMethodName() string {
+	return "testMixedTypes"
+}
+
 // EncodeWithSelector encodes testMixedTypes arguments to ABI bytes including function selector
 func (t TestMixedTypesCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -2271,6 +2296,11 @@ func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t TestNestedDynamicArraysCall) GetMethodName() string {
+	return "testNestedDynamicArrays"
+}
+
 // EncodeWithSelector encodes testNestedDynamicArrays arguments to ABI bytes including function selector
 func (t TestNestedDynamicArraysCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -2401,6 +2431,11 @@ func (t *TestNestedStructCall) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TestNestedStructCall) GetMethodName() string {
+	return "testNestedStruct"
 }
 
 // EncodeWithSelector encodes testNestedStruct arguments to ABI bytes including function selector
@@ -2638,6 +2673,11 @@ func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t TestNonStandardIntegersCall) GetMethodName() string {
+	return "testNonStandardIntegers"
+}
+
 // EncodeWithSelector encodes testNonStandardIntegers arguments to ABI bytes including function selector
 func (t TestNonStandardIntegersCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -2827,6 +2867,11 @@ func (t *TestSmallIntegersCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TestSmallIntegersCall) GetMethodName() string {
+	return "testSmallIntegers"
 }
 
 // EncodeWithSelector encodes testSmallIntegers arguments to ABI bytes including function selector

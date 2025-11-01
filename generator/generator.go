@@ -622,6 +622,13 @@ func (g *Generator) genFunction(method ethabi.Method) {
 		g.L("}")
 	}
 
+	// Name method
+	g.L("")
+	g.L("// GetMethodName returns the function name")
+	g.L("func (t %s) GetMethodName() string {", name)
+	g.L("\treturn \"%s\"", method.Name)
+	g.L("}")
+
 	g.L("")
 	g.L("// EncodeWithSelector encodes %s arguments to ABI bytes including function selector", method.Name)
 	g.L("func (t %s) EncodeWithSelector() ([]byte, error) {", name)

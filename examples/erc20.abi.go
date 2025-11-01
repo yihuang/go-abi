@@ -111,6 +111,11 @@ func (t *AllowanceCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t AllowanceCall) GetMethodName() string {
+	return "allowance"
+}
+
 // EncodeWithSelector encodes allowance arguments to ABI bytes including function selector
 func (t AllowanceCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -236,6 +241,11 @@ func (t *ApproveCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t ApproveCall) GetMethodName() string {
+	return "approve"
+}
+
 // EncodeWithSelector encodes approve arguments to ABI bytes including function selector
 func (t ApproveCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -350,6 +360,11 @@ func (t *BalanceOfCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// GetMethodName returns the function name
+func (t BalanceOfCall) GetMethodName() string {
+	return "balanceOf"
+}
+
 // EncodeWithSelector encodes balanceOf arguments to ABI bytes including function selector
 func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -417,6 +432,11 @@ type DecimalsCall struct {
 	abi.EmptyTuple
 }
 
+// GetMethodName returns the function name
+func (t DecimalsCall) GetMethodName() string {
+	return "decimals"
+}
+
 // EncodeWithSelector encodes decimals arguments to ABI bytes including function selector
 func (t DecimalsCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -482,6 +502,11 @@ func (t *DecimalsReturn) Decode(data []byte) (int, error) {
 // NameCall represents the input arguments for name function
 type NameCall struct {
 	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t NameCall) GetMethodName() string {
+	return "name"
 }
 
 // EncodeWithSelector encodes name arguments to ABI bytes including function selector
@@ -569,6 +594,11 @@ type SymbolCall struct {
 	abi.EmptyTuple
 }
 
+// GetMethodName returns the function name
+func (t SymbolCall) GetMethodName() string {
+	return "symbol"
+}
+
 // EncodeWithSelector encodes symbol arguments to ABI bytes including function selector
 func (t SymbolCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -652,6 +682,11 @@ func (t *SymbolReturn) Decode(data []byte) (int, error) {
 // TotalSupplyCall represents the input arguments for totalSupply function
 type TotalSupplyCall struct {
 	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t TotalSupplyCall) GetMethodName() string {
+	return "totalSupply"
 }
 
 // EncodeWithSelector encodes totalSupply arguments to ABI bytes including function selector
@@ -777,6 +812,11 @@ func (t *TransferCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TransferCall) GetMethodName() string {
+	return "transfer"
 }
 
 // EncodeWithSelector encodes transfer arguments to ABI bytes including function selector
@@ -913,6 +953,11 @@ func (t *TransferFromCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TransferFromCall) GetMethodName() string {
+	return "transferFrom"
 }
 
 // EncodeWithSelector encodes transferFrom arguments to ABI bytes including function selector
