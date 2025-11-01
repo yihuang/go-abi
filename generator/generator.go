@@ -818,7 +818,9 @@ func (g *Generator) genEvent(event ethabi.Event) {
 	if len(dataStruct.Fields) > 0 {
 		g.genStruct(dataStruct)
 	} else {
-		g.L(`type %sEventData %sEmptyTuple`, event.Name, g.StdPrefix)
+		g.L("type %sEventData struct {", event.Name)
+		g.L("\t%sEmptyTuple", g.StdPrefix)
+		g.L("}")
 	}
 
 	return
