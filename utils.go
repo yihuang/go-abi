@@ -1,11 +1,16 @@
 package abi
 
 import (
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"math/big"
+	"strings"
 
+	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func Pad32(n int) int {
@@ -54,4 +59,63 @@ func DecodeBigInt(data []byte, signed bool) (*big.Int, error) {
 
 	bigN := new(big.Int).SetBytes(data[:32])
 	return bigN, nil
+}
+
+// GenTypeIdentifier generates a unique identifier for any ABI type
+// This is used to create unique function names for encoding/decoding
+func GenTypeIdentifier(t ethabi.Type) string {
+	switch t.T {
+	case ethabi.UintTy:
+		if t.Size <= 64 {
+			return fmt.Sprintf("Uint%d", t.Size)
+		}
+		return "Uint256"
+	case ethabi.IntTy:
+		if t.Size <= 64 {
+			return fmt.Sprintf("Int%d", t.Size)
+		}
+		return "Int256"
+	case ethabi.AddressTy:
+		return "Address"
+	case ethabi.BoolTy:
+		return "Bool"
+	case ethabi.StringTy:
+		return "String"
+	case ethabi.BytesTy:
+		return "Bytes"
+	case ethabi.FixedBytesTy:
+		return fmt.Sprintf("Bytes%d", t.Size)
+	case ethabi.SliceTy:
+		return fmt.Sprintf("%sSlice", GenTypeIdentifier(*t.Elem))
+	case ethabi.ArrayTy:
+		return fmt.Sprintf("%sArray%d", GenTypeIdentifier(*t.Elem), t.Size)
+	case ethabi.TupleTy:
+		return TupleStructName(t) // Reuse existing tuple identifier logic
+	default:
+		panic("unsupported ABI type for identifier generation: " + t.String())
+	}
+}
+
+// GenTupleIdentifier generates a unique identifier for a tuple type
+func GenTupleIdentifier(t ethabi.Type) string {
+	// Create a signature based on tuple element types
+	types := make([]string, len(t.TupleElems))
+	for i, elem := range t.TupleElems {
+		types[i] = elem.String()
+	}
+
+	sig := fmt.Sprintf("(%v)", strings.Join(types, ","))
+	id := crypto.Keccak256([]byte(sig))
+	return "Tuple" + hex.EncodeToString(id)[:8] // Use first 8 chars for readability
+}
+
+// TupleStructName generates a unique struct name for a tuple type
+func TupleStructName(t ethabi.Type) string {
+	if t.TupleRawName != "" {
+		return t.TupleRawName
+	}
+
+	// Use the tuple's string representation as the basis for the struct name
+	// This creates a deterministic name based on the tuple structure
+	return GenTupleIdentifier(t)
 }

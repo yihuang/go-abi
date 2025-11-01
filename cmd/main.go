@@ -17,6 +17,7 @@ func main() {
 		varName       = flag.String("var", "", "Variable name containing human-readable ABI (for Go source files)")
 		extTuplesFlag = flag.String("external-tuples", "", "External tuple mappings in format 'key1=value1,key2=value2'")
 		imports       = flag.String("imports", "", "Additional import paths, comma-separated")
+		stdlib        = flag.Bool("stdlib", false, "Generate stdlib itself")
 	)
 	flag.Parse()
 
@@ -24,6 +25,7 @@ func main() {
 		generator.PackageName(*packageName),
 		generator.ModuleName(*moduleName),
 		generator.Prefix(*prefix),
+		generator.Stdlib(*stdlib),
 	}
 
 	if *imports != "" {

@@ -48,92 +48,6 @@ const (
 	TransferFromID = 599290589
 )
 
-// EncodeAddress encodes address to ABI bytes
-func EncodeAddress(value common.Address, buf []byte) (int, error) {
-	copy(buf[12:32], value[:])
-	return 32, nil
-}
-
-// EncodeBool encodes bool to ABI bytes
-func EncodeBool(value bool, buf []byte) (int, error) {
-	if value {
-		buf[31] = 1
-	}
-	return 32, nil
-}
-
-// EncodeString encodes string to ABI bytes
-func EncodeString(value string, buf []byte) (int, error) {
-	// Encode length
-	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
-
-	// Encode data
-	copy(buf[32:], []byte(value))
-
-	return 32 + abi.Pad32(len(value)), nil
-}
-
-// EncodeUint256 encodes uint256 to ABI bytes
-func EncodeUint256(value *big.Int, buf []byte) (int, error) {
-	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
-		return 0, err
-	}
-	return 32, nil
-}
-
-// EncodeUint8 encodes uint8 to ABI bytes
-func EncodeUint8(value uint8, buf []byte) (int, error) {
-	buf[31] = byte(value)
-	return 32, nil
-}
-
-// SizeString returns the encoded size of string
-func SizeString(value string) int {
-	size := 32 + abi.Pad32(len(value)) // length + padded string data
-	return size
-}
-
-// DecodeAddress decodes address from ABI bytes
-func DecodeAddress(data []byte) (common.Address, int, error) {
-	var result common.Address
-	copy(result[:], data[12:32])
-	return result, 32, nil
-}
-
-// DecodeBool decodes bool from ABI bytes
-func DecodeBool(data []byte) (bool, int, error) {
-	result := data[31] != 0
-	return result, 32, nil
-}
-
-// DecodeString decodes string from ABI bytes
-func DecodeString(data []byte) (string, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32+abi.Pad32(length) {
-		return "", 0, io.ErrUnexpectedEOF
-	}
-
-	// Decode data
-	result := string(data[32 : 32+length])
-	return result, 32 + abi.Pad32(length), nil
-}
-
-// DecodeUint256 decodes uint256 from ABI bytes
-func DecodeUint256(data []byte) (*big.Int, int, error) {
-	result, err := abi.DecodeBigInt(data[:32], false)
-	if err != nil {
-		return nil, 0, err
-	}
-	return result, 32, nil
-}
-
-// DecodeUint8 decodes uint8 from ABI bytes
-func DecodeUint8(data []byte) (uint8, int, error) {
-	result := uint8(data[31])
-	return result, 32, nil
-}
-
 const AllowanceCallStaticSize = 64
 
 // AllowanceCall represents an ABI tuple
@@ -154,12 +68,12 @@ func (value AllowanceCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := AllowanceCallStaticSize // Start dynamic data after static section
 	// Field Owner: address
-	if _, err := EncodeAddress(value.Owner, buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value.Owner, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field Spender: address
-	if _, err := EncodeAddress(value.Spender, buf[32:]); err != nil {
+	if _, err := abi.EncodeAddress(value.Spender, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -185,12 +99,12 @@ func (t *AllowanceCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field Owner: address
-	t.Owner, _, err = DecodeAddress(data[0:])
+	t.Owner, _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Spender: address
-	t.Spender, _, err = DecodeAddress(data[32:])
+	t.Spender, _, err = abi.DecodeAddress(data[32:])
 	if err != nil {
 		return 0, err
 	}
@@ -226,7 +140,7 @@ func (value AllowanceReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := AllowanceReturnStaticSize // Start dynamic data after static section
 	// Field Field1: uint256
-	if _, err := EncodeUint256(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -252,7 +166,7 @@ func (t *AllowanceReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: uint256
-	t.Field1, _, err = DecodeUint256(data[0:])
+	t.Field1, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -279,12 +193,12 @@ func (value ApproveCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := ApproveCallStaticSize // Start dynamic data after static section
 	// Field Spender: address
-	if _, err := EncodeAddress(value.Spender, buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value.Spender, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field Amount: uint256
-	if _, err := EncodeUint256(value.Amount, buf[32:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Amount, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -310,12 +224,12 @@ func (t *ApproveCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field Spender: address
-	t.Spender, _, err = DecodeAddress(data[0:])
+	t.Spender, _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Amount: uint256
-	t.Amount, _, err = DecodeUint256(data[32:])
+	t.Amount, _, err = abi.DecodeUint256(data[32:])
 	if err != nil {
 		return 0, err
 	}
@@ -351,7 +265,7 @@ func (value ApproveReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := ApproveReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -377,7 +291,7 @@ func (t *ApproveReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -403,7 +317,7 @@ func (value BalanceOfCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := BalanceOfCallStaticSize // Start dynamic data after static section
 	// Field Account: address
-	if _, err := EncodeAddress(value.Account, buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value.Account, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -429,7 +343,7 @@ func (t *BalanceOfCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Account: address
-	t.Account, _, err = DecodeAddress(data[0:])
+	t.Account, _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -465,7 +379,7 @@ func (value BalanceOfReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := BalanceOfReturnStaticSize // Start dynamic data after static section
 	// Field Field1: uint256
-	if _, err := EncodeUint256(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -491,7 +405,7 @@ func (t *BalanceOfReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: uint256
-	t.Field1, _, err = DecodeUint256(data[0:])
+	t.Field1, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -532,7 +446,7 @@ func (value DecimalsReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := DecimalsReturnStaticSize // Start dynamic data after static section
 	// Field Field1: uint8
-	if _, err := EncodeUint8(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint8(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -558,7 +472,7 @@ func (t *DecimalsReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: uint8
-	t.Field1, _, err = DecodeUint8(data[0:])
+	t.Field1, _, err = abi.DecodeUint8(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -590,7 +504,7 @@ type NameReturn struct {
 // EncodedSize returns the total encoded size of NameReturn
 func (t NameReturn) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeString(t.Field1)
+	dynamicSize += abi.SizeString(t.Field1)
 
 	return NameReturnStaticSize + dynamicSize
 }
@@ -607,7 +521,7 @@ func (value NameReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeString(value.Field1, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Field1, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -641,7 +555,7 @@ func (t *NameReturn) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		t.Field1, n, err = DecodeString(data[dynamicOffset:])
+		t.Field1, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -675,7 +589,7 @@ type SymbolReturn struct {
 // EncodedSize returns the total encoded size of SymbolReturn
 func (t SymbolReturn) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeString(t.Field1)
+	dynamicSize += abi.SizeString(t.Field1)
 
 	return SymbolReturnStaticSize + dynamicSize
 }
@@ -692,7 +606,7 @@ func (value SymbolReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeString(value.Field1, buf[dynamicOffset:])
+	n, err = abi.EncodeString(value.Field1, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -726,7 +640,7 @@ func (t *SymbolReturn) Decode(data []byte) (int, error) {
 		if offset != dynamicOffset {
 			return 0, errors.New("invalid offset for dynamic field Field1")
 		}
-		t.Field1, n, err = DecodeString(data[dynamicOffset:])
+		t.Field1, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
@@ -769,7 +683,7 @@ func (value TotalSupplyReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TotalSupplyReturnStaticSize // Start dynamic data after static section
 	// Field Field1: uint256
-	if _, err := EncodeUint256(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -795,7 +709,7 @@ func (t *TotalSupplyReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: uint256
-	t.Field1, _, err = DecodeUint256(data[0:])
+	t.Field1, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -822,12 +736,12 @@ func (value TransferCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferCallStaticSize // Start dynamic data after static section
 	// Field To: address
-	if _, err := EncodeAddress(value.To, buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value.To, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field Amount: uint256
-	if _, err := EncodeUint256(value.Amount, buf[32:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Amount, buf[32:]); err != nil {
 		return 0, err
 	}
 
@@ -853,12 +767,12 @@ func (t *TransferCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 64
 	// Decode static field To: address
-	t.To, _, err = DecodeAddress(data[0:])
+	t.To, _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Amount: uint256
-	t.Amount, _, err = DecodeUint256(data[32:])
+	t.Amount, _, err = abi.DecodeUint256(data[32:])
 	if err != nil {
 		return 0, err
 	}
@@ -894,7 +808,7 @@ func (value TransferReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -920,7 +834,7 @@ func (t *TransferReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -948,17 +862,17 @@ func (value TransferFromCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferFromCallStaticSize // Start dynamic data after static section
 	// Field From: address
-	if _, err := EncodeAddress(value.From, buf[0:]); err != nil {
+	if _, err := abi.EncodeAddress(value.From, buf[0:]); err != nil {
 		return 0, err
 	}
 
 	// Field To: address
-	if _, err := EncodeAddress(value.To, buf[32:]); err != nil {
+	if _, err := abi.EncodeAddress(value.To, buf[32:]); err != nil {
 		return 0, err
 	}
 
 	// Field Amount: uint256
-	if _, err := EncodeUint256(value.Amount, buf[64:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Amount, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -984,17 +898,17 @@ func (t *TransferFromCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 96
 	// Decode static field From: address
-	t.From, _, err = DecodeAddress(data[0:])
+	t.From, _, err = abi.DecodeAddress(data[0:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field To: address
-	t.To, _, err = DecodeAddress(data[32:])
+	t.To, _, err = abi.DecodeAddress(data[32:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field Amount: uint256
-	t.Amount, _, err = DecodeUint256(data[64:])
+	t.Amount, _, err = abi.DecodeUint256(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -1030,7 +944,7 @@ func (value TransferFromReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferFromReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1056,7 +970,7 @@ func (t *TransferFromReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1107,7 +1021,7 @@ func (e ApprovalEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// Owner
 		var hash common.Hash
-		if _, err := EncodeAddress(e.Owner, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.Owner, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -1115,7 +1029,7 @@ func (e ApprovalEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// Spender
 		var hash common.Hash
-		if _, err := EncodeAddress(e.Spender, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.Spender, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -1132,11 +1046,11 @@ func (e *ApprovalEventIndexed) DecodeTopics(topics []common.Hash) error {
 		return fmt.Errorf("invalid event topic for Approval event")
 	}
 	var err error
-	e.Owner, _, err = DecodeAddress(topics[1][:])
+	e.Owner, _, err = abi.DecodeAddress(topics[1][:])
 	if err != nil {
 		return err
 	}
-	e.Spender, _, err = DecodeAddress(topics[2][:])
+	e.Spender, _, err = abi.DecodeAddress(topics[2][:])
 	if err != nil {
 		return err
 	}
@@ -1162,7 +1076,7 @@ func (value ApprovalEventData) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := ApprovalEventDataStaticSize // Start dynamic data after static section
 	// Field Value: uint256
-	if _, err := EncodeUint256(value.Value, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Value, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1188,7 +1102,7 @@ func (t *ApprovalEventData) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Value: uint256
-	t.Value, _, err = DecodeUint256(data[0:])
+	t.Value, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -1231,7 +1145,7 @@ func (e TransferEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// From
 		var hash common.Hash
-		if _, err := EncodeAddress(e.From, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.From, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -1239,7 +1153,7 @@ func (e TransferEventIndexed) EncodeTopics() ([]common.Hash, error) {
 	{
 		// To
 		var hash common.Hash
-		if _, err := EncodeAddress(e.To, hash[:]); err != nil {
+		if _, err := abi.EncodeAddress(e.To, hash[:]); err != nil {
 			return nil, err
 		}
 		topics = append(topics, hash)
@@ -1256,11 +1170,11 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 		return fmt.Errorf("invalid event topic for Transfer event")
 	}
 	var err error
-	e.From, _, err = DecodeAddress(topics[1][:])
+	e.From, _, err = abi.DecodeAddress(topics[1][:])
 	if err != nil {
 		return err
 	}
-	e.To, _, err = DecodeAddress(topics[2][:])
+	e.To, _, err = abi.DecodeAddress(topics[2][:])
 	if err != nil {
 		return err
 	}
@@ -1286,7 +1200,7 @@ func (value TransferEventData) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TransferEventDataStaticSize // Start dynamic data after static section
 	// Field Value: uint256
-	if _, err := EncodeUint256(value.Value, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint256(value.Value, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -1312,7 +1226,7 @@ func (t *TransferEventData) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Value: uint256
-	t.Value, _, err = DecodeUint256(data[0:])
+	t.Value, _, err = abi.DecodeUint256(data[0:])
 	if err != nil {
 		return 0, err
 	}

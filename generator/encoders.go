@@ -3,11 +3,12 @@ package generator
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
+	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/yihuang/go-abi"
 )
 
 // genIntEncoding generates encoding for integer types
-func (g *Generator) genIntEncoding(t abi.Type) {
+func (g *Generator) genIntEncoding(t ethabi.Type) {
 	// Optimize small integer types to avoid big.Int overhead
 	if t.Size <= 64 {
 		g.genSmallIntEncoding(t)
@@ -17,7 +18,7 @@ func (g *Generator) genIntEncoding(t abi.Type) {
 }
 
 // genSmallIntEncoding generates optimized encoding for small integer types
-func (g *Generator) genSmallIntEncoding(t abi.Type) {
+func (g *Generator) genSmallIntEncoding(t ethabi.Type) {
 	// For small integers, we can use direct binary encoding without big.Int
 	// Use the closest native integer type that fits
 	var nativeType string
@@ -96,13 +97,13 @@ func (g *Generator) genSmallIntEncoding(t abi.Type) {
 }
 
 // genBigIntEncoding generates encoding for big.Int types
-func (g *Generator) genBigIntEncoding(t abi.Type) {
+func (g *Generator) genBigIntEncoding(t ethabi.Type) {
 	signed := "false"
-	if t.T == abi.IntTy {
+	if t.T == ethabi.IntTy {
 		signed = "true"
 	}
 
-	g.L("\tif err := abi.EncodeBigInt(value, buf[:32], %s); err != nil {", signed)
+	g.L("\tif err := %sEncodeBigInt(value, buf[:32], %s); err != nil {", g.StdPrefix, signed)
 	g.L("\t\treturn 0, err")
 	g.L("\t}")
 	g.L("\treturn 32, nil")
@@ -130,7 +131,7 @@ func (g *Generator) genStringEncoding() {
 	g.L("\t// Encode data")
 	g.L("\tcopy(buf[32:], []byte(value))")
 	g.L("\t")
-	g.L("\treturn 32 + abi.Pad32(len(value)), nil")
+	g.L("\treturn 32 + %sPad32(len(value)), nil", g.StdPrefix)
 }
 
 // genBytesEncoding generates encoding for bytes types
@@ -141,17 +142,17 @@ func (g *Generator) genBytesEncoding() {
 	g.L("\t// Encode data")
 	g.L("\tcopy(buf[32:], value)")
 	g.L("\t")
-	g.L("\treturn 32 + abi.Pad32(len(value)), nil")
+	g.L("\treturn 32 + %sPad32(len(value)), nil", g.StdPrefix)
 }
 
 // genFixedBytesEncoding generates encoding for fixed bytes types
-func (g *Generator) genFixedBytesEncoding(t abi.Type) {
+func (g *Generator) genFixedBytesEncoding(t ethabi.Type) {
 	g.L("\tcopy(buf[:%d], value[:])", t.Size)
 	g.L("\treturn %d, nil", t.Size)
 }
 
 // genSliceEncoding generates encoding for slice types
-func (g *Generator) genSliceEncoding(t abi.Type) {
+func (g *Generator) genSliceEncoding(t ethabi.Type) {
 	g.L("\t// Encode length")
 	g.L("\tbinary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))")
 	g.L("\tbuf = buf[32:]")
@@ -190,7 +191,7 @@ func (g *Generator) genSliceEncoding(t abi.Type) {
 }
 
 // genArrayEncoding generates encoding for array types
-func (g *Generator) genArrayEncoding(t abi.Type) {
+func (g *Generator) genArrayEncoding(t ethabi.Type) {
 	if !IsDynamicType(*t.Elem) {
 		g.L("\t// Encode fixed-size array with static elements")
 
@@ -235,9 +236,9 @@ func (g *Generator) genArrayEncoding(t abi.Type) {
 }
 
 // genTupleEncoding generates encoding for tuple types
-func (g *Generator) genTupleEncoding(t abi.Type) {
+func (g *Generator) genTupleEncoding(t ethabi.Type) {
 	g.L("\t// Encode tuple fields")
-	g.L("\tdynamicOffset := %sStaticSize // Start dynamic data after static section", TupleStructName(t))
+	g.L("\tdynamicOffset := %sStaticSize // Start dynamic data after static section", abi.TupleStructName(t))
 
 	// Generate encoding for each tuple element
 	if IsDynamicType(t) {
