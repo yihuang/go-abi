@@ -30,6 +30,14 @@ type Method interface {
 }
 
 type Event interface {
+	// indexed fields
+	EncodeTopics() []common.Hash
+	DecodeTopics([]common.Hash) error
+
+	// data fields
+	Tuple
+
+	// metadata
 	GetEventName() string
 	GetEventID() common.Hash
 }
