@@ -24,7 +24,9 @@ func EncodeBigInt(n *big.Int, buf []byte, signed bool) error {
 		}
 
 		// slow path for negative value
-		copy(buf, math.U256Bytes(n))
+		// Use a copy of n to avoid modification from math.U256Bytes
+		tmp := new(big.Int).Set(n)
+		copy(buf, math.U256Bytes(tmp))
 		return nil
 	}
 

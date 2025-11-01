@@ -684,19 +684,29 @@ func (g *Generator) abiTypeToGoType(abiType ethabi.Type) string {
 	// This is a temporary placeholder - we should refactor this to avoid duplication
 	switch abiType.T {
 	case ethabi.UintTy:
-		// Use native Go types for common sizes to avoid big.Int allocations
-		switch abiType.Size {
-		case 8, 16, 32, 64:
-			return fmt.Sprintf("uint%d", abiType.Size)
-		default:
+		// Use the closest native Go type that fits to avoid big.Int allocations
+		if abiType.Size <= 8 {
+			return "uint8"
+		} else if abiType.Size <= 16 {
+			return "uint16"
+		} else if abiType.Size <= 32 {
+			return "uint32"
+		} else if abiType.Size <= 64 {
+			return "uint64"
+		} else {
 			return "*big.Int"
 		}
 	case ethabi.IntTy:
-		// Use native Go types for common sizes to avoid big.Int allocations
-		switch abiType.Size {
-		case 8, 16, 32, 64:
-			return fmt.Sprintf("int%d", abiType.Size)
-		default:
+		// Use the closest native Go type that fits to avoid big.Int allocations
+		if abiType.Size <= 8 {
+			return "int8"
+		} else if abiType.Size <= 16 {
+			return "int16"
+		} else if abiType.Size <= 32 {
+			return "int32"
+		} else if abiType.Size <= 64 {
+			return "int64"
+		} else {
 			return "*big.Int"
 		}
 	case ethabi.AddressTy:

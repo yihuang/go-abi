@@ -14,13 +14,13 @@ import (
 
 // Function selectors
 var (
-	// stdlib(bool,uint8,uint16,uint32,uint64,uint256,int8,int16,int32,int64,int256,address,bytes32,string,bytes,bool[],uint8[],uint16[],uint32[],uint64[],uint256[],int8[],int16[],int32[],int64[],int256[],address[],bytes32[],string[],bytes[])
-	StdlibSelector = [4]byte{0x59, 0x46, 0x2e, 0x8e}
+	// stdlib(bool,address,bytes32,string,bytes,uint8,int8,uint16,int16,uint24,int24,uint32,int32,uint40,int40,uint48,int48,uint56,int56,uint64,int64,uint72,int72,uint80,int80,uint88,int88,uint96,int96,uint104,int104,uint112,int112,uint120,int120,uint128,int128,bool[],address[],bytes32[],string[],bytes[],uint8[],int8[],uint16[],int16[],uint24[],int24[],uint32[],int32[],uint40[],int40[],uint48[],int48[],uint56[],int56[],uint64[],int64[],uint72[],int72[],uint80[],int80[],uint88[],int88[],uint96[],int96[],uint104[],int104[],uint112[],int112[],uint120[],int120[],uint128[],int128[])
+	StdlibSelector = [4]byte{0x30, 0x78, 0xd0, 0x78}
 )
 
 // Big endian integer versions of function selectors
 const (
-	StdlibID = 1497771662
+	StdlibID = 813224056
 )
 
 // EncodeAddress encodes address to ABI bytes
@@ -166,7 +166,37 @@ func EncodeInt16Slice(value []int16, buf []byte) (int, error) {
 	return offset + 32, nil
 }
 
-// EncodeInt256 encodes int256 to ABI bytes
+// EncodeInt24 encodes int24 to ABI bytes
+func EncodeInt24(value int32, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 28; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// EncodeInt24Slice encodes int24[] to ABI bytes
+func EncodeInt24Slice(value []int32, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeInt24(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeInt256 encodes int72 to ABI bytes
 func EncodeInt256(value *big.Int, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], true); err != nil {
 		return 0, err
@@ -174,7 +204,7 @@ func EncodeInt256(value *big.Int, buf []byte) (int, error) {
 	return 32, nil
 }
 
-// EncodeInt256Slice encodes int256[] to ABI bytes
+// EncodeInt256Slice encodes int72[] to ABI bytes
 func EncodeInt256Slice(value []*big.Int, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
@@ -214,6 +244,96 @@ func EncodeInt32Slice(value []int32, buf []byte) (int, error) {
 	var offset int
 	for _, elem := range value {
 		n, err := EncodeInt32(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeInt40 encodes int40 to ABI bytes
+func EncodeInt40(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 24; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// EncodeInt40Slice encodes int40[] to ABI bytes
+func EncodeInt40Slice(value []int64, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeInt40(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeInt48 encodes int48 to ABI bytes
+func EncodeInt48(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 24; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// EncodeInt48Slice encodes int48[] to ABI bytes
+func EncodeInt48Slice(value []int64, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeInt48(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeInt56 encodes int56 to ABI bytes
+func EncodeInt56(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		for i := 0; i < 24; i++ {
+			buf[i] = 0xff
+		}
+	}
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// EncodeInt56Slice encodes int56[] to ABI bytes
+func EncodeInt56Slice(value []int64, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeInt56(elem, buf[offset:])
 		if err != nil {
 			return 0, err
 		}
@@ -344,7 +464,32 @@ func EncodeUint16Slice(value []uint16, buf []byte) (int, error) {
 	return offset + 32, nil
 }
 
-// EncodeUint256 encodes uint256 to ABI bytes
+// EncodeUint24 encodes uint24 to ABI bytes
+func EncodeUint24(value uint32, buf []byte) (int, error) {
+	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	return 32, nil
+}
+
+// EncodeUint24Slice encodes uint24[] to ABI bytes
+func EncodeUint24Slice(value []uint32, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeUint24(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeUint256 encodes uint72 to ABI bytes
 func EncodeUint256(value *big.Int, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
@@ -352,7 +497,7 @@ func EncodeUint256(value *big.Int, buf []byte) (int, error) {
 	return 32, nil
 }
 
-// EncodeUint256Slice encodes uint256[] to ABI bytes
+// EncodeUint256Slice encodes uint72[] to ABI bytes
 func EncodeUint256Slice(value []*big.Int, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
@@ -387,6 +532,81 @@ func EncodeUint32Slice(value []uint32, buf []byte) (int, error) {
 	var offset int
 	for _, elem := range value {
 		n, err := EncodeUint32(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeUint40 encodes uint40 to ABI bytes
+func EncodeUint40(value uint64, buf []byte) (int, error) {
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// EncodeUint40Slice encodes uint40[] to ABI bytes
+func EncodeUint40Slice(value []uint64, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeUint40(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeUint48 encodes uint48 to ABI bytes
+func EncodeUint48(value uint64, buf []byte) (int, error) {
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// EncodeUint48Slice encodes uint48[] to ABI bytes
+func EncodeUint48Slice(value []uint64, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeUint48(elem, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// EncodeUint56 encodes uint56 to ABI bytes
+func EncodeUint56(value uint64, buf []byte) (int, error) {
+	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	return 32, nil
+}
+
+// EncodeUint56Slice encodes uint56[] to ABI bytes
+func EncodeUint56Slice(value []uint64, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := EncodeUint56(elem, buf[offset:])
 		if err != nil {
 			return 0, err
 		}
@@ -485,7 +705,13 @@ func SizeInt16Slice(value []int16) int {
 	return size
 }
 
-// SizeInt256Slice returns the encoded size of int256[]
+// SizeInt24Slice returns the encoded size of int24[]
+func SizeInt24Slice(value []int32) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeInt256Slice returns the encoded size of int72[]
 func SizeInt256Slice(value []*big.Int) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
@@ -493,6 +719,24 @@ func SizeInt256Slice(value []*big.Int) int {
 
 // SizeInt32Slice returns the encoded size of int32[]
 func SizeInt32Slice(value []int32) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeInt40Slice returns the encoded size of int40[]
+func SizeInt40Slice(value []int64) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeInt48Slice returns the encoded size of int48[]
+func SizeInt48Slice(value []int64) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeInt56Slice returns the encoded size of int56[]
+func SizeInt56Slice(value []int64) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
@@ -530,7 +774,13 @@ func SizeUint16Slice(value []uint16) int {
 	return size
 }
 
-// SizeUint256Slice returns the encoded size of uint256[]
+// SizeUint24Slice returns the encoded size of uint24[]
+func SizeUint24Slice(value []uint32) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeUint256Slice returns the encoded size of uint72[]
 func SizeUint256Slice(value []*big.Int) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
@@ -538,6 +788,24 @@ func SizeUint256Slice(value []*big.Int) int {
 
 // SizeUint32Slice returns the encoded size of uint32[]
 func SizeUint32Slice(value []uint32) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeUint40Slice returns the encoded size of uint40[]
+func SizeUint40Slice(value []uint64) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeUint48Slice returns the encoded size of uint48[]
+func SizeUint48Slice(value []uint64) int {
+	size := 32 + 32*len(value) // length + static elements
+	return size
+}
+
+// SizeUint56Slice returns the encoded size of uint56[]
+func SizeUint56Slice(value []uint64) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
@@ -744,7 +1012,45 @@ func DecodeInt16Slice(data []byte) ([]int16, int, error) {
 	return result, offset + 32, nil
 }
 
-// DecodeInt256 decodes int256 from ABI bytes
+// DecodeInt24 decodes int24 from ABI bytes
+func DecodeInt24(data []byte) (int32, int, error) {
+	var result int32
+	result = int32(binary.BigEndian.Uint32(data[28:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffff // Sign extend
+	}
+	return result, 32, nil
+}
+
+// DecodeInt24Slice decodes int24[] from ABI bytes
+func DecodeInt24Slice(data []byte) ([]int32, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]int32, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeInt24(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// DecodeInt256 decodes int72 from ABI bytes
 func DecodeInt256(data []byte) (*big.Int, int, error) {
 	result, err := DecodeBigInt(data[:32], true)
 	if err != nil {
@@ -753,7 +1059,7 @@ func DecodeInt256(data []byte) (*big.Int, int, error) {
 	return result, 32, nil
 }
 
-// DecodeInt256Slice decodes int256[] from ABI bytes
+// DecodeInt256Slice decodes int72[] from ABI bytes
 func DecodeInt256Slice(data []byte) ([]*big.Int, int, error) {
 	// Decode length
 	length := int(binary.BigEndian.Uint64(data[24:32]))
@@ -811,6 +1117,120 @@ func DecodeInt32Slice(data []byte) ([]int32, int, error) {
 	result := make([]int32, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeInt32(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// DecodeInt40 decodes int40 from ABI bytes
+func DecodeInt40(data []byte) (int64, int, error) {
+	var result int64
+	result = int64(binary.BigEndian.Uint64(data[24:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffffffffffff // Sign extend
+	}
+	return result, 32, nil
+}
+
+// DecodeInt40Slice decodes int40[] from ABI bytes
+func DecodeInt40Slice(data []byte) ([]int64, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]int64, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeInt40(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// DecodeInt48 decodes int48 from ABI bytes
+func DecodeInt48(data []byte) (int64, int, error) {
+	var result int64
+	result = int64(binary.BigEndian.Uint64(data[24:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffffffffffff // Sign extend
+	}
+	return result, 32, nil
+}
+
+// DecodeInt48Slice decodes int48[] from ABI bytes
+func DecodeInt48Slice(data []byte) ([]int64, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]int64, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeInt48(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// DecodeInt56 decodes int56 from ABI bytes
+func DecodeInt56(data []byte) (int64, int, error) {
+	var result int64
+	result = int64(binary.BigEndian.Uint64(data[24:32]))
+	if data[0]&0x80 != 0 { // Check sign bit
+		result = result | ^0x7fffffffffffffff // Sign extend
+	}
+	return result, 32, nil
+}
+
+// DecodeInt56Slice decodes int56[] from ABI bytes
+func DecodeInt56Slice(data []byte) ([]int64, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]int64, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeInt56(data[offset:])
 		if err != nil {
 			return nil, 0, err
 		}
@@ -944,7 +1364,8 @@ func DecodeStringSlice(data []byte) ([]string, int, error) {
 
 // DecodeUint16 decodes uint16 from ABI bytes
 func DecodeUint16(data []byte) (uint16, int, error) {
-	result := binary.BigEndian.Uint16(data[30:32])
+	var result uint16
+	result = binary.BigEndian.Uint16(data[30:32])
 	return result, 32, nil
 }
 
@@ -976,7 +1397,42 @@ func DecodeUint16Slice(data []byte) ([]uint16, int, error) {
 	return result, offset + 32, nil
 }
 
-// DecodeUint256 decodes uint256 from ABI bytes
+// DecodeUint24 decodes uint24 from ABI bytes
+func DecodeUint24(data []byte) (uint32, int, error) {
+	var result uint32
+	result = binary.BigEndian.Uint32(data[28:32])
+	return result, 32, nil
+}
+
+// DecodeUint24Slice decodes uint24[] from ABI bytes
+func DecodeUint24Slice(data []byte) ([]uint32, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]uint32, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeUint24(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// DecodeUint256 decodes uint72 from ABI bytes
 func DecodeUint256(data []byte) (*big.Int, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
@@ -985,7 +1441,7 @@ func DecodeUint256(data []byte) (*big.Int, int, error) {
 	return result, 32, nil
 }
 
-// DecodeUint256Slice decodes uint256[] from ABI bytes
+// DecodeUint256Slice decodes uint72[] from ABI bytes
 func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
 	// Decode length
 	length := int(binary.BigEndian.Uint64(data[24:32]))
@@ -1015,7 +1471,8 @@ func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
 
 // DecodeUint32 decodes uint32 from ABI bytes
 func DecodeUint32(data []byte) (uint32, int, error) {
-	result := binary.BigEndian.Uint32(data[28:32])
+	var result uint32
+	result = binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
@@ -1047,9 +1504,115 @@ func DecodeUint32Slice(data []byte) ([]uint32, int, error) {
 	return result, offset + 32, nil
 }
 
+// DecodeUint40 decodes uint40 from ABI bytes
+func DecodeUint40(data []byte) (uint64, int, error) {
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
+	return result, 32, nil
+}
+
+// DecodeUint40Slice decodes uint40[] from ABI bytes
+func DecodeUint40Slice(data []byte) ([]uint64, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]uint64, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeUint40(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// DecodeUint48 decodes uint48 from ABI bytes
+func DecodeUint48(data []byte) (uint64, int, error) {
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
+	return result, 32, nil
+}
+
+// DecodeUint48Slice decodes uint48[] from ABI bytes
+func DecodeUint48Slice(data []byte) ([]uint64, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]uint64, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeUint48(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// DecodeUint56 decodes uint56 from ABI bytes
+func DecodeUint56(data []byte) (uint64, int, error) {
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
+	return result, 32, nil
+}
+
+// DecodeUint56Slice decodes uint56[] from ABI bytes
+func DecodeUint56Slice(data []byte) ([]uint64, int, error) {
+	// Decode length
+	length := int(binary.BigEndian.Uint64(data[24:32]))
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	data = data[32:]
+	if len(data) < 32*length {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		err    error
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]uint64, length)
+	for i := 0; i < length; i++ {
+		result[i], n, err = DecodeUint56(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
 // DecodeUint64 decodes uint64 from ABI bytes
 func DecodeUint64(data []byte) (uint64, int, error) {
-	result := binary.BigEndian.Uint64(data[24:32])
+	var result uint64
+	result = binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
@@ -1083,7 +1646,8 @@ func DecodeUint64Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint8 decodes uint8 from ABI bytes
 func DecodeUint8(data []byte) (uint8, int, error) {
-	result := uint8(data[31])
+	var result uint8
+	result = uint8(data[31])
 	return result, 32, nil
 }
 
@@ -1115,62 +1679,128 @@ func DecodeUint8Slice(data []byte) ([]uint8, int, error) {
 	return result, offset + 32, nil
 }
 
-const StdlibCallStaticSize = 960
+const StdlibCallStaticSize = 2368
 
 // StdlibCall represents an ABI tuple
 type StdlibCall struct {
 	Field1  bool
-	Field2  uint8
-	Field3  uint16
-	Field4  uint32
-	Field5  uint64
-	Field6  *big.Int
+	Field2  common.Address
+	Field3  [32]byte
+	Field4  string
+	Field5  []byte
+	Field6  uint8
 	Field7  int8
-	Field8  int16
-	Field9  int32
-	Field10 int64
-	Field11 *big.Int
-	Field12 common.Address
-	Field13 [32]byte
-	Field14 string
-	Field15 []byte
-	Field16 []bool
-	Field17 []uint8
-	Field18 []uint16
-	Field19 []uint32
-	Field20 []uint64
-	Field21 []*big.Int
-	Field22 []int8
-	Field23 []int16
-	Field24 []int32
-	Field25 []int64
-	Field26 []*big.Int
-	Field27 []common.Address
-	Field28 [][32]byte
-	Field29 []string
-	Field30 [][]byte
+	Field8  uint16
+	Field9  int16
+	Field10 uint32
+	Field11 int32
+	Field12 uint32
+	Field13 int32
+	Field14 uint64
+	Field15 int64
+	Field16 uint64
+	Field17 int64
+	Field18 uint64
+	Field19 int64
+	Field20 uint64
+	Field21 int64
+	Field22 *big.Int
+	Field23 *big.Int
+	Field24 *big.Int
+	Field25 *big.Int
+	Field26 *big.Int
+	Field27 *big.Int
+	Field28 *big.Int
+	Field29 *big.Int
+	Field30 *big.Int
+	Field31 *big.Int
+	Field32 *big.Int
+	Field33 *big.Int
+	Field34 *big.Int
+	Field35 *big.Int
+	Field36 *big.Int
+	Field37 *big.Int
+	Field38 []bool
+	Field39 []common.Address
+	Field40 [][32]byte
+	Field41 []string
+	Field42 [][]byte
+	Field43 []uint8
+	Field44 []int8
+	Field45 []uint16
+	Field46 []int16
+	Field47 []uint32
+	Field48 []int32
+	Field49 []uint32
+	Field50 []int32
+	Field51 []uint64
+	Field52 []int64
+	Field53 []uint64
+	Field54 []int64
+	Field55 []uint64
+	Field56 []int64
+	Field57 []uint64
+	Field58 []int64
+	Field59 []*big.Int
+	Field60 []*big.Int
+	Field61 []*big.Int
+	Field62 []*big.Int
+	Field63 []*big.Int
+	Field64 []*big.Int
+	Field65 []*big.Int
+	Field66 []*big.Int
+	Field67 []*big.Int
+	Field68 []*big.Int
+	Field69 []*big.Int
+	Field70 []*big.Int
+	Field71 []*big.Int
+	Field72 []*big.Int
+	Field73 []*big.Int
+	Field74 []*big.Int
 }
 
 // EncodedSize returns the total encoded size of StdlibCall
 func (t StdlibCall) EncodedSize() int {
 	dynamicSize := 0
-	dynamicSize += SizeString(t.Field14)
-	dynamicSize += SizeBytes(t.Field15)
-	dynamicSize += SizeBoolSlice(t.Field16)
-	dynamicSize += SizeUint8Slice(t.Field17)
-	dynamicSize += SizeUint16Slice(t.Field18)
-	dynamicSize += SizeUint32Slice(t.Field19)
-	dynamicSize += SizeUint64Slice(t.Field20)
-	dynamicSize += SizeUint256Slice(t.Field21)
-	dynamicSize += SizeInt8Slice(t.Field22)
-	dynamicSize += SizeInt16Slice(t.Field23)
-	dynamicSize += SizeInt32Slice(t.Field24)
-	dynamicSize += SizeInt64Slice(t.Field25)
-	dynamicSize += SizeInt256Slice(t.Field26)
-	dynamicSize += SizeAddressSlice(t.Field27)
-	dynamicSize += SizeBytes32Slice(t.Field28)
-	dynamicSize += SizeStringSlice(t.Field29)
-	dynamicSize += SizeBytesSlice(t.Field30)
+	dynamicSize += SizeString(t.Field4)
+	dynamicSize += SizeBytes(t.Field5)
+	dynamicSize += SizeBoolSlice(t.Field38)
+	dynamicSize += SizeAddressSlice(t.Field39)
+	dynamicSize += SizeBytes32Slice(t.Field40)
+	dynamicSize += SizeStringSlice(t.Field41)
+	dynamicSize += SizeBytesSlice(t.Field42)
+	dynamicSize += SizeUint8Slice(t.Field43)
+	dynamicSize += SizeInt8Slice(t.Field44)
+	dynamicSize += SizeUint16Slice(t.Field45)
+	dynamicSize += SizeInt16Slice(t.Field46)
+	dynamicSize += SizeUint24Slice(t.Field47)
+	dynamicSize += SizeInt24Slice(t.Field48)
+	dynamicSize += SizeUint32Slice(t.Field49)
+	dynamicSize += SizeInt32Slice(t.Field50)
+	dynamicSize += SizeUint40Slice(t.Field51)
+	dynamicSize += SizeInt40Slice(t.Field52)
+	dynamicSize += SizeUint48Slice(t.Field53)
+	dynamicSize += SizeInt48Slice(t.Field54)
+	dynamicSize += SizeUint56Slice(t.Field55)
+	dynamicSize += SizeInt56Slice(t.Field56)
+	dynamicSize += SizeUint64Slice(t.Field57)
+	dynamicSize += SizeInt64Slice(t.Field58)
+	dynamicSize += SizeUint256Slice(t.Field59)
+	dynamicSize += SizeInt256Slice(t.Field60)
+	dynamicSize += SizeUint256Slice(t.Field61)
+	dynamicSize += SizeInt256Slice(t.Field62)
+	dynamicSize += SizeUint256Slice(t.Field63)
+	dynamicSize += SizeInt256Slice(t.Field64)
+	dynamicSize += SizeUint256Slice(t.Field65)
+	dynamicSize += SizeInt256Slice(t.Field66)
+	dynamicSize += SizeUint256Slice(t.Field67)
+	dynamicSize += SizeInt256Slice(t.Field68)
+	dynamicSize += SizeUint256Slice(t.Field69)
+	dynamicSize += SizeInt256Slice(t.Field70)
+	dynamicSize += SizeUint256Slice(t.Field71)
+	dynamicSize += SizeInt256Slice(t.Field72)
+	dynamicSize += SizeUint256Slice(t.Field73)
+	dynamicSize += SizeInt256Slice(t.Field74)
 
 	return StdlibCallStaticSize + dynamicSize
 }
@@ -1188,28 +1818,38 @@ func (value StdlibCall) EncodeTo(buf []byte) (int, error) {
 		return 0, err
 	}
 
-	// Field Field2: uint8
-	if _, err := EncodeUint8(value.Field2, buf[32:]); err != nil {
+	// Field Field2: address
+	if _, err := EncodeAddress(value.Field2, buf[32:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field3: uint16
-	if _, err := EncodeUint16(value.Field3, buf[64:]); err != nil {
+	// Field Field3: bytes32
+	if _, err := EncodeBytes32(value.Field3, buf[64:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field4: uint32
-	if _, err := EncodeUint32(value.Field4, buf[96:]); err != nil {
+	// Field Field4: string
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[96+24:96+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeString(value.Field4, buf[dynamicOffset:])
+	if err != nil {
 		return 0, err
 	}
+	dynamicOffset += n
 
-	// Field Field5: uint64
-	if _, err := EncodeUint64(value.Field5, buf[128:]); err != nil {
+	// Field Field5: bytes
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[128+24:128+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeBytes(value.Field5, buf[dynamicOffset:])
+	if err != nil {
 		return 0, err
 	}
+	dynamicOffset += n
 
-	// Field Field6: uint256
-	if _, err := EncodeUint256(value.Field6, buf[160:]); err != nil {
+	// Field Field6: uint8
+	if _, err := EncodeUint8(value.Field6, buf[160:]); err != nil {
 		return 0, err
 	}
 
@@ -1218,201 +1858,521 @@ func (value StdlibCall) EncodeTo(buf []byte) (int, error) {
 		return 0, err
 	}
 
-	// Field Field8: int16
-	if _, err := EncodeInt16(value.Field8, buf[224:]); err != nil {
+	// Field Field8: uint16
+	if _, err := EncodeUint16(value.Field8, buf[224:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field9: int32
-	if _, err := EncodeInt32(value.Field9, buf[256:]); err != nil {
+	// Field Field9: int16
+	if _, err := EncodeInt16(value.Field9, buf[256:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field10: int64
-	if _, err := EncodeInt64(value.Field10, buf[288:]); err != nil {
+	// Field Field10: uint24
+	if _, err := EncodeUint24(value.Field10, buf[288:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field11: int256
-	if _, err := EncodeInt256(value.Field11, buf[320:]); err != nil {
+	// Field Field11: int24
+	if _, err := EncodeInt24(value.Field11, buf[320:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field12: address
-	if _, err := EncodeAddress(value.Field12, buf[352:]); err != nil {
+	// Field Field12: uint32
+	if _, err := EncodeUint32(value.Field12, buf[352:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field13: bytes32
-	if _, err := EncodeBytes32(value.Field13, buf[384:]); err != nil {
+	// Field Field13: int32
+	if _, err := EncodeInt32(value.Field13, buf[384:]); err != nil {
 		return 0, err
 	}
 
-	// Field Field14: string
+	// Field Field14: uint40
+	if _, err := EncodeUint40(value.Field14, buf[416:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field15: int40
+	if _, err := EncodeInt40(value.Field15, buf[448:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field16: uint48
+	if _, err := EncodeUint48(value.Field16, buf[480:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field17: int48
+	if _, err := EncodeInt48(value.Field17, buf[512:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field18: uint56
+	if _, err := EncodeUint56(value.Field18, buf[544:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field19: int56
+	if _, err := EncodeInt56(value.Field19, buf[576:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field20: uint64
+	if _, err := EncodeUint64(value.Field20, buf[608:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field21: int64
+	if _, err := EncodeInt64(value.Field21, buf[640:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field22: uint72
+	if _, err := EncodeUint256(value.Field22, buf[672:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field23: int72
+	if _, err := EncodeInt256(value.Field23, buf[704:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field24: uint80
+	if _, err := EncodeUint256(value.Field24, buf[736:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field25: int80
+	if _, err := EncodeInt256(value.Field25, buf[768:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field26: uint88
+	if _, err := EncodeUint256(value.Field26, buf[800:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field27: int88
+	if _, err := EncodeInt256(value.Field27, buf[832:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field28: uint96
+	if _, err := EncodeUint256(value.Field28, buf[864:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field29: int96
+	if _, err := EncodeInt256(value.Field29, buf[896:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field30: uint104
+	if _, err := EncodeUint256(value.Field30, buf[928:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field31: int104
+	if _, err := EncodeInt256(value.Field31, buf[960:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field32: uint112
+	if _, err := EncodeUint256(value.Field32, buf[992:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field33: int112
+	if _, err := EncodeInt256(value.Field33, buf[1024:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field34: uint120
+	if _, err := EncodeUint256(value.Field34, buf[1056:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field35: int120
+	if _, err := EncodeInt256(value.Field35, buf[1088:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field36: uint128
+	if _, err := EncodeUint256(value.Field36, buf[1120:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field37: int128
+	if _, err := EncodeInt256(value.Field37, buf[1152:]); err != nil {
+		return 0, err
+	}
+
+	// Field Field38: bool[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[416+24:416+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1184+24:1184+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeString(value.Field14, buf[dynamicOffset:])
+	n, err = EncodeBoolSlice(value.Field38, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field15: bytes
+	// Field Field39: address[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[448+24:448+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1216+24:1216+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeBytes(value.Field15, buf[dynamicOffset:])
+	n, err = EncodeAddressSlice(value.Field39, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field16: bool[]
+	// Field Field40: bytes32[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[480+24:480+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1248+24:1248+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeBoolSlice(value.Field16, buf[dynamicOffset:])
+	n, err = EncodeBytes32Slice(value.Field40, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field17: uint8[]
+	// Field Field41: string[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[512+24:512+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1280+24:1280+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeUint8Slice(value.Field17, buf[dynamicOffset:])
+	n, err = EncodeStringSlice(value.Field41, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field18: uint16[]
+	// Field Field42: bytes[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[544+24:544+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1312+24:1312+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeUint16Slice(value.Field18, buf[dynamicOffset:])
+	n, err = EncodeBytesSlice(value.Field42, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field19: uint32[]
+	// Field Field43: uint8[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[576+24:576+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1344+24:1344+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeUint32Slice(value.Field19, buf[dynamicOffset:])
+	n, err = EncodeUint8Slice(value.Field43, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field20: uint64[]
+	// Field Field44: int8[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[608+24:608+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1376+24:1376+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeUint64Slice(value.Field20, buf[dynamicOffset:])
+	n, err = EncodeInt8Slice(value.Field44, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field21: uint256[]
+	// Field Field45: uint16[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[640+24:640+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1408+24:1408+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeUint256Slice(value.Field21, buf[dynamicOffset:])
+	n, err = EncodeUint16Slice(value.Field45, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field22: int8[]
+	// Field Field46: int16[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[672+24:672+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1440+24:1440+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeInt8Slice(value.Field22, buf[dynamicOffset:])
+	n, err = EncodeInt16Slice(value.Field46, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field23: int16[]
+	// Field Field47: uint24[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[704+24:704+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1472+24:1472+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeInt16Slice(value.Field23, buf[dynamicOffset:])
+	n, err = EncodeUint24Slice(value.Field47, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field24: int32[]
+	// Field Field48: int24[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[736+24:736+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1504+24:1504+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeInt32Slice(value.Field24, buf[dynamicOffset:])
+	n, err = EncodeInt24Slice(value.Field48, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field25: int64[]
+	// Field Field49: uint32[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[768+24:768+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1536+24:1536+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeInt64Slice(value.Field25, buf[dynamicOffset:])
+	n, err = EncodeUint32Slice(value.Field49, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field26: int256[]
+	// Field Field50: int32[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[800+24:800+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1568+24:1568+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeInt256Slice(value.Field26, buf[dynamicOffset:])
+	n, err = EncodeInt32Slice(value.Field50, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field27: address[]
+	// Field Field51: uint40[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[832+24:832+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1600+24:1600+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeAddressSlice(value.Field27, buf[dynamicOffset:])
+	n, err = EncodeUint40Slice(value.Field51, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field28: bytes32[]
+	// Field Field52: int40[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[864+24:864+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1632+24:1632+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeBytes32Slice(value.Field28, buf[dynamicOffset:])
+	n, err = EncodeInt40Slice(value.Field52, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field29: string[]
+	// Field Field53: uint48[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[896+24:896+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1664+24:1664+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeStringSlice(value.Field29, buf[dynamicOffset:])
+	n, err = EncodeUint48Slice(value.Field53, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
 	dynamicOffset += n
 
-	// Field Field30: bytes[]
+	// Field Field54: int48[]
 	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[928+24:928+32], uint64(dynamicOffset))
+	binary.BigEndian.PutUint64(buf[1696+24:1696+32], uint64(dynamicOffset))
 	// Encode dynamic data
-	n, err = EncodeBytesSlice(value.Field30, buf[dynamicOffset:])
+	n, err = EncodeInt48Slice(value.Field54, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field55: uint56[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1728+24:1728+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint56Slice(value.Field55, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field56: int56[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1760+24:1760+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt56Slice(value.Field56, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field57: uint64[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1792+24:1792+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint64Slice(value.Field57, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field58: int64[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1824+24:1824+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt64Slice(value.Field58, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field59: uint72[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1856+24:1856+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field59, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field60: int72[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1888+24:1888+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field60, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field61: uint80[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1920+24:1920+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field61, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field62: int80[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1952+24:1952+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field62, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field63: uint88[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[1984+24:1984+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field63, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field64: int88[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2016+24:2016+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field64, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field65: uint96[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2048+24:2048+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field65, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field66: int96[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2080+24:2080+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field66, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field67: uint104[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2112+24:2112+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field67, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field68: int104[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2144+24:2144+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field68, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field69: uint112[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2176+24:2176+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field69, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field70: int112[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2208+24:2208+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field70, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field71: uint120[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2240+24:2240+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field71, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field72: int120[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2272+24:2272+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field72, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field73: uint128[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2304+24:2304+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeUint256Slice(value.Field73, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field Field74: int128[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[2336+24:2336+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = EncodeInt256Slice(value.Field74, buf[dynamicOffset:])
 	if err != nil {
 		return 0, err
 	}
@@ -1432,41 +2392,55 @@ func (value StdlibCall) Encode() ([]byte, error) {
 
 // Decode decodes StdlibCall from ABI bytes in the provided buffer
 func (t *StdlibCall) Decode(data []byte) (int, error) {
-	if len(data) < 960 {
+	if len(data) < 2368 {
 		return 0, io.ErrUnexpectedEOF
 	}
 	var (
 		err error
 		n   int
 	)
-	dynamicOffset := 960
+	dynamicOffset := 2368
 	// Decode static field Field1: bool
 	t.Field1, _, err = DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field2: uint8
-	t.Field2, _, err = DecodeUint8(data[32:])
+	// Decode static field Field2: address
+	t.Field2, _, err = DecodeAddress(data[32:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field3: uint16
-	t.Field3, _, err = DecodeUint16(data[64:])
+	// Decode static field Field3: bytes32
+	t.Field3, _, err = DecodeBytes32(data[64:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field4: uint32
-	t.Field4, _, err = DecodeUint32(data[96:])
-	if err != nil {
-		return 0, err
+	// Decode dynamic field Field4
+	{
+		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field4")
+		}
+		t.Field4, n, err = DecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// Decode static field Field5: uint64
-	t.Field5, _, err = DecodeUint64(data[128:])
-	if err != nil {
-		return 0, err
+	// Decode dynamic field Field5
+	{
+		offset := int(binary.BigEndian.Uint64(data[128+24 : 128+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field5")
+		}
+		t.Field5, n, err = DecodeBytes(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
 	}
-	// Decode static field Field6: uint256
-	t.Field6, _, err = DecodeUint256(data[160:])
+	// Decode static field Field6: uint8
+	t.Field6, _, err = DecodeUint8(data[160:])
 	if err != nil {
 		return 0, err
 	}
@@ -1475,235 +2449,595 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field8: int16
-	t.Field8, _, err = DecodeInt16(data[224:])
+	// Decode static field Field8: uint16
+	t.Field8, _, err = DecodeUint16(data[224:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field9: int32
-	t.Field9, _, err = DecodeInt32(data[256:])
+	// Decode static field Field9: int16
+	t.Field9, _, err = DecodeInt16(data[256:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field10: int64
-	t.Field10, _, err = DecodeInt64(data[288:])
+	// Decode static field Field10: uint24
+	t.Field10, _, err = DecodeUint24(data[288:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field11: int256
-	t.Field11, _, err = DecodeInt256(data[320:])
+	// Decode static field Field11: int24
+	t.Field11, _, err = DecodeInt24(data[320:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field12: address
-	t.Field12, _, err = DecodeAddress(data[352:])
+	// Decode static field Field12: uint32
+	t.Field12, _, err = DecodeUint32(data[352:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field Field13: bytes32
-	t.Field13, _, err = DecodeBytes32(data[384:])
+	// Decode static field Field13: int32
+	t.Field13, _, err = DecodeInt32(data[384:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode dynamic field Field14
+	// Decode static field Field14: uint40
+	t.Field14, _, err = DecodeUint40(data[416:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field15: int40
+	t.Field15, _, err = DecodeInt40(data[448:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field16: uint48
+	t.Field16, _, err = DecodeUint48(data[480:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field17: int48
+	t.Field17, _, err = DecodeInt48(data[512:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field18: uint56
+	t.Field18, _, err = DecodeUint56(data[544:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field19: int56
+	t.Field19, _, err = DecodeInt56(data[576:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field20: uint64
+	t.Field20, _, err = DecodeUint64(data[608:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field21: int64
+	t.Field21, _, err = DecodeInt64(data[640:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field22: uint72
+	t.Field22, _, err = DecodeUint256(data[672:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field23: int72
+	t.Field23, _, err = DecodeInt256(data[704:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field24: uint80
+	t.Field24, _, err = DecodeUint256(data[736:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field25: int80
+	t.Field25, _, err = DecodeInt256(data[768:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field26: uint88
+	t.Field26, _, err = DecodeUint256(data[800:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field27: int88
+	t.Field27, _, err = DecodeInt256(data[832:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field28: uint96
+	t.Field28, _, err = DecodeUint256(data[864:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field29: int96
+	t.Field29, _, err = DecodeInt256(data[896:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field30: uint104
+	t.Field30, _, err = DecodeUint256(data[928:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field31: int104
+	t.Field31, _, err = DecodeInt256(data[960:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field32: uint112
+	t.Field32, _, err = DecodeUint256(data[992:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field33: int112
+	t.Field33, _, err = DecodeInt256(data[1024:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field34: uint120
+	t.Field34, _, err = DecodeUint256(data[1056:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field35: int120
+	t.Field35, _, err = DecodeInt256(data[1088:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field36: uint128
+	t.Field36, _, err = DecodeUint256(data[1120:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Field37: int128
+	t.Field37, _, err = DecodeInt256(data[1152:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Field38
 	{
-		offset := int(binary.BigEndian.Uint64(data[416+24 : 416+32]))
+		offset := int(binary.BigEndian.Uint64(data[1184+24 : 1184+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field14")
+			return 0, errors.New("invalid offset for dynamic field Field38")
 		}
-		t.Field14, n, err = DecodeString(data[dynamicOffset:])
+		t.Field38, n, err = DecodeBoolSlice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field15
+	// Decode dynamic field Field39
 	{
-		offset := int(binary.BigEndian.Uint64(data[448+24 : 448+32]))
+		offset := int(binary.BigEndian.Uint64(data[1216+24 : 1216+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field15")
+			return 0, errors.New("invalid offset for dynamic field Field39")
 		}
-		t.Field15, n, err = DecodeBytes(data[dynamicOffset:])
+		t.Field39, n, err = DecodeAddressSlice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field16
+	// Decode dynamic field Field40
 	{
-		offset := int(binary.BigEndian.Uint64(data[480+24 : 480+32]))
+		offset := int(binary.BigEndian.Uint64(data[1248+24 : 1248+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field16")
+			return 0, errors.New("invalid offset for dynamic field Field40")
 		}
-		t.Field16, n, err = DecodeBoolSlice(data[dynamicOffset:])
+		t.Field40, n, err = DecodeBytes32Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field17
+	// Decode dynamic field Field41
 	{
-		offset := int(binary.BigEndian.Uint64(data[512+24 : 512+32]))
+		offset := int(binary.BigEndian.Uint64(data[1280+24 : 1280+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field17")
+			return 0, errors.New("invalid offset for dynamic field Field41")
 		}
-		t.Field17, n, err = DecodeUint8Slice(data[dynamicOffset:])
+		t.Field41, n, err = DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field18
+	// Decode dynamic field Field42
 	{
-		offset := int(binary.BigEndian.Uint64(data[544+24 : 544+32]))
+		offset := int(binary.BigEndian.Uint64(data[1312+24 : 1312+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field18")
+			return 0, errors.New("invalid offset for dynamic field Field42")
 		}
-		t.Field18, n, err = DecodeUint16Slice(data[dynamicOffset:])
+		t.Field42, n, err = DecodeBytesSlice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field19
+	// Decode dynamic field Field43
 	{
-		offset := int(binary.BigEndian.Uint64(data[576+24 : 576+32]))
+		offset := int(binary.BigEndian.Uint64(data[1344+24 : 1344+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field19")
+			return 0, errors.New("invalid offset for dynamic field Field43")
 		}
-		t.Field19, n, err = DecodeUint32Slice(data[dynamicOffset:])
+		t.Field43, n, err = DecodeUint8Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field20
+	// Decode dynamic field Field44
 	{
-		offset := int(binary.BigEndian.Uint64(data[608+24 : 608+32]))
+		offset := int(binary.BigEndian.Uint64(data[1376+24 : 1376+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field20")
+			return 0, errors.New("invalid offset for dynamic field Field44")
 		}
-		t.Field20, n, err = DecodeUint64Slice(data[dynamicOffset:])
+		t.Field44, n, err = DecodeInt8Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field21
+	// Decode dynamic field Field45
 	{
-		offset := int(binary.BigEndian.Uint64(data[640+24 : 640+32]))
+		offset := int(binary.BigEndian.Uint64(data[1408+24 : 1408+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field21")
+			return 0, errors.New("invalid offset for dynamic field Field45")
 		}
-		t.Field21, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		t.Field45, n, err = DecodeUint16Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field22
+	// Decode dynamic field Field46
 	{
-		offset := int(binary.BigEndian.Uint64(data[672+24 : 672+32]))
+		offset := int(binary.BigEndian.Uint64(data[1440+24 : 1440+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field22")
+			return 0, errors.New("invalid offset for dynamic field Field46")
 		}
-		t.Field22, n, err = DecodeInt8Slice(data[dynamicOffset:])
+		t.Field46, n, err = DecodeInt16Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field23
+	// Decode dynamic field Field47
 	{
-		offset := int(binary.BigEndian.Uint64(data[704+24 : 704+32]))
+		offset := int(binary.BigEndian.Uint64(data[1472+24 : 1472+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field23")
+			return 0, errors.New("invalid offset for dynamic field Field47")
 		}
-		t.Field23, n, err = DecodeInt16Slice(data[dynamicOffset:])
+		t.Field47, n, err = DecodeUint24Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field24
+	// Decode dynamic field Field48
 	{
-		offset := int(binary.BigEndian.Uint64(data[736+24 : 736+32]))
+		offset := int(binary.BigEndian.Uint64(data[1504+24 : 1504+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field24")
+			return 0, errors.New("invalid offset for dynamic field Field48")
 		}
-		t.Field24, n, err = DecodeInt32Slice(data[dynamicOffset:])
+		t.Field48, n, err = DecodeInt24Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field25
+	// Decode dynamic field Field49
 	{
-		offset := int(binary.BigEndian.Uint64(data[768+24 : 768+32]))
+		offset := int(binary.BigEndian.Uint64(data[1536+24 : 1536+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field25")
+			return 0, errors.New("invalid offset for dynamic field Field49")
 		}
-		t.Field25, n, err = DecodeInt64Slice(data[dynamicOffset:])
+		t.Field49, n, err = DecodeUint32Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field26
+	// Decode dynamic field Field50
 	{
-		offset := int(binary.BigEndian.Uint64(data[800+24 : 800+32]))
+		offset := int(binary.BigEndian.Uint64(data[1568+24 : 1568+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field26")
+			return 0, errors.New("invalid offset for dynamic field Field50")
 		}
-		t.Field26, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		t.Field50, n, err = DecodeInt32Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field27
+	// Decode dynamic field Field51
 	{
-		offset := int(binary.BigEndian.Uint64(data[832+24 : 832+32]))
+		offset := int(binary.BigEndian.Uint64(data[1600+24 : 1600+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field27")
+			return 0, errors.New("invalid offset for dynamic field Field51")
 		}
-		t.Field27, n, err = DecodeAddressSlice(data[dynamicOffset:])
+		t.Field51, n, err = DecodeUint40Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field28
+	// Decode dynamic field Field52
 	{
-		offset := int(binary.BigEndian.Uint64(data[864+24 : 864+32]))
+		offset := int(binary.BigEndian.Uint64(data[1632+24 : 1632+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field28")
+			return 0, errors.New("invalid offset for dynamic field Field52")
 		}
-		t.Field28, n, err = DecodeBytes32Slice(data[dynamicOffset:])
+		t.Field52, n, err = DecodeInt40Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field29
+	// Decode dynamic field Field53
 	{
-		offset := int(binary.BigEndian.Uint64(data[896+24 : 896+32]))
+		offset := int(binary.BigEndian.Uint64(data[1664+24 : 1664+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field29")
+			return 0, errors.New("invalid offset for dynamic field Field53")
 		}
-		t.Field29, n, err = DecodeStringSlice(data[dynamicOffset:])
+		t.Field53, n, err = DecodeUint48Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
 		dynamicOffset += n
 	}
-	// Decode dynamic field Field30
+	// Decode dynamic field Field54
 	{
-		offset := int(binary.BigEndian.Uint64(data[928+24 : 928+32]))
+		offset := int(binary.BigEndian.Uint64(data[1696+24 : 1696+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field30")
+			return 0, errors.New("invalid offset for dynamic field Field54")
 		}
-		t.Field30, n, err = DecodeBytesSlice(data[dynamicOffset:])
+		t.Field54, n, err = DecodeInt48Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field55
+	{
+		offset := int(binary.BigEndian.Uint64(data[1728+24 : 1728+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field55")
+		}
+		t.Field55, n, err = DecodeUint56Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field56
+	{
+		offset := int(binary.BigEndian.Uint64(data[1760+24 : 1760+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field56")
+		}
+		t.Field56, n, err = DecodeInt56Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field57
+	{
+		offset := int(binary.BigEndian.Uint64(data[1792+24 : 1792+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field57")
+		}
+		t.Field57, n, err = DecodeUint64Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field58
+	{
+		offset := int(binary.BigEndian.Uint64(data[1824+24 : 1824+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field58")
+		}
+		t.Field58, n, err = DecodeInt64Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field59
+	{
+		offset := int(binary.BigEndian.Uint64(data[1856+24 : 1856+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field59")
+		}
+		t.Field59, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field60
+	{
+		offset := int(binary.BigEndian.Uint64(data[1888+24 : 1888+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field60")
+		}
+		t.Field60, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field61
+	{
+		offset := int(binary.BigEndian.Uint64(data[1920+24 : 1920+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field61")
+		}
+		t.Field61, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field62
+	{
+		offset := int(binary.BigEndian.Uint64(data[1952+24 : 1952+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field62")
+		}
+		t.Field62, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field63
+	{
+		offset := int(binary.BigEndian.Uint64(data[1984+24 : 1984+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field63")
+		}
+		t.Field63, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field64
+	{
+		offset := int(binary.BigEndian.Uint64(data[2016+24 : 2016+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field64")
+		}
+		t.Field64, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field65
+	{
+		offset := int(binary.BigEndian.Uint64(data[2048+24 : 2048+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field65")
+		}
+		t.Field65, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field66
+	{
+		offset := int(binary.BigEndian.Uint64(data[2080+24 : 2080+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field66")
+		}
+		t.Field66, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field67
+	{
+		offset := int(binary.BigEndian.Uint64(data[2112+24 : 2112+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field67")
+		}
+		t.Field67, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field68
+	{
+		offset := int(binary.BigEndian.Uint64(data[2144+24 : 2144+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field68")
+		}
+		t.Field68, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field69
+	{
+		offset := int(binary.BigEndian.Uint64(data[2176+24 : 2176+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field69")
+		}
+		t.Field69, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field70
+	{
+		offset := int(binary.BigEndian.Uint64(data[2208+24 : 2208+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field70")
+		}
+		t.Field70, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field71
+	{
+		offset := int(binary.BigEndian.Uint64(data[2240+24 : 2240+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field71")
+		}
+		t.Field71, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field72
+	{
+		offset := int(binary.BigEndian.Uint64(data[2272+24 : 2272+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field72")
+		}
+		t.Field72, n, err = DecodeInt256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field73
+	{
+		offset := int(binary.BigEndian.Uint64(data[2304+24 : 2304+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field73")
+		}
+		t.Field73, n, err = DecodeUint256Slice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode dynamic field Field74
+	{
+		offset := int(binary.BigEndian.Uint64(data[2336+24 : 2336+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Field74")
+		}
+		t.Field74, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
 			return 0, err
 		}
