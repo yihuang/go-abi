@@ -34,9 +34,7 @@ func EncodeBigInt(n *big.Int, buf []byte, signed bool) error {
 	if l > 32 {
 		return errors.New("integer too large")
 	}
-	// Use a copy of n to avoid modifying the original
-	tmp := new(big.Int).Set(n)
-	tmp.FillBytes(buf[32-l : 32])
+	n.FillBytes(buf[32-l : 32])
 	return nil
 }
 

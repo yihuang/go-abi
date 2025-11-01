@@ -873,30 +873,8 @@ func EncodeBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
 	return 64, nil
 }
 
-// EncodeInt24 encodes int24 to ABI bytes
-func EncodeInt24(value int32, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 28; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
 // EncodeInt36 encodes int36 to ABI bytes
 func EncodeInt36(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeInt48 encodes int48 to ABI bytes
-func EncodeInt48(value int64, buf []byte) (int, error) {
 	if value < 0 {
 		for i := 0; i < 24; i++ {
 			buf[i] = 0xff
@@ -956,12 +934,6 @@ func EncodeStringSliceSlice(value [][]string, buf []byte) (int, error) {
 	return dynamicOffset + 32, nil
 }
 
-// EncodeUint24 encodes uint24 to ABI bytes
-func EncodeUint24(value uint32, buf []byte) (int, error) {
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
 // EncodeUint256Array3 encodes uint256[3] to ABI bytes
 func EncodeUint256Array3(value [3]*big.Int, buf []byte) (int, error) {
 	// Encode fixed-size array with static elements
@@ -1005,12 +977,6 @@ func EncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
 
 // EncodeUint36 encodes uint36 to ABI bytes
 func EncodeUint36(value uint64, buf []byte) (int, error) {
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeUint48 encodes uint48 to ABI bytes
-func EncodeUint48(value uint64, buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
 	return 32, nil
 }
@@ -1251,28 +1217,8 @@ func DecodeBytes32Array2(data []byte) ([2][32]byte, int, error) {
 	return result, 64, nil
 }
 
-// DecodeInt24 decodes int24 from ABI bytes
-func DecodeInt24(data []byte) (int32, int, error) {
-	var result int32
-	result = int32(binary.BigEndian.Uint32(data[28:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffff // Sign extend
-	}
-	return result, 32, nil
-}
-
 // DecodeInt36 decodes int36 from ABI bytes
 func DecodeInt36(data []byte) (int64, int, error) {
-	var result int64
-	result = int64(binary.BigEndian.Uint64(data[24:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffffffffffff // Sign extend
-	}
-	return result, 32, nil
-}
-
-// DecodeInt48 decodes int48 from ABI bytes
-func DecodeInt48(data []byte) (int64, int, error) {
 	var result int64
 	result = int64(binary.BigEndian.Uint64(data[24:32]))
 	if data[0]&0x80 != 0 { // Check sign bit
@@ -1349,13 +1295,6 @@ func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
-// DecodeUint24 decodes uint24 from ABI bytes
-func DecodeUint24(data []byte) (uint32, int, error) {
-	var result uint32
-	result = binary.BigEndian.Uint32(data[28:32])
-	return result, 32, nil
-}
-
 // DecodeUint256Array3 decodes uint256[3] from ABI bytes
 func DecodeUint256Array3(data []byte) ([3]*big.Int, int, error) {
 	// Decode fixed-size array with static elements
@@ -1420,13 +1359,6 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 
 // DecodeUint36 decodes uint36 from ABI bytes
 func DecodeUint36(data []byte) (uint64, int, error) {
-	var result uint64
-	result = binary.BigEndian.Uint64(data[24:32])
-	return result, 32, nil
-}
-
-// DecodeUint48 decodes uint48 from ABI bytes
-func DecodeUint48(data []byte) (uint64, int, error) {
 	var result uint64
 	result = binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
@@ -2563,7 +2495,7 @@ func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestNonStandardIntegersCallStaticSize // Start dynamic data after static section
 	// Field U24: uint24
-	if _, err := EncodeUint24(value.U24, buf[0:]); err != nil {
+	if _, err := abi.EncodeUint24(value.U24, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2573,7 +2505,7 @@ func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
 	}
 
 	// Field U48: uint48
-	if _, err := EncodeUint48(value.U48, buf[64:]); err != nil {
+	if _, err := abi.EncodeUint48(value.U48, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -2593,7 +2525,7 @@ func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
 	}
 
 	// Field I24: int24
-	if _, err := EncodeInt24(value.I24, buf[192:]); err != nil {
+	if _, err := abi.EncodeInt24(value.I24, buf[192:]); err != nil {
 		return 0, err
 	}
 
@@ -2603,7 +2535,7 @@ func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
 	}
 
 	// Field I48: int48
-	if _, err := EncodeInt48(value.I48, buf[256:]); err != nil {
+	if _, err := abi.EncodeInt48(value.I48, buf[256:]); err != nil {
 		return 0, err
 	}
 
@@ -2644,7 +2576,7 @@ func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 384
 	// Decode static field U24: uint24
-	t.U24, _, err = DecodeUint24(data[0:])
+	t.U24, _, err = abi.DecodeUint24(data[0:])
 	if err != nil {
 		return 0, err
 	}
@@ -2654,7 +2586,7 @@ func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	// Decode static field U48: uint48
-	t.U48, _, err = DecodeUint48(data[64:])
+	t.U48, _, err = abi.DecodeUint48(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -2674,7 +2606,7 @@ func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	// Decode static field I24: int24
-	t.I24, _, err = DecodeInt24(data[192:])
+	t.I24, _, err = abi.DecodeInt24(data[192:])
 	if err != nil {
 		return 0, err
 	}
@@ -2684,7 +2616,7 @@ func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	// Decode static field I48: int48
-	t.I48, _, err = DecodeInt48(data[256:])
+	t.I48, _, err = abi.DecodeInt48(data[256:])
 	if err != nil {
 		return 0, err
 	}
