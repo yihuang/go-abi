@@ -786,6 +786,11 @@ func (t BalanceOfCall) GetMethodName() string {
 	return "balanceOf"
 }
 
+// GetMethodID returns the function name
+func (t BalanceOfCall) GetMethodID() [4]byte {
+	return BalanceOfSelector
+}
+
 // EncodeWithSelector encodes balanceOf arguments to ABI bytes including function selector
 func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -923,6 +928,11 @@ func (t BatchProcessCall) GetMethodName() string {
 	return "batchProcess"
 }
 
+// GetMethodID returns the function name
+func (t BatchProcessCall) GetMethodID() [4]byte {
+	return BatchProcessSelector
+}
+
 // EncodeWithSelector encodes batchProcess arguments to ABI bytes including function selector
 func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -993,6 +1003,11 @@ type CommunityPoolCall struct {
 // GetMethodName returns the function name
 func (t CommunityPoolCall) GetMethodName() string {
 	return "communityPool"
+}
+
+// GetMethodID returns the function name
+func (t CommunityPoolCall) GetMethodID() [4]byte {
+	return CommunityPoolSelector
 }
 
 // EncodeWithSelector encodes communityPool arguments to ABI bytes including function selector
@@ -1085,6 +1100,11 @@ func (t EmptyArgsCall) GetMethodName() string {
 	return "emptyArgs"
 }
 
+// GetMethodID returns the function name
+func (t EmptyArgsCall) GetMethodID() [4]byte {
+	return EmptyArgsSelector
+}
+
 // EncodeWithSelector encodes emptyArgs arguments to ABI bytes including function selector
 func (t EmptyArgsCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1155,6 +1175,11 @@ func (t *GetBalancesCall) Decode(data []byte) (int, error) {
 // GetMethodName returns the function name
 func (t GetBalancesCall) GetMethodName() string {
 	return "getBalances"
+}
+
+// GetMethodID returns the function name
+func (t GetBalancesCall) GetMethodID() [4]byte {
+	return GetBalancesSelector
 }
 
 // EncodeWithSelector encodes getBalances arguments to ABI bytes including function selector
@@ -1318,6 +1343,11 @@ func (t ProcessUserDataCall) GetMethodName() string {
 	return "processUserData"
 }
 
+// GetMethodID returns the function name
+func (t ProcessUserDataCall) GetMethodID() [4]byte {
+	return ProcessUserDataSelector
+}
+
 // EncodeWithSelector encodes processUserData arguments to ABI bytes including function selector
 func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1466,6 +1496,11 @@ func (t SetDataCall) GetMethodName() string {
 	return "setData"
 }
 
+// GetMethodID returns the function name
+func (t SetDataCall) GetMethodID() [4]byte {
+	return SetDataSelector
+}
+
 // EncodeWithSelector encodes setData arguments to ABI bytes including function selector
 func (t SetDataCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1554,6 +1589,11 @@ func (t *SetMessageCall) Decode(data []byte) (int, error) {
 // GetMethodName returns the function name
 func (t SetMessageCall) GetMethodName() string {
 	return "setMessage"
+}
+
+// GetMethodID returns the function name
+func (t SetMessageCall) GetMethodID() [4]byte {
+	return SetMessageSelector
 }
 
 // EncodeWithSelector encodes setMessage arguments to ABI bytes including function selector
@@ -1752,6 +1792,11 @@ func (t SmallIntegersCall) GetMethodName() string {
 	return "smallIntegers"
 }
 
+// GetMethodID returns the function name
+func (t SmallIntegersCall) GetMethodID() [4]byte {
+	return SmallIntegersSelector
+}
+
 // EncodeWithSelector encodes smallIntegers arguments to ABI bytes including function selector
 func (t SmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1880,6 +1925,11 @@ func (t *TransferCall) Decode(data []byte) (int, error) {
 // GetMethodName returns the function name
 func (t TransferCall) GetMethodName() string {
 	return "transfer"
+}
+
+// GetMethodID returns the function name
+func (t TransferCall) GetMethodID() [4]byte {
+	return TransferSelector
 }
 
 // EncodeWithSelector encodes transfer arguments to ABI bytes including function selector
@@ -2043,6 +2093,11 @@ func (t TransferBatchCall) GetMethodName() string {
 	return "transferBatch"
 }
 
+// GetMethodID returns the function name
+func (t TransferBatchCall) GetMethodID() [4]byte {
+	return TransferBatchSelector
+}
+
 // EncodeWithSelector encodes transferBatch arguments to ABI bytes including function selector
 func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -2202,6 +2257,11 @@ func (t UpdateProfileCall) GetMethodName() string {
 	return "updateProfile"
 }
 
+// GetMethodID returns the function name
+func (t UpdateProfileCall) GetMethodID() [4]byte {
+	return UpdateProfileSelector
+}
+
 // EncodeWithSelector encodes updateProfile arguments to ABI bytes including function selector
 func (t UpdateProfileCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -2288,6 +2348,16 @@ func NewDynamicIndexedEvent(
 	}
 }
 
+// GetEventName returns the event name
+func (e DynamicIndexedEvent) GetEventName() string {
+	return "DynamicIndexed"
+}
+
+// GetEventID returns the event ID (topic)
+func (e DynamicIndexedEvent) GetEventID() common.Hash {
+	return DynamicIndexedEventTopic
+}
+
 // DynamicIndexed represents an ABI event
 type DynamicIndexedEventIndexed struct {
 	Denom string
@@ -2321,4 +2391,6 @@ func (e *DynamicIndexedEventIndexed) DecodeTopics(topics []common.Hash) error {
 	return nil
 }
 
-type DynamicIndexedEventData abi.EmptyTuple
+type DynamicIndexedEventData struct {
+	abi.EmptyTuple
+}

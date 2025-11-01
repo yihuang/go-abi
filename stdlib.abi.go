@@ -3051,6 +3051,11 @@ func (t StdlibCall) GetMethodName() string {
 	return "stdlib"
 }
 
+// GetMethodID returns the function name
+func (t StdlibCall) GetMethodID() [4]byte {
+	return StdlibSelector
+}
+
 // EncodeWithSelector encodes stdlib arguments to ABI bytes including function selector
 func (t StdlibCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())

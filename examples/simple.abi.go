@@ -89,6 +89,11 @@ func (t SendCall) GetMethodName() string {
 	return "send"
 }
 
+// GetMethodID returns the function name
+func (t SendCall) GetMethodID() [4]byte {
+	return SendSelector
+}
+
 // EncodeWithSelector encodes send arguments to ABI bytes including function selector
 func (t SendCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())

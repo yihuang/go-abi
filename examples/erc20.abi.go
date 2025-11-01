@@ -116,6 +116,11 @@ func (t AllowanceCall) GetMethodName() string {
 	return "allowance"
 }
 
+// GetMethodID returns the function name
+func (t AllowanceCall) GetMethodID() [4]byte {
+	return AllowanceSelector
+}
+
 // EncodeWithSelector encodes allowance arguments to ABI bytes including function selector
 func (t AllowanceCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -246,6 +251,11 @@ func (t ApproveCall) GetMethodName() string {
 	return "approve"
 }
 
+// GetMethodID returns the function name
+func (t ApproveCall) GetMethodID() [4]byte {
+	return ApproveSelector
+}
+
 // EncodeWithSelector encodes approve arguments to ABI bytes including function selector
 func (t ApproveCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -365,6 +375,11 @@ func (t BalanceOfCall) GetMethodName() string {
 	return "balanceOf"
 }
 
+// GetMethodID returns the function name
+func (t BalanceOfCall) GetMethodID() [4]byte {
+	return BalanceOfSelector
+}
+
 // EncodeWithSelector encodes balanceOf arguments to ABI bytes including function selector
 func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -437,6 +452,11 @@ func (t DecimalsCall) GetMethodName() string {
 	return "decimals"
 }
 
+// GetMethodID returns the function name
+func (t DecimalsCall) GetMethodID() [4]byte {
+	return DecimalsSelector
+}
+
 // EncodeWithSelector encodes decimals arguments to ABI bytes including function selector
 func (t DecimalsCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -507,6 +527,11 @@ type NameCall struct {
 // GetMethodName returns the function name
 func (t NameCall) GetMethodName() string {
 	return "name"
+}
+
+// GetMethodID returns the function name
+func (t NameCall) GetMethodID() [4]byte {
+	return NameSelector
 }
 
 // EncodeWithSelector encodes name arguments to ABI bytes including function selector
@@ -599,6 +624,11 @@ func (t SymbolCall) GetMethodName() string {
 	return "symbol"
 }
 
+// GetMethodID returns the function name
+func (t SymbolCall) GetMethodID() [4]byte {
+	return SymbolSelector
+}
+
 // EncodeWithSelector encodes symbol arguments to ABI bytes including function selector
 func (t SymbolCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -687,6 +717,11 @@ type TotalSupplyCall struct {
 // GetMethodName returns the function name
 func (t TotalSupplyCall) GetMethodName() string {
 	return "totalSupply"
+}
+
+// GetMethodID returns the function name
+func (t TotalSupplyCall) GetMethodID() [4]byte {
+	return TotalSupplySelector
 }
 
 // EncodeWithSelector encodes totalSupply arguments to ABI bytes including function selector
@@ -817,6 +852,11 @@ func (t *TransferCall) Decode(data []byte) (int, error) {
 // GetMethodName returns the function name
 func (t TransferCall) GetMethodName() string {
 	return "transfer"
+}
+
+// GetMethodID returns the function name
+func (t TransferCall) GetMethodID() [4]byte {
+	return TransferSelector
 }
 
 // EncodeWithSelector encodes transfer arguments to ABI bytes including function selector
@@ -960,6 +1000,11 @@ func (t TransferFromCall) GetMethodName() string {
 	return "transferFrom"
 }
 
+// GetMethodID returns the function name
+func (t TransferFromCall) GetMethodID() [4]byte {
+	return TransferFromSelector
+}
+
 // EncodeWithSelector encodes transferFrom arguments to ABI bytes including function selector
 func (t TransferFromCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1051,6 +1096,16 @@ func NewApprovalEvent(
 			Value: value,
 		},
 	}
+}
+
+// GetEventName returns the event name
+func (e ApprovalEvent) GetEventName() string {
+	return "Approval"
+}
+
+// GetEventID returns the event ID (topic)
+func (e ApprovalEvent) GetEventID() common.Hash {
+	return ApprovalEventTopic
 }
 
 // Approval represents an ABI event
@@ -1175,6 +1230,16 @@ func NewTransferEvent(
 			Value: value,
 		},
 	}
+}
+
+// GetEventName returns the event name
+func (e TransferEvent) GetEventName() string {
+	return "Transfer"
+}
+
+// GetEventID returns the event ID (topic)
+func (e TransferEvent) GetEventID() common.Hash {
+	return TransferEventTopic
 }
 
 // Transfer represents an ABI event

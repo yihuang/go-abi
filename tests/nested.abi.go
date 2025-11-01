@@ -737,6 +737,11 @@ func (t GetAddressStringPairCall) GetMethodName() string {
 	return "getAddressStringPair"
 }
 
+// GetMethodID returns the function name
+func (t GetAddressStringPairCall) GetMethodID() [4]byte {
+	return GetAddressStringPairSelector
+}
+
 // EncodeWithSelector encodes getAddressStringPair arguments to ABI bytes including function selector
 func (t GetAddressStringPairCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -825,6 +830,11 @@ type GetComplexNestedCall struct {
 // GetMethodName returns the function name
 func (t GetComplexNestedCall) GetMethodName() string {
 	return "getComplexNested"
+}
+
+// GetMethodID returns the function name
+func (t GetComplexNestedCall) GetMethodID() [4]byte {
+	return GetComplexNestedSelector
 }
 
 // EncodeWithSelector encodes getComplexNested arguments to ABI bytes including function selector
@@ -917,6 +927,11 @@ func (t GetDeeplyNestedCall) GetMethodName() string {
 	return "getDeeplyNested"
 }
 
+// GetMethodID returns the function name
+func (t GetDeeplyNestedCall) GetMethodID() [4]byte {
+	return GetDeeplyNestedSelector
+}
+
 // EncodeWithSelector encodes getDeeplyNested arguments to ABI bytes including function selector
 func (t GetDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1005,6 +1020,11 @@ type GetMultipleReturnsCall struct {
 // GetMethodName returns the function name
 func (t GetMultipleReturnsCall) GetMethodName() string {
 	return "getMultipleReturns"
+}
+
+// GetMethodID returns the function name
+func (t GetMultipleReturnsCall) GetMethodID() [4]byte {
+	return GetMultipleReturnsSelector
 }
 
 // EncodeWithSelector encodes getMultipleReturns arguments to ABI bytes including function selector
@@ -1119,6 +1139,11 @@ func (t GetNestedTupleArrayCall) GetMethodName() string {
 	return "getNestedTupleArray"
 }
 
+// GetMethodID returns the function name
+func (t GetNestedTupleArrayCall) GetMethodID() [4]byte {
+	return GetNestedTupleArraySelector
+}
+
 // EncodeWithSelector encodes getNestedTupleArray arguments to ABI bytes including function selector
 func (t GetNestedTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1209,6 +1234,11 @@ func (t GetSimplePairCall) GetMethodName() string {
 	return "getSimplePair"
 }
 
+// GetMethodID returns the function name
+func (t GetSimplePairCall) GetMethodID() [4]byte {
+	return GetSimplePairSelector
+}
+
 // EncodeWithSelector encodes getSimplePair arguments to ABI bytes including function selector
 func (t GetSimplePairCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1279,6 +1309,11 @@ type GetTupleArrayCall struct {
 // GetMethodName returns the function name
 func (t GetTupleArrayCall) GetMethodName() string {
 	return "getTupleArray"
+}
+
+// GetMethodID returns the function name
+func (t GetTupleArrayCall) GetMethodID() [4]byte {
+	return GetTupleArraySelector
 }
 
 // EncodeWithSelector encodes getTupleArray arguments to ABI bytes including function selector
@@ -1371,6 +1406,11 @@ func (t GetUserWithMetadataCall) GetMethodName() string {
 	return "getUserWithMetadata"
 }
 
+// GetMethodID returns the function name
+func (t GetUserWithMetadataCall) GetMethodID() [4]byte {
+	return GetUserWithMetadataSelector
+}
+
 // EncodeWithSelector encodes getUserWithMetadata arguments to ABI bytes including function selector
 func (t GetUserWithMetadataCall) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -1459,6 +1499,11 @@ type GetUsersArrayCall struct {
 // GetMethodName returns the function name
 func (t GetUsersArrayCall) GetMethodName() string {
 	return "getUsersArray"
+}
+
+// GetMethodID returns the function name
+func (t GetUsersArrayCall) GetMethodID() [4]byte {
+	return GetUsersArraySelector
 }
 
 // EncodeWithSelector encodes getUsersArray arguments to ABI bytes including function selector

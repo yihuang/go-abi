@@ -20,11 +20,18 @@ type Tuple interface {
 	Decode
 }
 
-type MethodCall interface {
+type Method interface {
 	Tuple
 
-	GetMethodName() string
 	EncodeWithSelector() ([]byte, error)
+
+	GetMethodName() string
+	GetMethodID() [4]byte
+}
+
+type Event interface {
+	GetEventName() string
+	GetEventID() common.Hash
 }
 
 type EmptyTuple struct{}

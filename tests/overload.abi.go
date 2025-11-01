@@ -103,6 +103,11 @@ func (t Overloaded1Call) GetMethodName() string {
 	return "overloaded1"
 }
 
+// GetMethodID returns the function name
+func (t Overloaded1Call) GetMethodID() [4]byte {
+	return Overloaded1Selector
+}
+
 // EncodeWithSelector encodes overloaded1 arguments to ABI bytes including function selector
 func (t Overloaded1Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -242,6 +247,11 @@ func (t *Overloaded10Call) Decode(data []byte) (int, error) {
 // GetMethodName returns the function name
 func (t Overloaded10Call) GetMethodName() string {
 	return "overloaded10"
+}
+
+// GetMethodID returns the function name
+func (t Overloaded10Call) GetMethodID() [4]byte {
+	return Overloaded10Selector
 }
 
 // EncodeWithSelector encodes overloaded10 arguments to ABI bytes including function selector
@@ -414,6 +424,11 @@ func (t Overloaded11Call) GetMethodName() string {
 	return "overloaded11"
 }
 
+// GetMethodID returns the function name
+func (t Overloaded11Call) GetMethodID() [4]byte {
+	return Overloaded11Selector
+}
+
 // EncodeWithSelector encodes overloaded11 arguments to ABI bytes including function selector
 func (t Overloaded11Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -533,6 +548,11 @@ func (t Overloaded2Call) GetMethodName() string {
 	return "overloaded2"
 }
 
+// GetMethodID returns the function name
+func (t Overloaded2Call) GetMethodID() [4]byte {
+	return Overloaded2Selector
+}
+
 // EncodeWithSelector encodes overloaded2 arguments to ABI bytes including function selector
 func (t Overloaded2Call) EncodeWithSelector() ([]byte, error) {
 	result := make([]byte, 4+t.EncodedSize())
@@ -603,6 +623,11 @@ type Overloaded20Call struct {
 // GetMethodName returns the function name
 func (t Overloaded20Call) GetMethodName() string {
 	return "overloaded20"
+}
+
+// GetMethodID returns the function name
+func (t Overloaded20Call) GetMethodID() [4]byte {
+	return Overloaded20Selector
 }
 
 // EncodeWithSelector encodes overloaded20 arguments to ABI bytes including function selector

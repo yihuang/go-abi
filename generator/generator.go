@@ -622,11 +622,18 @@ func (g *Generator) genFunction(method ethabi.Method) {
 		g.L("}")
 	}
 
-	// Name method
+	// GetMethodName method
 	g.L("")
 	g.L("// GetMethodName returns the function name")
 	g.L("func (t %s) GetMethodName() string {", name)
 	g.L("\treturn \"%s\"", method.Name)
+	g.L("}")
+
+	// GetMethodID method
+	g.L("")
+	g.L("// GetMethodID returns the function name")
+	g.L("func (t %s) GetMethodID() [4]byte {", name)
+	g.L("\treturn %sSelector", Title.String(method.Name))
 	g.L("}")
 
 	g.L("")
@@ -865,6 +872,20 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 
 	g.L("\t},")
 	g.L("}")
+	g.L("}")
+
+	// GetEventName method
+	g.L("")
+	g.L("// GetEventName returns the event name")
+	g.L("func (e %sEvent) GetEventName() string {", event.Name)
+	g.L("\treturn \"%s\"", event.Name)
+	g.L("}")
+
+	// GetEventID method
+	g.L("")
+	g.L("// GetEventID returns the event ID (topic)")
+	g.L("func (e %sEvent) GetEventID() common.Hash {", event.Name)
+	g.L("\treturn %sEventTopic", event.Name)
 	g.L("}")
 }
 
