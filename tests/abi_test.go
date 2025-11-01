@@ -16,6 +16,7 @@ import (
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{
+	"constructor(address owner, string name, uint256 initialSupply)",
 	"function transfer(address to, uint256 amount) returns (bool)",
 	"function balanceOf(address account) view returns (uint256)",
 	"function setMessage(string message) returns (bool)",
@@ -223,4 +224,39 @@ func TestEmptyFuncCall(t *testing.T) {
 	require.Equal(t, encoded, goEthEncoded)
 
 	DecodeRoundTrip(t, args)
+}
+
+func TestConstructorEncoding(t *testing.T) {
+	owner := common.HexToAddress("0x742d35Cc6634C0532925a3b8D4C0532925a3b8D4C053")
+	name := "MyToken"
+	initialSupply := big.NewInt(1000000)
+
+	// Get our generated encoding (no selector for constructor)
+	args := &Constructor{
+		Owner:         owner,
+		Name:          name,
+		InitialSupply: initialSupply,
+	}
+
+	// Test encoding without selector
+	encoded, err := args.Encode()
+	require.NoError(t, err)
+
+	// Get go-ethereum encoding (no selector for constructor)
+	// Use ABI.Pack with constructor name or use direct pack
+	goEthEncoded, err := TestABIDef.Pack("", owner, name, initialSupply)
+	require.NoError(t, err)
+
+	require.Equal(t, encoded, goEthEncoded)
+
+	// Test decoding
+	var decoded Constructor
+	n, err := decoded.Decode(encoded)
+	require.NoError(t, err)
+	require.Equal(t, len(encoded), n)
+
+	// Verify decoded values
+	require.Equal(t, owner, decoded.Owner)
+	require.Equal(t, name, decoded.Name)
+	require.Equal(t, initialSupply, decoded.InitialSupply)
 }

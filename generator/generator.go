@@ -108,15 +108,28 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 		methods = append(methods, abiDef.Methods[name])
 	}
 
+	// Collect constructor if present
+	var constructor *ethabi.Method
+	// Constructor is present if it has any inputs
+	if len(abiDef.Constructor.Inputs) > 0 {
+		constructor = &abiDef.Constructor
+	}
+
 	// Generate all selector constants at the beginning
 	g.genAllSelectors(methods)
 
 	// Generate all tuple structs needed for this function FIRST
 	// This ensures tuple types are available for encoding function generation
-	g.genTuples(methods)
+	g.genTuples(methods, constructor)
 
 	// Collect all types needed for encoding functions (excluding tuple types)
 	allTypes := g.collectAllTypes(methods)
+
+	// Add constructor types if present
+	if constructor != nil {
+		constructorTypes := g.collectConstructorTypes(constructor)
+		allTypes = append(allTypes, constructorTypes...)
+	}
 
 	// Now generate functions in the order they were collected
 	for _, t := range allTypes {
@@ -140,6 +153,11 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 	// Generate code for each function
 	for _, method := range methods {
 		g.genFunction(method)
+	}
+
+	// Generate code for constructor if present
+	if constructor != nil {
+		g.genConstructor(*constructor)
 	}
 
 	var events []ethabi.Event
@@ -352,7 +370,7 @@ func (g *Generator) genDecodingFunction(t ethabi.Type) {
 }
 
 // genTuples generates all tuple structs needed for a function
-func (g *Generator) genTuples(methods []ethabi.Method) {
+func (g *Generator) genTuples(methods []ethabi.Method, constructor *ethabi.Method) {
 	// Collect all tuple types from function inputs and outputs
 	tupleTypes := make(map[string]ethabi.Type)
 
@@ -376,6 +394,13 @@ func (g *Generator) genTuples(methods []ethabi.Method) {
 		}
 	}
 
+	// Collect tuples from constructor if present
+	if constructor != nil {
+		for _, input := range constructor.Inputs {
+			VisitABIType(input.Type, collectTupleVisitor)
+		}
+	}
+
 	// Generate struct definitions for collected tuples
 	for _, name := range SortedMapKeys(tupleTypes) {
 		// Check if this tuple should use an external implementation
@@ -388,6 +413,48 @@ func (g *Generator) genTuples(methods []ethabi.Method) {
 		s := StructFromTuple(tupleType)
 		g.genStruct(s)
 	}
+}
+
+// collectConstructorTypes collects all unique ABI types needed for constructor encoding functions
+func (g *Generator) collectConstructorTypes(constructor *ethabi.Method) []ethabi.Type {
+	typeSet := make(map[string]ethabi.Type)
+
+	var collectTypes func(t ethabi.Type)
+	collectTypes = func(t ethabi.Type) {
+		typeID := abi.GenTypeIdentifier(t)
+		if _, exists := typeSet[typeID]; !exists {
+			typeSet[typeID] = t
+		}
+
+		// Recursively collect nested types
+		switch t.T {
+		case ethabi.SliceTy, ethabi.ArrayTy:
+			if t.Elem != nil {
+				collectTypes(*t.Elem)
+			}
+		case ethabi.TupleTy:
+			for _, elem := range t.TupleElems {
+				collectTypes(*elem)
+			}
+		}
+	}
+
+	// Collect types from constructor inputs
+	for _, input := range constructor.Inputs {
+		collectTypes(input.Type)
+	}
+
+	// Convert map to slice
+	result := make([]ethabi.Type, 0, len(typeSet))
+	for _, name := range SortedMapKeys(typeSet) {
+		t := typeSet[name]
+		if t.T == ethabi.TupleTy {
+			// Skip tuple types since they have their own struct methods
+			continue
+		}
+		result = append(result, t)
+	}
+	return result
 }
 
 // genStruct generates a struct definition
@@ -654,6 +721,21 @@ func (g *Generator) genFunction(method ethabi.Method) {
 	} else {
 		g.L("")
 		g.L("// %s represents the input arguments for %s function", name, method.Name)
+		g.L("type %s struct {", name)
+		g.L("\t%sEmptyTuple", g.StdPrefix)
+		g.L("}")
+	}
+}
+
+func (g *Generator) genConstructor(constructor ethabi.Method) {
+	// Generate struct and methods for constructor with inputs
+	name := "Constructor"
+	if len(constructor.Inputs) > 0 {
+		s := StructFromArguments(name, constructor.Inputs)
+		g.genStruct(s)
+	} else {
+		g.L("")
+		g.L("// %s represents the input arguments for constructor", name)
 		g.L("type %s struct {", name)
 		g.L("\t%sEmptyTuple", g.StdPrefix)
 		g.L("}")

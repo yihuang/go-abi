@@ -2324,6 +2324,98 @@ func (t *UpdateProfileReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+const ConstructorStaticSize = 96
+
+// Constructor represents an ABI tuple
+type Constructor struct {
+	Owner         common.Address
+	Name          string
+	InitialSupply *big.Int
+}
+
+// EncodedSize returns the total encoded size of Constructor
+func (t Constructor) EncodedSize() int {
+	dynamicSize := 0
+	dynamicSize += abi.SizeString(t.Name)
+
+	return ConstructorStaticSize + dynamicSize
+}
+
+// EncodeTo encodes Constructor to ABI bytes in the provided buffer
+func (value Constructor) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := ConstructorStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Owner: address
+	if _, err := abi.EncodeAddress(value.Owner, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	// Field Name: string
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = abi.EncodeString(value.Name, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	// Field InitialSupply: uint256
+	if _, err := abi.EncodeUint256(value.InitialSupply, buf[64:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes Constructor to ABI bytes
+func (value Constructor) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes Constructor from ABI bytes in the provided buffer
+func (t *Constructor) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 96
+	// Decode static field Owner: address
+	t.Owner, _, err = abi.DecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode dynamic field Name
+	{
+		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Name")
+		}
+		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	// Decode static field InitialSupply: uint256
+	t.InitialSupply, _, err = abi.DecodeUint256(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
 // Event signatures
 var (
 	// DynamicIndexed(string)

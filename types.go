@@ -42,6 +42,10 @@ type Event interface {
 	GetEventID() common.Hash
 }
 
+type Constructor interface {
+	Tuple
+}
+
 type EmptyTuple struct{}
 
 func (e EmptyTuple) EncodedSize() int {
