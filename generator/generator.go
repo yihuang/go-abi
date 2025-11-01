@@ -683,7 +683,7 @@ func (g *Generator) abiTypeToGoType(abiType ethabi.Type) string {
 	// Reuse the existing implementation from generator.go
 	// This is a temporary placeholder - we should refactor this to avoid duplication
 	switch abiType.T {
-	case abi.UintTy:
+	case ethabi.UintTy:
 		// Use the closest native Go type that fits to avoid big.Int allocations
 		if abiType.Size <= 8 {
 			return "uint8"
@@ -696,7 +696,7 @@ func (g *Generator) abiTypeToGoType(abiType ethabi.Type) string {
 		} else {
 			return "*big.Int"
 		}
-	case abi.IntTy:
+	case ethabi.IntTy:
 		// Use the closest native Go type that fits to avoid big.Int allocations
 		if abiType.Size <= 8 {
 			return "int8"

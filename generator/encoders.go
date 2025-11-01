@@ -23,7 +23,7 @@ func (g *Generator) genSmallIntEncoding(t ethabi.Type) {
 	// Use the closest native integer type that fits
 	var nativeType string
 
-	if t.T == abi.IntTy {
+	if t.T == ethabi.IntTy {
 		// Signed integers: use next larger signed type
 		if t.Size <= 8 {
 			nativeType = "int8"
@@ -55,7 +55,7 @@ func (g *Generator) genSmallIntEncoding(t ethabi.Type) {
 		}
 	}
 
-	if t.T == abi.IntTy {
+	if t.T == ethabi.IntTy {
 		// Signed: use the appropriate integer size and sign extend
 		switch nativeType {
 		case "int8":

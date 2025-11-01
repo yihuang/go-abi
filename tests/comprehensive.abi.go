@@ -873,38 +873,8 @@ func EncodeBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
 	return 64, nil
 }
 
-// EncodeInt16 encodes int16 to ABI bytes
-func EncodeInt16(value int16, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 30; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
-	return 32, nil
-}
-
 // EncodeInt24 encodes int24 to ABI bytes
 func EncodeInt24(value int32, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 28; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
-// EncodeInt256 encodes int72 to ABI bytes
-func EncodeInt256(value *big.Int, buf []byte) (int, error) {
-	if err := abi.EncodeBigInt(value, buf[:32], true); err != nil {
-		return 0, err
-	}
-	return 32, nil
-}
-
-// EncodeInt32 encodes int32 to ABI bytes
-func EncodeInt32(value int32, buf []byte) (int, error) {
 	if value < 0 {
 		for i := 0; i < 28; i++ {
 			buf[i] = 0xff
@@ -933,28 +903,6 @@ func EncodeInt48(value int64, buf []byte) (int, error) {
 		}
 	}
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeInt64 encodes int64 to ABI bytes
-func EncodeInt64(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeInt8 encodes int8 to ABI bytes
-func EncodeInt8(value int8, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 31; i++ {
-			buf[i] = 0xff
-		}
-	}
-	buf[31] = byte(value)
 	return 32, nil
 }
 
@@ -1008,23 +956,9 @@ func EncodeStringSliceSlice(value [][]string, buf []byte) (int, error) {
 	return dynamicOffset + 32, nil
 }
 
-// EncodeUint16 encodes uint16 to ABI bytes
-func EncodeUint16(value uint16, buf []byte) (int, error) {
-	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
-	return 32, nil
-}
-
 // EncodeUint24 encodes uint24 to ABI bytes
 func EncodeUint24(value uint32, buf []byte) (int, error) {
 	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
-// EncodeUint256 encodes uint256 to ABI bytes
-func EncodeUint256(value *big.Int, buf []byte) (int, error) {
-	if err := abi.EncodeBigInt(value, buf[:32], false); err != nil {
-		return 0, err
-	}
 	return 32, nil
 }
 
@@ -1069,12 +1003,6 @@ func EncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
 	return dynamicOffset + 32, nil
 }
 
-// EncodeUint32 encodes uint32 to ABI bytes
-func EncodeUint32(value uint32, buf []byte) (int, error) {
-	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
-	return 32, nil
-}
-
 // EncodeUint36 encodes uint36 to ABI bytes
 func EncodeUint36(value uint64, buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
@@ -1084,18 +1012,6 @@ func EncodeUint36(value uint64, buf []byte) (int, error) {
 // EncodeUint48 encodes uint48 to ABI bytes
 func EncodeUint48(value uint64, buf []byte) (int, error) {
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeUint64 encodes uint64 to ABI bytes
-func EncodeUint64(value uint64, buf []byte) (int, error) {
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
-// EncodeUint8 encodes uint8 to ABI bytes
-func EncodeUint8(value uint8, buf []byte) (int, error) {
-	buf[31] = byte(value)
 	return 32, nil
 }
 
@@ -1335,37 +1251,8 @@ func DecodeBytes32Array2(data []byte) ([2][32]byte, int, error) {
 	return result, 64, nil
 }
 
-// DecodeInt16 decodes int16 from ABI bytes
-func DecodeInt16(data []byte) (int16, int, error) {
-	var result int16
-	result = int16(binary.BigEndian.Uint16(data[30:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fff // Sign extend
-	}
-	return result, 32, nil
-}
-
 // DecodeInt24 decodes int24 from ABI bytes
 func DecodeInt24(data []byte) (int32, int, error) {
-	var result int32
-	result = int32(binary.BigEndian.Uint32(data[28:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffff // Sign extend
-	}
-	return result, 32, nil
-}
-
-// DecodeInt256 decodes int72 from ABI bytes
-func DecodeInt256(data []byte) (*big.Int, int, error) {
-	result, err := abi.DecodeBigInt(data[:32], true)
-	if err != nil {
-		return nil, 0, err
-	}
-	return result, 32, nil
-}
-
-// DecodeInt32 decodes int32 from ABI bytes
-func DecodeInt32(data []byte) (int32, int, error) {
 	var result int32
 	result = int32(binary.BigEndian.Uint32(data[28:32]))
 	if data[0]&0x80 != 0 { // Check sign bit
@@ -1390,26 +1277,6 @@ func DecodeInt48(data []byte) (int64, int, error) {
 	result = int64(binary.BigEndian.Uint64(data[24:32]))
 	if data[0]&0x80 != 0 { // Check sign bit
 		result = result | ^0x7fffffffffffffff // Sign extend
-	}
-	return result, 32, nil
-}
-
-// DecodeInt64 decodes int64 from ABI bytes
-func DecodeInt64(data []byte) (int64, int, error) {
-	var result int64
-	result = int64(binary.BigEndian.Uint64(data[24:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffffffffffff // Sign extend
-	}
-	return result, 32, nil
-}
-
-// DecodeInt8 decodes int8 from ABI bytes
-func DecodeInt8(data []byte) (int8, int, error) {
-	var result int8
-	result = int8(data[31])
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7f // Sign extend
 	}
 	return result, 32, nil
 }
@@ -1482,26 +1349,10 @@ func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
-// DecodeUint16 decodes uint16 from ABI bytes
-func DecodeUint16(data []byte) (uint16, int, error) {
-	var result uint16
-	result = binary.BigEndian.Uint16(data[30:32])
-	return result, 32, nil
-}
-
 // DecodeUint24 decodes uint24 from ABI bytes
 func DecodeUint24(data []byte) (uint32, int, error) {
 	var result uint32
 	result = binary.BigEndian.Uint32(data[28:32])
-	return result, 32, nil
-}
-
-// DecodeUint256 decodes uint256 from ABI bytes
-func DecodeUint256(data []byte) (*big.Int, int, error) {
-	result, err := abi.DecodeBigInt(data[:32], false)
-	if err != nil {
-		return nil, 0, err
-	}
 	return result, 32, nil
 }
 
@@ -1567,13 +1418,6 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
-// DecodeUint32 decodes uint32 from ABI bytes
-func DecodeUint32(data []byte) (uint32, int, error) {
-	var result uint32
-	result = binary.BigEndian.Uint32(data[28:32])
-	return result, 32, nil
-}
-
 // DecodeUint36 decodes uint36 from ABI bytes
 func DecodeUint36(data []byte) (uint64, int, error) {
 	var result uint64
@@ -1585,20 +1429,6 @@ func DecodeUint36(data []byte) (uint64, int, error) {
 func DecodeUint48(data []byte) (uint64, int, error) {
 	var result uint64
 	result = binary.BigEndian.Uint64(data[24:32])
-	return result, 32, nil
-}
-
-// DecodeUint64 decodes uint64 from ABI bytes
-func DecodeUint64(data []byte) (uint64, int, error) {
-	var result uint64
-	result = binary.BigEndian.Uint64(data[24:32])
-	return result, 32, nil
-}
-
-// DecodeUint8 decodes uint8 from ABI bytes
-func DecodeUint8(data []byte) (uint8, int, error) {
-	var result uint8
-	result = uint8(data[31])
 	return result, 32, nil
 }
 
@@ -2748,17 +2578,17 @@ func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
 	}
 
 	// Field U72: uint72
-	if _, err := EncodeUint256(value.U72, buf[96:]); err != nil {
+	if _, err := abi.EncodeUint256(value.U72, buf[96:]); err != nil {
 		return 0, err
 	}
 
 	// Field U96: uint96
-	if _, err := EncodeUint256(value.U96, buf[128:]); err != nil {
+	if _, err := abi.EncodeUint256(value.U96, buf[128:]); err != nil {
 		return 0, err
 	}
 
 	// Field U120: uint120
-	if _, err := EncodeUint256(value.U120, buf[160:]); err != nil {
+	if _, err := abi.EncodeUint256(value.U120, buf[160:]); err != nil {
 		return 0, err
 	}
 
@@ -2778,17 +2608,17 @@ func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
 	}
 
 	// Field I72: int72
-	if _, err := EncodeInt256(value.I72, buf[288:]); err != nil {
+	if _, err := abi.EncodeInt256(value.I72, buf[288:]); err != nil {
 		return 0, err
 	}
 
 	// Field I96: int96
-	if _, err := EncodeInt256(value.I96, buf[320:]); err != nil {
+	if _, err := abi.EncodeInt256(value.I96, buf[320:]); err != nil {
 		return 0, err
 	}
 
 	// Field I120: int120
-	if _, err := EncodeInt256(value.I120, buf[352:]); err != nil {
+	if _, err := abi.EncodeInt256(value.I120, buf[352:]); err != nil {
 		return 0, err
 	}
 
@@ -2829,17 +2659,17 @@ func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	// Decode static field U72: uint72
-	t.U72, _, err = DecodeUint256(data[96:])
+	t.U72, _, err = abi.DecodeUint256(data[96:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U96: uint96
-	t.U96, _, err = DecodeUint256(data[128:])
+	t.U96, _, err = abi.DecodeUint256(data[128:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U120: uint120
-	t.U120, _, err = DecodeUint256(data[160:])
+	t.U120, _, err = abi.DecodeUint256(data[160:])
 	if err != nil {
 		return 0, err
 	}
@@ -2859,17 +2689,17 @@ func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	// Decode static field I72: int72
-	t.I72, _, err = DecodeInt256(data[288:])
+	t.I72, _, err = abi.DecodeInt256(data[288:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I96: int96
-	t.I96, _, err = DecodeInt256(data[320:])
+	t.I96, _, err = abi.DecodeInt256(data[320:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I120: int120
-	t.I120, _, err = DecodeInt256(data[352:])
+	t.I120, _, err = abi.DecodeInt256(data[352:])
 	if err != nil {
 		return 0, err
 	}
@@ -2905,7 +2735,7 @@ func (value TestNonStandardIntegersReturn) EncodeTo(buf []byte) (int, error) {
 	// Encode tuple fields
 	dynamicOffset := TestNonStandardIntegersReturnStaticSize // Start dynamic data after static section
 	// Field Field1: bool
-	if _, err := EncodeBool(value.Field1, buf[0:]); err != nil {
+	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
 		return 0, err
 	}
 
@@ -2931,7 +2761,7 @@ func (t *TestNonStandardIntegersReturn) Decode(data []byte) (int, error) {
 	)
 	dynamicOffset := 32
 	// Decode static field Field1: bool
-	t.Field1, _, err = DecodeBool(data[0:])
+	t.Field1, _, err = abi.DecodeBool(data[0:])
 	if err != nil {
 		return 0, err
 	}

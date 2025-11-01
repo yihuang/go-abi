@@ -632,22 +632,6 @@ func TestDecodeTuple45c89796Slice(data []byte) ([]Tuple45c89796, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
-// TestDecodeUint16 decodes uint16 from ABI bytes
-func TestDecodeUint16(data []byte) (uint16, int, error) {
-	var result uint16
-	result = binary.BigEndian.Uint16(data[30:32])
-	return result, 32, nil
-}
-
-// TestDecodeUint256 decodes uint256 from ABI bytes
-func TestDecodeUint256(data []byte) (*big.Int, int, error) {
-	result, err := abi.DecodeBigInt(data[:32], false)
-	if err != nil {
-		return nil, 0, err
-	}
-	return result, 32, nil
-}
-
 // TestDecodeUint256Array10 decodes uint256[10] from ABI bytes
 func TestDecodeUint256Array10(data []byte) ([10]*big.Int, int, error) {
 	// Decode fixed-size array with static elements
@@ -709,55 +693,6 @@ func TestDecodeUint256Array10(data []byte) ([10]*big.Int, int, error) {
 		return result, 0, err
 	}
 	return result, 320, nil
-}
-
-// TestDecodeUint256Slice decodes uint256[] from ABI bytes
-func TestDecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
-	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	data = data[32:]
-	if len(data) < 32*length {
-		return nil, 0, io.ErrUnexpectedEOF
-	}
-	var (
-		n      int
-		err    error
-		offset int
-	)
-	// Decode elements with static types
-	result := make([]*big.Int, length)
-	for i := 0; i < length; i++ {
-		result[i], n, err = TestDecodeUint256(data[offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		offset += n
-	}
-	return result, offset + 32, nil
-}
-
-// TestDecodeUint32 decodes uint32 from ABI bytes
-func TestDecodeUint32(data []byte) (uint32, int, error) {
-	var result uint32
-	result = binary.BigEndian.Uint32(data[28:32])
-	return result, 32, nil
-}
-
-// TestDecodeUint64 decodes uint64 from ABI bytes
-func TestDecodeUint64(data []byte) (uint64, int, error) {
-	var result uint64
-	result = binary.BigEndian.Uint64(data[24:32])
-	return result, 32, nil
-}
-
-// TestDecodeUint8 decodes uint8 from ABI bytes
-func TestDecodeUint8(data []byte) (uint8, int, error) {
-	var result uint8
-	result = uint8(data[31])
-	return result, 32, nil
 }
 
 // TestDecodeUserDataSlice decodes (uint256,(bytes32,string))[] from ABI bytes
