@@ -10,8 +10,7 @@ import (
 )
 
 type Tuple[T any] interface {
-	abi.Encode
-	abi.Decode
+	abi.Tuple
 
 	*T
 }

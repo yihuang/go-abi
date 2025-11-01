@@ -5,11 +5,24 @@ import (
 )
 
 type Encode interface {
+	EncodedSize() int
 	Encode() ([]byte, error)
+	EncodeTo([]byte) (int, error)
 }
 
 type Decode interface {
+	// Decode returns io.UnexpectedEOF if data is too short.
 	Decode([]byte) (int, error)
+}
+
+type Tuple interface {
+	Encode
+	Decode
+}
+
+type MethodCall interface {
+	Tuple
+	EncodeWithSelector() ([]byte, error)
 }
 
 type EmptyTuple struct{}
