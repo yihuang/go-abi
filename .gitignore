@@ -1,0 +1,52 @@
+# Binaries
+cmd/go-abi
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build artifacts
+dist/
+build/
+
+# Test artifacts
+.dev/
+*.test
+*.binary
+
+# Coverage files
+coverage.out
+coverage.html
+*.cover
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Go
+*.sum
+
+# Temporary files
+tmp/
+temp/
+
+# Worktree
+.dev/worktree/
