@@ -89,18 +89,18 @@ func TestComprehensiveSmallIntegers(t *testing.T) {
 
 func TestComprehensiveNonStandardIntegers(t *testing.T) {
 	args := &TestNonStandardIntegersCall{
-		U24:  1000,   // uint32 - fits in 32 bits
-		U36:  2000,   // uint64 - fits in 64 bits
-		U48:  3000,   // uint64 - fits in 64 bits
-		U72:  big.NewInt(4000),   // uint72 - exceeds 64 bits, uses big.Int
-		U96:  big.NewInt(5000),   // uint96 - exceeds 64 bits, uses big.Int
-		U120: big.NewInt(6000),   // uint120 - exceeds 64 bits, uses big.Int
-		I24:  -1000,  // int32 - fits in 32 bits
-		I36:  -2000,  // int64 - fits in 64 bits
-		I48:  -3000,  // int64 - fits in 64 bits
-		I72:  big.NewInt(-4000),  // int72 - exceeds 64 bits, uses big.Int
-		I96:  big.NewInt(-5000),  // int96 - exceeds 64 bits, uses big.Int
-		I120: big.NewInt(-6000),  // int120 - exceeds 64 bits, uses big.Int
+		U24:  1000,              // uint32 - fits in 32 bits
+		U36:  2000,              // uint64 - fits in 64 bits
+		U48:  3000,              // uint64 - fits in 64 bits
+		U72:  big.NewInt(4000),  // uint72 - exceeds 64 bits, uses big.Int
+		U96:  big.NewInt(5000),  // uint96 - exceeds 64 bits, uses big.Int
+		U120: big.NewInt(6000),  // uint120 - exceeds 64 bits, uses big.Int
+		I24:  -1000,             // int32 - fits in 32 bits
+		I36:  -2000,             // int64 - fits in 64 bits
+		I48:  -3000,             // int64 - fits in 64 bits
+		I72:  big.NewInt(-4000), // int72 - exceeds 64 bits, uses big.Int
+		I96:  big.NewInt(-5000), // int96 - exceeds 64 bits, uses big.Int
+		I120: big.NewInt(-6000), // int120 - exceeds 64 bits, uses big.Int
 	}
 
 	// Test that native types (≤64 bits) encode/decode correctly
@@ -112,13 +112,15 @@ func TestComprehensiveNonStandardIntegers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 4+384, len(encoded)) // 4 bytes selector + 384 bytes data
 
-	// Test decoding
-	var decoded TestNonStandardIntegersCall
-	_, err = decoded.Decode(encoded[4:])
+	// Get go-ethereum encoding
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testNonStandardIntegers",
+		big.NewInt(int64(args.U24)), big.NewInt(int64(args.U36)), big.NewInt(int64(args.U48)), args.U72, args.U96, args.U120,
+		big.NewInt(int64(args.I24)), big.NewInt(int64(args.I36)), big.NewInt(int64(args.I48)), args.I72, args.I96, args.I120)
 	require.NoError(t, err)
 
-	// Verify all fields match (now works after fixing EncodeBigInt bug)
-	require.Equal(t, args, &decoded)
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
 }
 
 func TestComprehensiveFixedArrays(t *testing.T) {
