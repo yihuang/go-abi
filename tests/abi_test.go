@@ -31,6 +31,7 @@ var TestABI = []string{
 	"function smallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
 	"function communityPool() view returns ((string denom, uint256 amount)[] coins)",
 	"event DynamicIndexed(string indexed denom)",
+	"event EmptyIndexed(string denom)",
 	"function emptyArgs() returns ()",
 }
 

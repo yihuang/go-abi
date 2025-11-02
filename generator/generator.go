@@ -914,7 +914,9 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	}
 
 	if len(fields) == 0 {
-		g.L(`type %sEventIndexed %sEmptyIndexed`, event.Name, g.StdPrefix)
+		g.L("type %sEventIndexed struct {", event.Name)
+		g.L("\t%sEmptyIndexed", g.StdPrefix)
+		g.L("}")
 		return
 	}
 

@@ -63,8 +63,8 @@ func (e *EmptyTuple) Decode(data []byte) (int, error) {
 
 type EmptyIndexed struct{}
 
-func (e EmptyIndexed) EncodeTopics() []common.Hash {
-	return nil
+func (e EmptyIndexed) EncodeTopics() ([]common.Hash, error) {
+	return nil, nil
 }
 
 func (e *EmptyIndexed) DecodeTopics([]common.Hash) error {

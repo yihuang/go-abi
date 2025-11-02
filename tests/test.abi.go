@@ -2460,6 +2460,8 @@ func (t *UpdateProfileReturn) Decode(data []byte) (int, error) {
 var (
 	// DynamicIndexed(string)
 	DynamicIndexedEventTopic = common.Hash{0x3f, 0x9f, 0x17, 0xba, 0xc9, 0x56, 0x4d, 0x19, 0xb3, 0x0d, 0x61, 0xf0, 0xe5, 0x07, 0x81, 0x21, 0xfc, 0x40, 0xc7, 0x25, 0x4a, 0xa1, 0xba, 0xb6, 0x7e, 0xee, 0x77, 0x38, 0x8c, 0x00, 0x92, 0xbd}
+	// EmptyIndexed(string)
+	EmptyIndexedEventTopic = common.Hash{0xe5, 0x2f, 0xef, 0xc3, 0xd9, 0xf6, 0x59, 0xfe, 0x1f, 0x72, 0x8a, 0x74, 0xef, 0x9d, 0x2e, 0x7e, 0x23, 0xfe, 0x1f, 0x4c, 0xfc, 0x2b, 0x16, 0x7e, 0x1d, 0x71, 0xaf, 0xa9, 0xf7, 0x0b, 0x29, 0x13}
 )
 
 // DynamicIndexedEvent represents the DynamicIndexed event
@@ -2527,4 +2529,110 @@ func (e *DynamicIndexedEventIndexed) DecodeTopics(topics []common.Hash) error {
 
 type DynamicIndexedEventData struct {
 	abi.EmptyTuple
+}
+
+// EmptyIndexedEvent represents the EmptyIndexed event
+var _ abi.Event = (*EmptyIndexedEvent)(nil)
+
+type EmptyIndexedEvent struct {
+	EmptyIndexedEventIndexed
+	EmptyIndexedEventData
+}
+
+// NewEmptyIndexedEvent constructs a new EmptyIndexed event
+func NewEmptyIndexedEvent(
+	denom string,
+) EmptyIndexedEvent {
+	return EmptyIndexedEvent{
+		EmptyIndexedEventIndexed: EmptyIndexedEventIndexed{},
+		EmptyIndexedEventData: EmptyIndexedEventData{
+			Denom: denom,
+		},
+	}
+}
+
+// GetEventName returns the event name
+func (e EmptyIndexedEvent) GetEventName() string {
+	return "EmptyIndexed"
+}
+
+// GetEventID returns the event ID (topic)
+func (e EmptyIndexedEvent) GetEventID() common.Hash {
+	return EmptyIndexedEventTopic
+}
+
+type EmptyIndexedEventIndexed struct {
+	abi.EmptyIndexed
+}
+
+const EmptyIndexedEventDataStaticSize = 32
+
+var _ abi.Tuple = (*EmptyIndexedEventData)(nil)
+
+// EmptyIndexedEventData represents an ABI tuple
+type EmptyIndexedEventData struct {
+	Denom string
+}
+
+// EncodedSize returns the total encoded size of EmptyIndexedEventData
+func (t EmptyIndexedEventData) EncodedSize() int {
+	dynamicSize := 0
+	dynamicSize += abi.SizeString(t.Denom)
+
+	return EmptyIndexedEventDataStaticSize + dynamicSize
+}
+
+// EncodeTo encodes EmptyIndexedEventData to ABI bytes in the provided buffer
+func (value EmptyIndexedEventData) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := EmptyIndexedEventDataStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Denom: string
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = abi.EncodeString(value.Denom, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes EmptyIndexedEventData to ABI bytes
+func (value EmptyIndexedEventData) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes EmptyIndexedEventData from ABI bytes in the provided buffer
+func (t *EmptyIndexedEventData) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Denom
+	{
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Denom")
+		}
+		t.Denom, n, err = abi.DecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
 }
