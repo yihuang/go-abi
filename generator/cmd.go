@@ -17,7 +17,7 @@ import (
 )
 
 // Command runs the original generator
-func Command(inputFile, varName string, artifactInput bool, opts ...Option) {
+func Command(inputFile, varName string, artifactInput bool, outputFile string, opts ...Option) {
 	var abiDef ethabi.ABI
 	var err error
 
@@ -72,12 +72,10 @@ func Command(inputFile, varName string, artifactInput bool, opts ...Option) {
 	}
 
 	// Write output
-	if gen.Options.ModuleName == "" {
+	if outputFile == "" {
 		fmt.Println(generatedCode)
 		return
 	}
-
-	outputFile := fmt.Sprintf("%s.abi.go", gen.Options.ModuleName)
 
 	opt := imports.Options{
 		Comments: true,

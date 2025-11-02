@@ -12,7 +12,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var NestedTupleReturnsABI -module nested -prefix nested
+//go:generate go run ../cmd -var NestedTupleReturnsABI -output nested.abi.go -prefix nested
 
 // NestedTupleReturnsABI contains human-readable ABI definitions for testing nested tuples in function returns
 var NestedTupleReturnsABI = []string{

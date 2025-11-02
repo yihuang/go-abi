@@ -13,7 +13,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var ComprehensiveTestABI -module comprehensive --external-tuples User=User
+//go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive.abi.go --external-tuples User=User
 
 // ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
 var ComprehensiveTestABI = []string{
