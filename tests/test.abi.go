@@ -60,6 +60,8 @@ const (
 
 const Tuple45c89796StaticSize = 64
 
+var _ abi.Tuple = (*Tuple45c89796)(nil)
+
 // Tuple45c89796 represents an ABI tuple
 type Tuple45c89796 struct {
 	Denom  string
@@ -140,6 +142,8 @@ func (t *Tuple45c89796) Decode(data []byte) (int, error) {
 }
 
 const UserStaticSize = 96
+
+var _ abi.Tuple = (*User)(nil)
 
 // User represents an ABI tuple
 type User struct {
@@ -233,6 +237,8 @@ func (t *User) Decode(data []byte) (int, error) {
 
 const UserDataStaticSize = 64
 
+var _ abi.Tuple = (*UserData)(nil)
+
 // UserData represents an ABI tuple
 type UserData struct {
 	Id   *big.Int
@@ -313,6 +319,8 @@ func (t *UserData) Decode(data []byte) (int, error) {
 }
 
 const UserMetadataStaticSize = 64
+
+var _ abi.Tuple = (*UserMetadata)(nil)
 
 // UserMetadata represents an ABI tuple
 type UserMetadata struct {
@@ -729,7 +737,11 @@ func TestDecodeUserDataSlice(data []byte) ([]UserData, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
+var _ abi.Method = (*BalanceOfCall)(nil)
+
 const BalanceOfCallStaticSize = 32
+
+var _ abi.Tuple = (*BalanceOfCall)(nil)
 
 // BalanceOfCall represents an ABI tuple
 type BalanceOfCall struct {
@@ -803,6 +815,8 @@ func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 
 const BalanceOfReturnStaticSize = 32
 
+var _ abi.Tuple = (*BalanceOfReturn)(nil)
+
 // BalanceOfReturn represents an ABI tuple
 type BalanceOfReturn struct {
 	Field1 *big.Int
@@ -853,7 +867,11 @@ func (t *BalanceOfReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*BatchProcessCall)(nil)
+
 const BatchProcessCallStaticSize = 32
+
+var _ abi.Tuple = (*BatchProcessCall)(nil)
 
 // BatchProcessCall represents an ABI tuple
 type BatchProcessCall struct {
@@ -945,6 +963,8 @@ func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 
 const BatchProcessReturnStaticSize = 32
 
+var _ abi.Tuple = (*BatchProcessReturn)(nil)
+
 // BatchProcessReturn represents an ABI tuple
 type BatchProcessReturn struct {
 	Field1 bool
@@ -1021,6 +1041,8 @@ func (t CommunityPoolCall) EncodeWithSelector() ([]byte, error) {
 }
 
 const CommunityPoolReturnStaticSize = 32
+
+var _ abi.Tuple = (*CommunityPoolReturn)(nil)
 
 // CommunityPoolReturn represents an ABI tuple
 type CommunityPoolReturn struct {
@@ -1120,7 +1142,11 @@ type EmptyArgsReturn struct {
 	abi.EmptyTuple
 }
 
+var _ abi.Method = (*GetBalancesCall)(nil)
+
 const GetBalancesCallStaticSize = 320
+
+var _ abi.Tuple = (*GetBalancesCall)(nil)
 
 // GetBalancesCall represents an ABI tuple
 type GetBalancesCall struct {
@@ -1194,6 +1220,8 @@ func (t GetBalancesCall) EncodeWithSelector() ([]byte, error) {
 
 const GetBalancesReturnStaticSize = 320
 
+var _ abi.Tuple = (*GetBalancesReturn)(nil)
+
 // GetBalancesReturn represents an ABI tuple
 type GetBalancesReturn struct {
 	Field1 [10]*big.Int
@@ -1244,7 +1272,11 @@ func (t *GetBalancesReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*ProcessUserDataCall)(nil)
+
 const ProcessUserDataCallStaticSize = 64
+
+var _ abi.Tuple = (*ProcessUserDataCall)(nil)
 
 // ProcessUserDataCall represents an ABI tuple
 type ProcessUserDataCall struct {
@@ -1360,6 +1392,8 @@ func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 
 const ProcessUserDataReturnStaticSize = 32
 
+var _ abi.Tuple = (*ProcessUserDataReturn)(nil)
+
 // ProcessUserDataReturn represents an ABI tuple
 type ProcessUserDataReturn struct {
 	Field1 bool
@@ -1410,7 +1444,11 @@ func (t *ProcessUserDataReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*SetDataCall)(nil)
+
 const SetDataCallStaticSize = 64
+
+var _ abi.Tuple = (*SetDataCall)(nil)
 
 // SetDataCall represents an ABI tuple
 type SetDataCall struct {
@@ -1516,7 +1554,11 @@ type SetDataReturn struct {
 	abi.EmptyTuple
 }
 
+var _ abi.Method = (*SetMessageCall)(nil)
+
 const SetMessageCallStaticSize = 32
+
+var _ abi.Tuple = (*SetMessageCall)(nil)
 
 // SetMessageCall represents an ABI tuple
 type SetMessageCall struct {
@@ -1608,6 +1650,8 @@ func (t SetMessageCall) EncodeWithSelector() ([]byte, error) {
 
 const SetMessageReturnStaticSize = 32
 
+var _ abi.Tuple = (*SetMessageReturn)(nil)
+
 // SetMessageReturn represents an ABI tuple
 type SetMessageReturn struct {
 	Field1 bool
@@ -1658,7 +1702,11 @@ func (t *SetMessageReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*SmallIntegersCall)(nil)
+
 const SmallIntegersCallStaticSize = 256
+
+var _ abi.Tuple = (*SmallIntegersCall)(nil)
 
 // SmallIntegersCall represents an ABI tuple
 type SmallIntegersCall struct {
@@ -1809,6 +1857,8 @@ func (t SmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 
 const SmallIntegersReturnStaticSize = 32
 
+var _ abi.Tuple = (*SmallIntegersReturn)(nil)
+
 // SmallIntegersReturn represents an ABI tuple
 type SmallIntegersReturn struct {
 	Field1 bool
@@ -1859,7 +1909,11 @@ func (t *SmallIntegersReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TransferCall)(nil)
+
 const TransferCallStaticSize = 64
+
+var _ abi.Tuple = (*TransferCall)(nil)
 
 // TransferCall represents an ABI tuple
 type TransferCall struct {
@@ -1944,6 +1998,8 @@ func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 
 const TransferReturnStaticSize = 32
 
+var _ abi.Tuple = (*TransferReturn)(nil)
+
 // TransferReturn represents an ABI tuple
 type TransferReturn struct {
 	Field1 bool
@@ -1994,7 +2050,11 @@ func (t *TransferReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TransferBatchCall)(nil)
+
 const TransferBatchCallStaticSize = 64
+
+var _ abi.Tuple = (*TransferBatchCall)(nil)
 
 // TransferBatchCall represents an ABI tuple
 type TransferBatchCall struct {
@@ -2110,6 +2170,8 @@ func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 
 const TransferBatchReturnStaticSize = 32
 
+var _ abi.Tuple = (*TransferBatchReturn)(nil)
+
 // TransferBatchReturn represents an ABI tuple
 type TransferBatchReturn struct {
 	Field1 bool
@@ -2160,7 +2222,11 @@ func (t *TransferBatchReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*UpdateProfileCall)(nil)
+
 const UpdateProfileCallStaticSize = 96
+
+var _ abi.Tuple = (*UpdateProfileCall)(nil)
 
 // UpdateProfileCall represents an ABI tuple
 type UpdateProfileCall struct {
@@ -2274,6 +2340,8 @@ func (t UpdateProfileCall) EncodeWithSelector() ([]byte, error) {
 
 const UpdateProfileReturnStaticSize = 32
 
+var _ abi.Tuple = (*UpdateProfileReturn)(nil)
+
 // UpdateProfileReturn represents an ABI tuple
 type UpdateProfileReturn struct {
 	Field1 bool
@@ -2331,6 +2399,8 @@ var (
 )
 
 // DynamicIndexedEvent represents the DynamicIndexed event
+var _ abi.Event = (*DynamicIndexedEvent)(nil)
+
 type DynamicIndexedEvent struct {
 	DynamicIndexedEventIndexed
 	DynamicIndexedEventData

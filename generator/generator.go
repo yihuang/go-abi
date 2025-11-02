@@ -395,6 +395,8 @@ func (g *Generator) genStruct(s Struct) {
 	g.L("")
 	g.L("const %sStaticSize = %d", s.Name, GetTupleSize(s.Types()))
 	g.L("")
+	// assert interface
+	g.L("var _ %sTuple = (*%s)(nil)", g.StdPrefix, s.Name)
 	g.L("// %s represents an ABI tuple", s.Name)
 	g.L("type %s struct {", s.Name)
 
@@ -613,6 +615,8 @@ func (g *Generator) genFunction(method ethabi.Method) {
 	name := fmt.Sprintf("%sCall", Title.String(method.Name))
 	if len(method.Inputs) > 0 {
 		s := StructFromArguments(name, method.Inputs)
+		// assert interface
+		g.L("var _ %sMethod = (*%s)(nil)", g.StdPrefix, s.Name)
 		g.genStruct(s)
 	} else {
 		g.L("")
@@ -835,6 +839,8 @@ func (g *Generator) genEvent(event ethabi.Event) {
 
 func (g *Generator) genEventTopLevel(event ethabi.Event) {
 	g.L("// %sEvent represents the %s event", event.Name, event.Name)
+	// assert interface
+	g.L("var _ %sEvent = (*%sEvent)(nil)", g.StdPrefix, event.Name)
 	g.L("type %sEvent struct {", event.Name)
 	g.L("%sEventIndexed", event.Name)
 	g.L("%sEventData", event.Name)

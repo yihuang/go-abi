@@ -50,6 +50,8 @@ const (
 
 const AddressStringPairStaticSize = 64
 
+var _ abi.Tuple = (*AddressStringPair)(nil)
+
 // AddressStringPair represents an ABI tuple
 type AddressStringPair struct {
 	Addr common.Address
@@ -130,6 +132,8 @@ func (t *AddressStringPair) Decode(data []byte) (int, error) {
 }
 
 const ComplexNestedStaticSize = 128
+
+var _ abi.Tuple = (*ComplexNested)(nil)
 
 // ComplexNested represents an ABI tuple
 type ComplexNested struct {
@@ -247,6 +251,8 @@ func (t *ComplexNested) Decode(data []byte) (int, error) {
 
 const DeeplyNestedStaticSize = 160
 
+var _ abi.Tuple = (*DeeplyNested)(nil)
+
 // DeeplyNested represents an ABI tuple
 type DeeplyNested struct {
 	Num  *big.Int
@@ -361,6 +367,8 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 
 const SimplePairStaticSize = 64
 
+var _ abi.Tuple = (*SimplePair)(nil)
+
 // SimplePair represents an ABI tuple
 type SimplePair struct {
 	First  *big.Int
@@ -423,6 +431,8 @@ func (t *SimplePair) Decode(data []byte) (int, error) {
 }
 
 const UserWithMetadataStaticSize = 128
+
+var _ abi.Tuple = (*UserWithMetadata)(nil)
 
 // UserWithMetadata represents an ABI tuple
 type UserWithMetadata struct {
@@ -754,6 +764,8 @@ func (t GetAddressStringPairCall) EncodeWithSelector() ([]byte, error) {
 
 const GetAddressStringPairReturnStaticSize = 32
 
+var _ abi.Tuple = (*GetAddressStringPairReturn)(nil)
+
 // GetAddressStringPairReturn represents an ABI tuple
 type GetAddressStringPairReturn struct {
 	Field1 AddressStringPair
@@ -848,6 +860,8 @@ func (t GetComplexNestedCall) EncodeWithSelector() ([]byte, error) {
 }
 
 const GetComplexNestedReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetComplexNestedReturn)(nil)
 
 // GetComplexNestedReturn represents an ABI tuple
 type GetComplexNestedReturn struct {
@@ -944,6 +958,8 @@ func (t GetDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 
 const GetDeeplyNestedReturnStaticSize = 32
 
+var _ abi.Tuple = (*GetDeeplyNestedReturn)(nil)
+
 // GetDeeplyNestedReturn represents an ABI tuple
 type GetDeeplyNestedReturn struct {
 	Field1 DeeplyNested
@@ -1038,6 +1054,8 @@ func (t GetMultipleReturnsCall) EncodeWithSelector() ([]byte, error) {
 }
 
 const GetMultipleReturnsReturnStaticSize = 96
+
+var _ abi.Tuple = (*GetMultipleReturnsReturn)(nil)
 
 // GetMultipleReturnsReturn represents an ABI tuple
 type GetMultipleReturnsReturn struct {
@@ -1156,6 +1174,8 @@ func (t GetNestedTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 
 const GetNestedTupleArrayReturnStaticSize = 32
 
+var _ abi.Tuple = (*GetNestedTupleArrayReturn)(nil)
+
 // GetNestedTupleArrayReturn represents an ABI tuple
 type GetNestedTupleArrayReturn struct {
 	Field1 []ComplexNested
@@ -1251,6 +1271,8 @@ func (t GetSimplePairCall) EncodeWithSelector() ([]byte, error) {
 
 const GetSimplePairReturnStaticSize = 64
 
+var _ abi.Tuple = (*GetSimplePairReturn)(nil)
+
 // GetSimplePairReturn represents an ABI tuple
 type GetSimplePairReturn struct {
 	Field1 SimplePair
@@ -1327,6 +1349,8 @@ func (t GetTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 }
 
 const GetTupleArrayReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetTupleArrayReturn)(nil)
 
 // GetTupleArrayReturn represents an ABI tuple
 type GetTupleArrayReturn struct {
@@ -1423,6 +1447,8 @@ func (t GetUserWithMetadataCall) EncodeWithSelector() ([]byte, error) {
 
 const GetUserWithMetadataReturnStaticSize = 32
 
+var _ abi.Tuple = (*GetUserWithMetadataReturn)(nil)
+
 // GetUserWithMetadataReturn represents an ABI tuple
 type GetUserWithMetadataReturn struct {
 	Field1 UserWithMetadata
@@ -1517,6 +1543,8 @@ func (t GetUsersArrayCall) EncodeWithSelector() ([]byte, error) {
 }
 
 const GetUsersArrayReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetUsersArrayReturn)(nil)
 
 // GetUsersArrayReturn represents an ABI tuple
 type GetUsersArrayReturn struct {

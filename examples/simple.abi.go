@@ -21,7 +21,11 @@ const (
 	SendID = 3496451380
 )
 
+var _ abi.Method = (*SendCall)(nil)
+
 const SendCallStaticSize = 64
+
+var _ abi.Tuple = (*SendCall)(nil)
 
 // SendCall represents an ABI tuple
 type SendCall struct {

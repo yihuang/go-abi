@@ -35,7 +35,11 @@ const (
 	Overloaded20ID = 822703915
 )
 
+var _ abi.Method = (*Overloaded1Call)(nil)
+
 const Overloaded1CallStaticSize = 64
+
+var _ abi.Tuple = (*Overloaded1Call)(nil)
 
 // Overloaded1Call represents an ABI tuple
 type Overloaded1Call struct {
@@ -120,6 +124,8 @@ func (t Overloaded1Call) EncodeWithSelector() ([]byte, error) {
 
 const Overloaded1ReturnStaticSize = 32
 
+var _ abi.Tuple = (*Overloaded1Return)(nil)
+
 // Overloaded1Return represents an ABI tuple
 type Overloaded1Return struct {
 	Field1 bool
@@ -170,7 +176,11 @@ func (t *Overloaded1Return) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*Overloaded10Call)(nil)
+
 const Overloaded10CallStaticSize = 96
+
+var _ abi.Tuple = (*Overloaded10Call)(nil)
 
 // Overloaded10Call represents an ABI tuple
 type Overloaded10Call struct {
@@ -266,6 +276,8 @@ func (t Overloaded10Call) EncodeWithSelector() ([]byte, error) {
 
 const Overloaded10ReturnStaticSize = 32
 
+var _ abi.Tuple = (*Overloaded10Return)(nil)
+
 // Overloaded10Return represents an ABI tuple
 type Overloaded10Return struct {
 	Field1 bool
@@ -316,7 +328,11 @@ func (t *Overloaded10Return) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*Overloaded11Call)(nil)
+
 const Overloaded11CallStaticSize = 128
+
+var _ abi.Tuple = (*Overloaded11Call)(nil)
 
 // Overloaded11Call represents an ABI tuple
 type Overloaded11Call struct {
@@ -441,6 +457,8 @@ func (t Overloaded11Call) EncodeWithSelector() ([]byte, error) {
 
 const Overloaded11ReturnStaticSize = 32
 
+var _ abi.Tuple = (*Overloaded11Return)(nil)
+
 // Overloaded11Return represents an ABI tuple
 type Overloaded11Return struct {
 	Field1 bool
@@ -491,7 +509,11 @@ func (t *Overloaded11Return) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*Overloaded2Call)(nil)
+
 const Overloaded2CallStaticSize = 32
+
+var _ abi.Tuple = (*Overloaded2Call)(nil)
 
 // Overloaded2Call represents an ABI tuple
 type Overloaded2Call struct {
@@ -564,6 +586,8 @@ func (t Overloaded2Call) EncodeWithSelector() ([]byte, error) {
 }
 
 const Overloaded2ReturnStaticSize = 32
+
+var _ abi.Tuple = (*Overloaded2Return)(nil)
 
 // Overloaded2Return represents an ABI tuple
 type Overloaded2Return struct {
@@ -641,6 +665,8 @@ func (t Overloaded20Call) EncodeWithSelector() ([]byte, error) {
 }
 
 const Overloaded20ReturnStaticSize = 32
+
+var _ abi.Tuple = (*Overloaded20Return)(nil)
 
 // Overloaded20Return represents an ABI tuple
 type Overloaded20Return struct {

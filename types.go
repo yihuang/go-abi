@@ -31,7 +31,7 @@ type Method interface {
 
 type Event interface {
 	// indexed fields
-	EncodeTopics() []common.Hash
+	EncodeTopics() ([]common.Hash, error)
 	DecodeTopics([]common.Hash) error
 
 	// data fields

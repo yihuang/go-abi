@@ -1679,7 +1679,11 @@ func DecodeUint8Slice(data []byte) ([]uint8, int, error) {
 	return result, offset + 32, nil
 }
 
+var _ Method = (*StdlibCall)(nil)
+
 const StdlibCallStaticSize = 2368
+
+var _ Tuple = (*StdlibCall)(nil)
 
 // StdlibCall represents an ABI tuple
 type StdlibCall struct {

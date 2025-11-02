@@ -48,7 +48,11 @@ const (
 	TransferFromID = 599290589
 )
 
+var _ abi.Method = (*AllowanceCall)(nil)
+
 const AllowanceCallStaticSize = 64
+
+var _ abi.Tuple = (*AllowanceCall)(nil)
 
 // AllowanceCall represents an ABI tuple
 type AllowanceCall struct {
@@ -133,6 +137,8 @@ func (t AllowanceCall) EncodeWithSelector() ([]byte, error) {
 
 const AllowanceReturnStaticSize = 32
 
+var _ abi.Tuple = (*AllowanceReturn)(nil)
+
 // AllowanceReturn represents an ABI tuple
 type AllowanceReturn struct {
 	Field1 *big.Int
@@ -183,7 +189,11 @@ func (t *AllowanceReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*ApproveCall)(nil)
+
 const ApproveCallStaticSize = 64
+
+var _ abi.Tuple = (*ApproveCall)(nil)
 
 // ApproveCall represents an ABI tuple
 type ApproveCall struct {
@@ -268,6 +278,8 @@ func (t ApproveCall) EncodeWithSelector() ([]byte, error) {
 
 const ApproveReturnStaticSize = 32
 
+var _ abi.Tuple = (*ApproveReturn)(nil)
+
 // ApproveReturn represents an ABI tuple
 type ApproveReturn struct {
 	Field1 bool
@@ -318,7 +330,11 @@ func (t *ApproveReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*BalanceOfCall)(nil)
+
 const BalanceOfCallStaticSize = 32
+
+var _ abi.Tuple = (*BalanceOfCall)(nil)
 
 // BalanceOfCall represents an ABI tuple
 type BalanceOfCall struct {
@@ -391,6 +407,8 @@ func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 }
 
 const BalanceOfReturnStaticSize = 32
+
+var _ abi.Tuple = (*BalanceOfReturn)(nil)
 
 // BalanceOfReturn represents an ABI tuple
 type BalanceOfReturn struct {
@@ -469,6 +487,8 @@ func (t DecimalsCall) EncodeWithSelector() ([]byte, error) {
 
 const DecimalsReturnStaticSize = 32
 
+var _ abi.Tuple = (*DecimalsReturn)(nil)
+
 // DecimalsReturn represents an ABI tuple
 type DecimalsReturn struct {
 	Field1 uint8
@@ -545,6 +565,8 @@ func (t NameCall) EncodeWithSelector() ([]byte, error) {
 }
 
 const NameReturnStaticSize = 32
+
+var _ abi.Tuple = (*NameReturn)(nil)
 
 // NameReturn represents an ABI tuple
 type NameReturn struct {
@@ -641,6 +663,8 @@ func (t SymbolCall) EncodeWithSelector() ([]byte, error) {
 
 const SymbolReturnStaticSize = 32
 
+var _ abi.Tuple = (*SymbolReturn)(nil)
+
 // SymbolReturn represents an ABI tuple
 type SymbolReturn struct {
 	Field1 string
@@ -736,6 +760,8 @@ func (t TotalSupplyCall) EncodeWithSelector() ([]byte, error) {
 
 const TotalSupplyReturnStaticSize = 32
 
+var _ abi.Tuple = (*TotalSupplyReturn)(nil)
+
 // TotalSupplyReturn represents an ABI tuple
 type TotalSupplyReturn struct {
 	Field1 *big.Int
@@ -786,7 +812,11 @@ func (t *TotalSupplyReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TransferCall)(nil)
+
 const TransferCallStaticSize = 64
+
+var _ abi.Tuple = (*TransferCall)(nil)
 
 // TransferCall represents an ABI tuple
 type TransferCall struct {
@@ -871,6 +901,8 @@ func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 
 const TransferReturnStaticSize = 32
 
+var _ abi.Tuple = (*TransferReturn)(nil)
+
 // TransferReturn represents an ABI tuple
 type TransferReturn struct {
 	Field1 bool
@@ -921,7 +953,11 @@ func (t *TransferReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TransferFromCall)(nil)
+
 const TransferFromCallStaticSize = 96
+
+var _ abi.Tuple = (*TransferFromCall)(nil)
 
 // TransferFromCall represents an ABI tuple
 type TransferFromCall struct {
@@ -1017,6 +1053,8 @@ func (t TransferFromCall) EncodeWithSelector() ([]byte, error) {
 
 const TransferFromReturnStaticSize = 32
 
+var _ abi.Tuple = (*TransferFromReturn)(nil)
+
 // TransferFromReturn represents an ABI tuple
 type TransferFromReturn struct {
 	Field1 bool
@@ -1076,6 +1114,8 @@ var (
 )
 
 // ApprovalEvent represents the Approval event
+var _ abi.Event = (*ApprovalEvent)(nil)
+
 type ApprovalEvent struct {
 	ApprovalEventIndexed
 	ApprovalEventData
@@ -1159,6 +1199,8 @@ func (e *ApprovalEventIndexed) DecodeTopics(topics []common.Hash) error {
 
 const ApprovalEventDataStaticSize = 32
 
+var _ abi.Tuple = (*ApprovalEventData)(nil)
+
 // ApprovalEventData represents an ABI tuple
 type ApprovalEventData struct {
 	Value *big.Int
@@ -1210,6 +1252,8 @@ func (t *ApprovalEventData) Decode(data []byte) (int, error) {
 }
 
 // TransferEvent represents the Transfer event
+var _ abi.Event = (*TransferEvent)(nil)
+
 type TransferEvent struct {
 	TransferEventIndexed
 	TransferEventData
@@ -1292,6 +1336,8 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 }
 
 const TransferEventDataStaticSize = 32
+
+var _ abi.Tuple = (*TransferEventData)(nil)
 
 // TransferEventData represents an ABI tuple
 type TransferEventData struct {

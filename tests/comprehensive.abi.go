@@ -50,6 +50,8 @@ const (
 
 const GroupStaticSize = 32
 
+var _ abi.Tuple = (*Group)(nil)
+
 // Group represents an ABI tuple
 type Group struct {
 	Users []User
@@ -119,6 +121,8 @@ func (t *Group) Decode(data []byte) (int, error) {
 }
 
 const ItemStaticSize = 96
+
+var _ abi.Tuple = (*Item)(nil)
 
 // Item represents an ABI tuple
 type Item struct {
@@ -212,6 +216,8 @@ func (t *Item) Decode(data []byte) (int, error) {
 
 const Level1StaticSize = 32
 
+var _ abi.Tuple = (*Level1)(nil)
+
 // Level1 represents an ABI tuple
 type Level1 struct {
 	Level1 Level2
@@ -281,6 +287,8 @@ func (t *Level1) Decode(data []byte) (int, error) {
 }
 
 const Level2StaticSize = 32
+
+var _ abi.Tuple = (*Level2)(nil)
 
 // Level2 represents an ABI tuple
 type Level2 struct {
@@ -352,6 +360,8 @@ func (t *Level2) Decode(data []byte) (int, error) {
 
 const Level3StaticSize = 32
 
+var _ abi.Tuple = (*Level3)(nil)
+
 // Level3 represents an ABI tuple
 type Level3 struct {
 	Level3 Level4
@@ -421,6 +431,8 @@ func (t *Level3) Decode(data []byte) (int, error) {
 }
 
 const Level4StaticSize = 64
+
+var _ abi.Tuple = (*Level4)(nil)
 
 // Level4 represents an ABI tuple
 type Level4 struct {
@@ -503,6 +515,8 @@ func (t *Level4) Decode(data []byte) (int, error) {
 
 const User2StaticSize = 64
 
+var _ abi.Tuple = (*User2)(nil)
+
 // User2 represents an ABI tuple
 type User2 struct {
 	Id      *big.Int
@@ -584,6 +598,8 @@ func (t *User2) Decode(data []byte) (int, error) {
 
 const UserMetadata2StaticSize = 64
 
+var _ abi.Tuple = (*UserMetadata2)(nil)
+
 // UserMetadata2 represents an ABI tuple
 type UserMetadata2 struct {
 	CreatedAt *big.Int
@@ -664,6 +680,8 @@ func (t *UserMetadata2) Decode(data []byte) (int, error) {
 }
 
 const UserProfileStaticSize = 96
+
+var _ abi.Tuple = (*UserProfile)(nil)
 
 // UserProfile represents an ABI tuple
 type UserProfile struct {
@@ -1432,7 +1450,11 @@ func DecodeUserSlice(data []byte) ([]User, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
+var _ abi.Method = (*TestComplexDynamicTuplesCall)(nil)
+
 const TestComplexDynamicTuplesCallStaticSize = 32
+
+var _ abi.Tuple = (*TestComplexDynamicTuplesCall)(nil)
 
 // TestComplexDynamicTuplesCall represents an ABI tuple
 type TestComplexDynamicTuplesCall struct {
@@ -1524,6 +1546,8 @@ func (t TestComplexDynamicTuplesCall) EncodeWithSelector() ([]byte, error) {
 
 const TestComplexDynamicTuplesReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestComplexDynamicTuplesReturn)(nil)
+
 // TestComplexDynamicTuplesReturn represents an ABI tuple
 type TestComplexDynamicTuplesReturn struct {
 	Field1 bool
@@ -1574,7 +1598,11 @@ func (t *TestComplexDynamicTuplesReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestDeeplyNestedCall)(nil)
+
 const TestDeeplyNestedCallStaticSize = 32
+
+var _ abi.Tuple = (*TestDeeplyNestedCall)(nil)
 
 // TestDeeplyNestedCall represents an ABI tuple
 type TestDeeplyNestedCall struct {
@@ -1666,6 +1694,8 @@ func (t TestDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 
 const TestDeeplyNestedReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestDeeplyNestedReturn)(nil)
+
 // TestDeeplyNestedReturn represents an ABI tuple
 type TestDeeplyNestedReturn struct {
 	Field1 bool
@@ -1716,7 +1746,11 @@ func (t *TestDeeplyNestedReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestExternalTupleCall)(nil)
+
 const TestExternalTupleCallStaticSize = 32
+
+var _ abi.Tuple = (*TestExternalTupleCall)(nil)
 
 // TestExternalTupleCall represents an ABI tuple
 type TestExternalTupleCall struct {
@@ -1808,6 +1842,8 @@ func (t TestExternalTupleCall) EncodeWithSelector() ([]byte, error) {
 
 const TestExternalTupleReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestExternalTupleReturn)(nil)
+
 // TestExternalTupleReturn represents an ABI tuple
 type TestExternalTupleReturn struct {
 	Field1 bool
@@ -1858,7 +1894,11 @@ func (t *TestExternalTupleReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestFixedArraysCall)(nil)
+
 const TestFixedArraysCallStaticSize = 320
+
+var _ abi.Tuple = (*TestFixedArraysCall)(nil)
 
 // TestFixedArraysCall represents an ABI tuple
 type TestFixedArraysCall struct {
@@ -1954,6 +1994,8 @@ func (t TestFixedArraysCall) EncodeWithSelector() ([]byte, error) {
 
 const TestFixedArraysReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestFixedArraysReturn)(nil)
+
 // TestFixedArraysReturn represents an ABI tuple
 type TestFixedArraysReturn struct {
 	Field1 bool
@@ -2004,7 +2046,11 @@ func (t *TestFixedArraysReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestMixedTypesCall)(nil)
+
 const TestMixedTypesCallStaticSize = 160
+
+var _ abi.Tuple = (*TestMixedTypesCall)(nil)
 
 // TestMixedTypesCall represents an ABI tuple
 type TestMixedTypesCall struct {
@@ -2153,6 +2199,8 @@ func (t TestMixedTypesCall) EncodeWithSelector() ([]byte, error) {
 
 const TestMixedTypesReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestMixedTypesReturn)(nil)
+
 // TestMixedTypesReturn represents an ABI tuple
 type TestMixedTypesReturn struct {
 	Field1 bool
@@ -2203,7 +2251,11 @@ func (t *TestMixedTypesReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestNestedDynamicArraysCall)(nil)
+
 const TestNestedDynamicArraysCallStaticSize = 96
+
+var _ abi.Tuple = (*TestNestedDynamicArraysCall)(nil)
 
 // TestNestedDynamicArraysCall represents an ABI tuple
 type TestNestedDynamicArraysCall struct {
@@ -2343,6 +2395,8 @@ func (t TestNestedDynamicArraysCall) EncodeWithSelector() ([]byte, error) {
 
 const TestNestedDynamicArraysReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestNestedDynamicArraysReturn)(nil)
+
 // TestNestedDynamicArraysReturn represents an ABI tuple
 type TestNestedDynamicArraysReturn struct {
 	Field1 bool
@@ -2393,7 +2447,11 @@ func (t *TestNestedDynamicArraysReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestNestedStructCall)(nil)
+
 const TestNestedStructCallStaticSize = 32
+
+var _ abi.Tuple = (*TestNestedStructCall)(nil)
 
 // TestNestedStructCall represents an ABI tuple
 type TestNestedStructCall struct {
@@ -2485,6 +2543,8 @@ func (t TestNestedStructCall) EncodeWithSelector() ([]byte, error) {
 
 const TestNestedStructReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestNestedStructReturn)(nil)
+
 // TestNestedStructReturn represents an ABI tuple
 type TestNestedStructReturn struct {
 	Field1 bool
@@ -2535,7 +2595,11 @@ func (t *TestNestedStructReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestNonStandardIntegersCall)(nil)
+
 const TestNonStandardIntegersCallStaticSize = 384
+
+var _ abi.Tuple = (*TestNonStandardIntegersCall)(nil)
 
 // TestNonStandardIntegersCall represents an ABI tuple
 type TestNonStandardIntegersCall struct {
@@ -2730,6 +2794,8 @@ func (t TestNonStandardIntegersCall) EncodeWithSelector() ([]byte, error) {
 
 const TestNonStandardIntegersReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestNonStandardIntegersReturn)(nil)
+
 // TestNonStandardIntegersReturn represents an ABI tuple
 type TestNonStandardIntegersReturn struct {
 	Field1 bool
@@ -2780,7 +2846,11 @@ func (t *TestNonStandardIntegersReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestSmallIntegersCall)(nil)
+
 const TestSmallIntegersCallStaticSize = 256
+
+var _ abi.Tuple = (*TestSmallIntegersCall)(nil)
 
 // TestSmallIntegersCall represents an ABI tuple
 type TestSmallIntegersCall struct {
@@ -2931,6 +3001,8 @@ func (t TestSmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 
 const TestSmallIntegersReturnStaticSize = 32
 
+var _ abi.Tuple = (*TestSmallIntegersReturn)(nil)
+
 // TestSmallIntegersReturn represents an ABI tuple
 type TestSmallIntegersReturn struct {
 	Field1 bool
@@ -2994,6 +3066,8 @@ var (
 )
 
 // ComplexEvent represents the Complex event
+var _ abi.Event = (*ComplexEvent)(nil)
+
 type ComplexEvent struct {
 	ComplexEventIndexed
 	ComplexEventData
@@ -3063,6 +3137,8 @@ func (e *ComplexEventIndexed) DecodeTopics(topics []common.Hash) error {
 }
 
 const ComplexEventDataStaticSize = 64
+
+var _ abi.Tuple = (*ComplexEventData)(nil)
 
 // ComplexEventData represents an ABI tuple
 type ComplexEventData struct {
@@ -3157,6 +3233,8 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 }
 
 // IndexOnlyEvent represents the IndexOnly event
+var _ abi.Event = (*IndexOnlyEvent)(nil)
+
 type IndexOnlyEvent struct {
 	IndexOnlyEventIndexed
 	IndexOnlyEventData
@@ -3225,6 +3303,8 @@ type IndexOnlyEventData struct {
 }
 
 // TransferEvent represents the Transfer event
+var _ abi.Event = (*TransferEvent)(nil)
+
 type TransferEvent struct {
 	TransferEventIndexed
 	TransferEventData
@@ -3308,6 +3388,8 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 
 const TransferEventDataStaticSize = 32
 
+var _ abi.Tuple = (*TransferEventData)(nil)
+
 // TransferEventData represents an ABI tuple
 type TransferEventData struct {
 	Value *big.Int
@@ -3359,6 +3441,8 @@ func (t *TransferEventData) Decode(data []byte) (int, error) {
 }
 
 // UserCreatedEvent represents the UserCreated event
+var _ abi.Event = (*UserCreatedEvent)(nil)
+
 type UserCreatedEvent struct {
 	UserCreatedEventIndexed
 	UserCreatedEventData
@@ -3426,6 +3510,8 @@ func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
 }
 
 const UserCreatedEventDataStaticSize = 32
+
+var _ abi.Tuple = (*UserCreatedEventData)(nil)
 
 // UserCreatedEventData represents an ABI tuple
 type UserCreatedEventData struct {
