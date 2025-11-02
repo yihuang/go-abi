@@ -1015,6 +1015,8 @@ func (t *BatchProcessReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*CommunityPoolCall)(nil)
+
 // CommunityPoolCall represents the input arguments for communityPool function
 type CommunityPoolCall struct {
 	abi.EmptyTuple
@@ -1111,6 +1113,8 @@ func (t *CommunityPoolReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*EmptyArgsCall)(nil)
 
 // EmptyArgsCall represents the input arguments for emptyArgs function
 type EmptyArgsCall struct {

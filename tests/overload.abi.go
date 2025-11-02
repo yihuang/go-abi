@@ -639,6 +639,8 @@ func (t *Overloaded2Return) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*Overloaded20Call)(nil)
+
 // Overloaded20Call represents the input arguments for overloaded20 function
 type Overloaded20Call struct {
 	abi.EmptyTuple

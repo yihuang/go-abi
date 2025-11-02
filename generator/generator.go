@@ -613,10 +613,10 @@ func (g *Generator) genStructDecode(s Struct) {
 func (g *Generator) genFunction(method ethabi.Method) {
 	// Generate struct and methods for functions with inputs
 	name := fmt.Sprintf("%sCall", Title.String(method.Name))
+	// assert interface
+	g.L("var _ %sMethod = (*%s)(nil)", g.StdPrefix, name)
 	if len(method.Inputs) > 0 {
 		s := StructFromArguments(name, method.Inputs)
-		// assert interface
-		g.L("var _ %sMethod = (*%s)(nil)", g.StdPrefix, s.Name)
 		g.genStruct(s)
 	} else {
 		g.L("")

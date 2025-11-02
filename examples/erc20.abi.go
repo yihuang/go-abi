@@ -460,6 +460,8 @@ func (t *BalanceOfReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*DecimalsCall)(nil)
+
 // DecimalsCall represents the input arguments for decimals function
 type DecimalsCall struct {
 	abi.EmptyTuple
@@ -538,6 +540,8 @@ func (t *DecimalsReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*NameCall)(nil)
 
 // NameCall represents the input arguments for name function
 type NameCall struct {
@@ -636,6 +640,8 @@ func (t *NameReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*SymbolCall)(nil)
+
 // SymbolCall represents the input arguments for symbol function
 type SymbolCall struct {
 	abi.EmptyTuple
@@ -732,6 +738,8 @@ func (t *SymbolReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*TotalSupplyCall)(nil)
 
 // TotalSupplyCall represents the input arguments for totalSupply function
 type TotalSupplyCall struct {

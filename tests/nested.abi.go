@@ -737,6 +737,8 @@ func NestedDecodeSimplePairSlice(data []byte) ([]SimplePair, int, error) {
 	return result, offset + 32, nil
 }
 
+var _ abi.Method = (*GetAddressStringPairCall)(nil)
+
 // GetAddressStringPairCall represents the input arguments for getAddressStringPair function
 type GetAddressStringPairCall struct {
 	abi.EmptyTuple
@@ -833,6 +835,8 @@ func (t *GetAddressStringPairReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetComplexNestedCall)(nil)
 
 // GetComplexNestedCall represents the input arguments for getComplexNested function
 type GetComplexNestedCall struct {
@@ -931,6 +935,8 @@ func (t *GetComplexNestedReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*GetDeeplyNestedCall)(nil)
+
 // GetDeeplyNestedCall represents the input arguments for getDeeplyNested function
 type GetDeeplyNestedCall struct {
 	abi.EmptyTuple
@@ -1027,6 +1033,8 @@ func (t *GetDeeplyNestedReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetMultipleReturnsCall)(nil)
 
 // GetMultipleReturnsCall represents the input arguments for getMultipleReturns function
 type GetMultipleReturnsCall struct {
@@ -1147,6 +1155,8 @@ func (t *GetMultipleReturnsReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*GetNestedTupleArrayCall)(nil)
+
 // GetNestedTupleArrayCall represents the input arguments for getNestedTupleArray function
 type GetNestedTupleArrayCall struct {
 	abi.EmptyTuple
@@ -1244,6 +1254,8 @@ func (t *GetNestedTupleArrayReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*GetSimplePairCall)(nil)
+
 // GetSimplePairCall represents the input arguments for getSimplePair function
 type GetSimplePairCall struct {
 	abi.EmptyTuple
@@ -1322,6 +1334,8 @@ func (t *GetSimplePairReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetTupleArrayCall)(nil)
 
 // GetTupleArrayCall represents the input arguments for getTupleArray function
 type GetTupleArrayCall struct {
@@ -1420,6 +1434,8 @@ func (t *GetTupleArrayReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*GetUserWithMetadataCall)(nil)
+
 // GetUserWithMetadataCall represents the input arguments for getUserWithMetadata function
 type GetUserWithMetadataCall struct {
 	abi.EmptyTuple
@@ -1516,6 +1532,8 @@ func (t *GetUserWithMetadataReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetUsersArrayCall)(nil)
 
 // GetUsersArrayCall represents the input arguments for getUsersArray function
 type GetUsersArrayCall struct {
