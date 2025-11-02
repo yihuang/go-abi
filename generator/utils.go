@@ -98,3 +98,9 @@ func VisitABIType(t abi.Type, visit func(abi.Type)) {
 		VisitABIType(*t.Elem, visit)
 	}
 }
+
+// GoFieldName converts abi field name to a valid Go field name
+func GoFieldName(name string) string {
+	name = strings.TrimPrefix(name, "_")
+	return Title.String(name)
+}

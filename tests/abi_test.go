@@ -33,6 +33,7 @@ var TestABI = []string{
 	"event DynamicIndexed(string indexed denom)",
 	"event EmptyIndexed(string denom)",
 	"function emptyArgs() returns ()",
+	"function understore(string _name) returns ()",
 }
 
 var TestABIDef ethabi.ABI
@@ -219,6 +220,27 @@ func TestEmptyFuncCall(t *testing.T) {
 
 	// Get go-ethereum encoding
 	goEthEncoded, err := TestABIDef.Pack("emptyArgs")
+	require.NoError(t, err)
+
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
+}
+
+func TestUnderstoreFieldName(t *testing.T) {
+	name := "TestName"
+
+	// Get our generated encoding
+	args := &UnderstoreCall{
+		Name: name,
+	}
+
+	// Test encoding with selector
+	encoded, err := args.EncodeWithSelector()
+	require.NoError(t, err)
+
+	// Get go-ethereum encoding
+	goEthEncoded, err := TestABIDef.Pack("understore", args.Name)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)

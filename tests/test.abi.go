@@ -38,6 +38,8 @@ var (
 	TransferSelector = [4]byte{0xa9, 0x05, 0x9c, 0xbb}
 	// transferBatch(address[],uint256[])
 	TransferBatchSelector = [4]byte{0x3b, 0x3e, 0x67, 0x2f}
+	// understore(string)
+	UnderstoreSelector = [4]byte{0x58, 0x56, 0x2a, 0x35}
 	// updateProfile(address,string,uint256)
 	UpdateProfileSelector = [4]byte{0x6d, 0xe9, 0x52, 0x01}
 )
@@ -55,6 +57,7 @@ const (
 	SmallIntegersID   = 2558787146
 	TransferID        = 2835717307
 	TransferBatchID   = 993945391
+	UnderstoreID      = 1482041909
 	UpdateProfileID   = 1844007425
 )
 
@@ -2279,6 +2282,110 @@ func (t *TransferBatchReturn) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+var _ abi.Method = (*UnderstoreCall)(nil)
+
+const UnderstoreCallStaticSize = 32
+
+var _ abi.Tuple = (*UnderstoreCall)(nil)
+
+// UnderstoreCall represents an ABI tuple
+type UnderstoreCall struct {
+	Name string
+}
+
+// EncodedSize returns the total encoded size of UnderstoreCall
+func (t UnderstoreCall) EncodedSize() int {
+	dynamicSize := 0
+	dynamicSize += abi.SizeString(t.Name)
+
+	return UnderstoreCallStaticSize + dynamicSize
+}
+
+// EncodeTo encodes UnderstoreCall to ABI bytes in the provided buffer
+func (value UnderstoreCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := UnderstoreCallStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Name: string
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = abi.EncodeString(value.Name, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes UnderstoreCall to ABI bytes
+func (value UnderstoreCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes UnderstoreCall from ABI bytes in the provided buffer
+func (t *UnderstoreCall) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Name
+	{
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, errors.New("invalid offset for dynamic field Name")
+		}
+		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t UnderstoreCall) GetMethodName() string {
+	return "understore"
+}
+
+// GetMethodID returns the function name
+func (t UnderstoreCall) GetMethodID() uint32 {
+	return UnderstoreID
+}
+
+// GetMethodSelector returns the function name
+func (t UnderstoreCall) GetMethodSelector() [4]byte {
+	return UnderstoreSelector
+}
+
+// EncodeWithSelector encodes understore arguments to ABI bytes including function selector
+func (t UnderstoreCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], UnderstoreSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UnderstoreReturn represents the input arguments for understore function
+type UnderstoreReturn struct {
+	abi.EmptyTuple
 }
 
 var _ abi.Method = (*UpdateProfileCall)(nil)

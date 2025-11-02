@@ -870,7 +870,7 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 		if !input.Indexed {
 			continue
 		}
-		g.L("%s: %s,", Title.String(input.Name), input.Name)
+		g.L("%s: %s,", GoFieldName(input.Name), input.Name)
 	}
 
 	g.L("\t},")
@@ -880,7 +880,7 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 		if input.Indexed {
 			continue
 		}
-		g.L("%s: %s,", Title.String(input.Name), input.Name)
+		g.L("%s: %s,", GoFieldName(input.Name), input.Name)
 	}
 
 	g.L("\t},")
@@ -925,7 +925,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 
 	for _, input := range fields {
 		goType := g.abiTypeToGoType(input.Type)
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 		g.L("%s %s", fieldName, goType)
 	}
 	g.L("}")
@@ -937,7 +937,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	g.L("\ttopics = append(topics, %sEventTopic)", name)
 
 	for _, input := range fields {
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 
 		g.L("\t{")
 		g.L("\t\t// %s", fieldName)
@@ -980,7 +980,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 			continue
 		}
 
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 		dataRef := fmt.Sprintf("topics[%d][:]", i+1)
 		g.L("\te.%s, _, err = %s", fieldName, g.genDecodeCall(input.Type, dataRef))
 		g.L("\tif err != nil {")
