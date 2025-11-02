@@ -3056,7 +3056,12 @@ func (t StdlibCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t StdlibCall) GetMethodID() [4]byte {
+func (t StdlibCall) GetMethodID() uint32 {
+	return StdlibID
+}
+
+// GetMethodSelector returns the function name
+func (t StdlibCall) GetMethodSelector() [4]byte {
 	return StdlibSelector
 }
 

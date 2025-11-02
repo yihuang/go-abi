@@ -1530,7 +1530,12 @@ func (t TestComplexDynamicTuplesCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestComplexDynamicTuplesCall) GetMethodID() [4]byte {
+func (t TestComplexDynamicTuplesCall) GetMethodID() uint32 {
+	return TestComplexDynamicTuplesID
+}
+
+// GetMethodSelector returns the function name
+func (t TestComplexDynamicTuplesCall) GetMethodSelector() [4]byte {
 	return TestComplexDynamicTuplesSelector
 }
 
@@ -1678,7 +1683,12 @@ func (t TestDeeplyNestedCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestDeeplyNestedCall) GetMethodID() [4]byte {
+func (t TestDeeplyNestedCall) GetMethodID() uint32 {
+	return TestDeeplyNestedID
+}
+
+// GetMethodSelector returns the function name
+func (t TestDeeplyNestedCall) GetMethodSelector() [4]byte {
 	return TestDeeplyNestedSelector
 }
 
@@ -1826,7 +1836,12 @@ func (t TestExternalTupleCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestExternalTupleCall) GetMethodID() [4]byte {
+func (t TestExternalTupleCall) GetMethodID() uint32 {
+	return TestExternalTupleID
+}
+
+// GetMethodSelector returns the function name
+func (t TestExternalTupleCall) GetMethodSelector() [4]byte {
 	return TestExternalTupleSelector
 }
 
@@ -1978,7 +1993,12 @@ func (t TestFixedArraysCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestFixedArraysCall) GetMethodID() [4]byte {
+func (t TestFixedArraysCall) GetMethodID() uint32 {
+	return TestFixedArraysID
+}
+
+// GetMethodSelector returns the function name
+func (t TestFixedArraysCall) GetMethodSelector() [4]byte {
 	return TestFixedArraysSelector
 }
 
@@ -2183,7 +2203,12 @@ func (t TestMixedTypesCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestMixedTypesCall) GetMethodID() [4]byte {
+func (t TestMixedTypesCall) GetMethodID() uint32 {
+	return TestMixedTypesID
+}
+
+// GetMethodSelector returns the function name
+func (t TestMixedTypesCall) GetMethodSelector() [4]byte {
 	return TestMixedTypesSelector
 }
 
@@ -2379,7 +2404,12 @@ func (t TestNestedDynamicArraysCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestNestedDynamicArraysCall) GetMethodID() [4]byte {
+func (t TestNestedDynamicArraysCall) GetMethodID() uint32 {
+	return TestNestedDynamicArraysID
+}
+
+// GetMethodSelector returns the function name
+func (t TestNestedDynamicArraysCall) GetMethodSelector() [4]byte {
 	return TestNestedDynamicArraysSelector
 }
 
@@ -2527,7 +2557,12 @@ func (t TestNestedStructCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestNestedStructCall) GetMethodID() [4]byte {
+func (t TestNestedStructCall) GetMethodID() uint32 {
+	return TestNestedStructID
+}
+
+// GetMethodSelector returns the function name
+func (t TestNestedStructCall) GetMethodSelector() [4]byte {
 	return TestNestedStructSelector
 }
 
@@ -2778,7 +2813,12 @@ func (t TestNonStandardIntegersCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestNonStandardIntegersCall) GetMethodID() [4]byte {
+func (t TestNonStandardIntegersCall) GetMethodID() uint32 {
+	return TestNonStandardIntegersID
+}
+
+// GetMethodSelector returns the function name
+func (t TestNonStandardIntegersCall) GetMethodSelector() [4]byte {
 	return TestNonStandardIntegersSelector
 }
 
@@ -2985,7 +3025,12 @@ func (t TestSmallIntegersCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TestSmallIntegersCall) GetMethodID() [4]byte {
+func (t TestSmallIntegersCall) GetMethodID() uint32 {
+	return TestSmallIntegersID
+}
+
+// GetMethodSelector returns the function name
+func (t TestSmallIntegersCall) GetMethodSelector() [4]byte {
 	return TestSmallIntegersSelector
 }
 

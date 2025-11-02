@@ -108,7 +108,12 @@ func (t Overloaded1Call) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t Overloaded1Call) GetMethodID() [4]byte {
+func (t Overloaded1Call) GetMethodID() uint32 {
+	return Overloaded1ID
+}
+
+// GetMethodSelector returns the function name
+func (t Overloaded1Call) GetMethodSelector() [4]byte {
 	return Overloaded1Selector
 }
 
@@ -260,7 +265,12 @@ func (t Overloaded10Call) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t Overloaded10Call) GetMethodID() [4]byte {
+func (t Overloaded10Call) GetMethodID() uint32 {
+	return Overloaded10ID
+}
+
+// GetMethodSelector returns the function name
+func (t Overloaded10Call) GetMethodSelector() [4]byte {
 	return Overloaded10Selector
 }
 
@@ -441,7 +451,12 @@ func (t Overloaded11Call) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t Overloaded11Call) GetMethodID() [4]byte {
+func (t Overloaded11Call) GetMethodID() uint32 {
+	return Overloaded11ID
+}
+
+// GetMethodSelector returns the function name
+func (t Overloaded11Call) GetMethodSelector() [4]byte {
 	return Overloaded11Selector
 }
 
@@ -571,7 +586,12 @@ func (t Overloaded2Call) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t Overloaded2Call) GetMethodID() [4]byte {
+func (t Overloaded2Call) GetMethodID() uint32 {
+	return Overloaded2ID
+}
+
+// GetMethodSelector returns the function name
+func (t Overloaded2Call) GetMethodSelector() [4]byte {
 	return Overloaded2Selector
 }
 
@@ -652,7 +672,12 @@ func (t Overloaded20Call) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t Overloaded20Call) GetMethodID() [4]byte {
+func (t Overloaded20Call) GetMethodID() uint32 {
+	return Overloaded20ID
+}
+
+// GetMethodSelector returns the function name
+func (t Overloaded20Call) GetMethodSelector() [4]byte {
 	return Overloaded20Selector
 }
 

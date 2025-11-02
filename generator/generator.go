@@ -636,7 +636,14 @@ func (g *Generator) genFunction(method ethabi.Method) {
 	// GetMethodID method
 	g.L("")
 	g.L("// GetMethodID returns the function name")
-	g.L("func (t %s) GetMethodID() [4]byte {", name)
+	g.L("func (t %s) GetMethodID() uint32 {", name)
+	g.L("\treturn %sID", Title.String(method.Name))
+	g.L("}")
+
+	// GetMethodSelector method
+	g.L("")
+	g.L("// GetMethodSelector returns the function name")
+	g.L("func (t %s) GetMethodSelector() [4]byte {", name)
 	g.L("\treturn %sSelector", Title.String(method.Name))
 	g.L("}")
 

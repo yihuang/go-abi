@@ -94,7 +94,12 @@ func (t SendCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t SendCall) GetMethodID() [4]byte {
+func (t SendCall) GetMethodID() uint32 {
+	return SendID
+}
+
+// GetMethodSelector returns the function name
+func (t SendCall) GetMethodSelector() [4]byte {
 	return SendSelector
 }
 

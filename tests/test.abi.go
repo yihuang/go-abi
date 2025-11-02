@@ -799,7 +799,12 @@ func (t BalanceOfCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t BalanceOfCall) GetMethodID() [4]byte {
+func (t BalanceOfCall) GetMethodID() uint32 {
+	return BalanceOfID
+}
+
+// GetMethodSelector returns the function name
+func (t BalanceOfCall) GetMethodSelector() [4]byte {
 	return BalanceOfSelector
 }
 
@@ -947,7 +952,12 @@ func (t BatchProcessCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t BatchProcessCall) GetMethodID() [4]byte {
+func (t BatchProcessCall) GetMethodID() uint32 {
+	return BatchProcessID
+}
+
+// GetMethodSelector returns the function name
+func (t BatchProcessCall) GetMethodSelector() [4]byte {
 	return BatchProcessSelector
 }
 
@@ -1028,7 +1038,12 @@ func (t CommunityPoolCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t CommunityPoolCall) GetMethodID() [4]byte {
+func (t CommunityPoolCall) GetMethodID() uint32 {
+	return CommunityPoolID
+}
+
+// GetMethodSelector returns the function name
+func (t CommunityPoolCall) GetMethodSelector() [4]byte {
 	return CommunityPoolSelector
 }
 
@@ -1127,7 +1142,12 @@ func (t EmptyArgsCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t EmptyArgsCall) GetMethodID() [4]byte {
+func (t EmptyArgsCall) GetMethodID() uint32 {
+	return EmptyArgsID
+}
+
+// GetMethodSelector returns the function name
+func (t EmptyArgsCall) GetMethodSelector() [4]byte {
 	return EmptyArgsSelector
 }
 
@@ -1208,7 +1228,12 @@ func (t GetBalancesCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetBalancesCall) GetMethodID() [4]byte {
+func (t GetBalancesCall) GetMethodID() uint32 {
+	return GetBalancesID
+}
+
+// GetMethodSelector returns the function name
+func (t GetBalancesCall) GetMethodSelector() [4]byte {
 	return GetBalancesSelector
 }
 
@@ -1380,7 +1405,12 @@ func (t ProcessUserDataCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t ProcessUserDataCall) GetMethodID() [4]byte {
+func (t ProcessUserDataCall) GetMethodID() uint32 {
+	return ProcessUserDataID
+}
+
+// GetMethodSelector returns the function name
+func (t ProcessUserDataCall) GetMethodSelector() [4]byte {
 	return ProcessUserDataSelector
 }
 
@@ -1539,7 +1569,12 @@ func (t SetDataCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t SetDataCall) GetMethodID() [4]byte {
+func (t SetDataCall) GetMethodID() uint32 {
+	return SetDataID
+}
+
+// GetMethodSelector returns the function name
+func (t SetDataCall) GetMethodSelector() [4]byte {
 	return SetDataSelector
 }
 
@@ -1638,7 +1673,12 @@ func (t SetMessageCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t SetMessageCall) GetMethodID() [4]byte {
+func (t SetMessageCall) GetMethodID() uint32 {
+	return SetMessageID
+}
+
+// GetMethodSelector returns the function name
+func (t SetMessageCall) GetMethodSelector() [4]byte {
 	return SetMessageSelector
 }
 
@@ -1845,7 +1885,12 @@ func (t SmallIntegersCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t SmallIntegersCall) GetMethodID() [4]byte {
+func (t SmallIntegersCall) GetMethodID() uint32 {
+	return SmallIntegersID
+}
+
+// GetMethodSelector returns the function name
+func (t SmallIntegersCall) GetMethodSelector() [4]byte {
 	return SmallIntegersSelector
 }
 
@@ -1986,7 +2031,12 @@ func (t TransferCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TransferCall) GetMethodID() [4]byte {
+func (t TransferCall) GetMethodID() uint32 {
+	return TransferID
+}
+
+// GetMethodSelector returns the function name
+func (t TransferCall) GetMethodSelector() [4]byte {
 	return TransferSelector
 }
 
@@ -2158,7 +2208,12 @@ func (t TransferBatchCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TransferBatchCall) GetMethodID() [4]byte {
+func (t TransferBatchCall) GetMethodID() uint32 {
+	return TransferBatchID
+}
+
+// GetMethodSelector returns the function name
+func (t TransferBatchCall) GetMethodSelector() [4]byte {
 	return TransferBatchSelector
 }
 
@@ -2328,7 +2383,12 @@ func (t UpdateProfileCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t UpdateProfileCall) GetMethodID() [4]byte {
+func (t UpdateProfileCall) GetMethodID() uint32 {
+	return UpdateProfileID
+}
+
+// GetMethodSelector returns the function name
+func (t UpdateProfileCall) GetMethodSelector() [4]byte {
 	return UpdateProfileSelector
 }
 

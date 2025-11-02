@@ -26,7 +26,8 @@ type Method interface {
 	EncodeWithSelector() ([]byte, error)
 
 	GetMethodName() string
-	GetMethodID() [4]byte
+	GetMethodID() uint32
+	GetMethodSelector() [4]byte
 }
 
 type Event interface {

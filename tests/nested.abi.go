@@ -750,7 +750,12 @@ func (t GetAddressStringPairCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetAddressStringPairCall) GetMethodID() [4]byte {
+func (t GetAddressStringPairCall) GetMethodID() uint32 {
+	return GetAddressStringPairID
+}
+
+// GetMethodSelector returns the function name
+func (t GetAddressStringPairCall) GetMethodSelector() [4]byte {
 	return GetAddressStringPairSelector
 }
 
@@ -849,7 +854,12 @@ func (t GetComplexNestedCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetComplexNestedCall) GetMethodID() [4]byte {
+func (t GetComplexNestedCall) GetMethodID() uint32 {
+	return GetComplexNestedID
+}
+
+// GetMethodSelector returns the function name
+func (t GetComplexNestedCall) GetMethodSelector() [4]byte {
 	return GetComplexNestedSelector
 }
 
@@ -948,7 +958,12 @@ func (t GetDeeplyNestedCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetDeeplyNestedCall) GetMethodID() [4]byte {
+func (t GetDeeplyNestedCall) GetMethodID() uint32 {
+	return GetDeeplyNestedID
+}
+
+// GetMethodSelector returns the function name
+func (t GetDeeplyNestedCall) GetMethodSelector() [4]byte {
 	return GetDeeplyNestedSelector
 }
 
@@ -1047,7 +1062,12 @@ func (t GetMultipleReturnsCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetMultipleReturnsCall) GetMethodID() [4]byte {
+func (t GetMultipleReturnsCall) GetMethodID() uint32 {
+	return GetMultipleReturnsID
+}
+
+// GetMethodSelector returns the function name
+func (t GetMultipleReturnsCall) GetMethodSelector() [4]byte {
 	return GetMultipleReturnsSelector
 }
 
@@ -1168,7 +1188,12 @@ func (t GetNestedTupleArrayCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetNestedTupleArrayCall) GetMethodID() [4]byte {
+func (t GetNestedTupleArrayCall) GetMethodID() uint32 {
+	return GetNestedTupleArrayID
+}
+
+// GetMethodSelector returns the function name
+func (t GetNestedTupleArrayCall) GetMethodSelector() [4]byte {
 	return GetNestedTupleArraySelector
 }
 
@@ -1267,7 +1292,12 @@ func (t GetSimplePairCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetSimplePairCall) GetMethodID() [4]byte {
+func (t GetSimplePairCall) GetMethodID() uint32 {
+	return GetSimplePairID
+}
+
+// GetMethodSelector returns the function name
+func (t GetSimplePairCall) GetMethodSelector() [4]byte {
 	return GetSimplePairSelector
 }
 
@@ -1348,7 +1378,12 @@ func (t GetTupleArrayCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetTupleArrayCall) GetMethodID() [4]byte {
+func (t GetTupleArrayCall) GetMethodID() uint32 {
+	return GetTupleArrayID
+}
+
+// GetMethodSelector returns the function name
+func (t GetTupleArrayCall) GetMethodSelector() [4]byte {
 	return GetTupleArraySelector
 }
 
@@ -1447,7 +1482,12 @@ func (t GetUserWithMetadataCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetUserWithMetadataCall) GetMethodID() [4]byte {
+func (t GetUserWithMetadataCall) GetMethodID() uint32 {
+	return GetUserWithMetadataID
+}
+
+// GetMethodSelector returns the function name
+func (t GetUserWithMetadataCall) GetMethodSelector() [4]byte {
 	return GetUserWithMetadataSelector
 }
 
@@ -1546,7 +1586,12 @@ func (t GetUsersArrayCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t GetUsersArrayCall) GetMethodID() [4]byte {
+func (t GetUsersArrayCall) GetMethodID() uint32 {
+	return GetUsersArrayID
+}
+
+// GetMethodSelector returns the function name
+func (t GetUsersArrayCall) GetMethodSelector() [4]byte {
 	return GetUsersArraySelector
 }
 

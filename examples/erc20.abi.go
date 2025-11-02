@@ -121,7 +121,12 @@ func (t AllowanceCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t AllowanceCall) GetMethodID() [4]byte {
+func (t AllowanceCall) GetMethodID() uint32 {
+	return AllowanceID
+}
+
+// GetMethodSelector returns the function name
+func (t AllowanceCall) GetMethodSelector() [4]byte {
 	return AllowanceSelector
 }
 
@@ -262,7 +267,12 @@ func (t ApproveCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t ApproveCall) GetMethodID() [4]byte {
+func (t ApproveCall) GetMethodID() uint32 {
+	return ApproveID
+}
+
+// GetMethodSelector returns the function name
+func (t ApproveCall) GetMethodSelector() [4]byte {
 	return ApproveSelector
 }
 
@@ -392,7 +402,12 @@ func (t BalanceOfCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t BalanceOfCall) GetMethodID() [4]byte {
+func (t BalanceOfCall) GetMethodID() uint32 {
+	return BalanceOfID
+}
+
+// GetMethodSelector returns the function name
+func (t BalanceOfCall) GetMethodSelector() [4]byte {
 	return BalanceOfSelector
 }
 
@@ -473,7 +488,12 @@ func (t DecimalsCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t DecimalsCall) GetMethodID() [4]byte {
+func (t DecimalsCall) GetMethodID() uint32 {
+	return DecimalsID
+}
+
+// GetMethodSelector returns the function name
+func (t DecimalsCall) GetMethodSelector() [4]byte {
 	return DecimalsSelector
 }
 
@@ -554,7 +574,12 @@ func (t NameCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t NameCall) GetMethodID() [4]byte {
+func (t NameCall) GetMethodID() uint32 {
+	return NameID
+}
+
+// GetMethodSelector returns the function name
+func (t NameCall) GetMethodSelector() [4]byte {
 	return NameSelector
 }
 
@@ -653,7 +678,12 @@ func (t SymbolCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t SymbolCall) GetMethodID() [4]byte {
+func (t SymbolCall) GetMethodID() uint32 {
+	return SymbolID
+}
+
+// GetMethodSelector returns the function name
+func (t SymbolCall) GetMethodSelector() [4]byte {
 	return SymbolSelector
 }
 
@@ -752,7 +782,12 @@ func (t TotalSupplyCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TotalSupplyCall) GetMethodID() [4]byte {
+func (t TotalSupplyCall) GetMethodID() uint32 {
+	return TotalSupplyID
+}
+
+// GetMethodSelector returns the function name
+func (t TotalSupplyCall) GetMethodSelector() [4]byte {
 	return TotalSupplySelector
 }
 
@@ -893,7 +928,12 @@ func (t TransferCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TransferCall) GetMethodID() [4]byte {
+func (t TransferCall) GetMethodID() uint32 {
+	return TransferID
+}
+
+// GetMethodSelector returns the function name
+func (t TransferCall) GetMethodSelector() [4]byte {
 	return TransferSelector
 }
 
@@ -1045,7 +1085,12 @@ func (t TransferFromCall) GetMethodName() string {
 }
 
 // GetMethodID returns the function name
-func (t TransferFromCall) GetMethodID() [4]byte {
+func (t TransferFromCall) GetMethodID() uint32 {
+	return TransferFromID
+}
+
+// GetMethodSelector returns the function name
+func (t TransferFromCall) GetMethodSelector() [4]byte {
 	return TransferFromSelector
 }
 
