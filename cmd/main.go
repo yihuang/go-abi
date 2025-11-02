@@ -18,6 +18,7 @@ func main() {
 		extTuplesFlag = flag.String("external-tuples", "", "External tuple mappings in format 'key1=value1,key2=value2'")
 		imports       = flag.String("imports", "", "Additional import paths, comma-separated")
 		stdlib        = flag.Bool("stdlib", false, "Generate stdlib itself")
+		artifactInput = flag.Bool("artifact-input", false, "Input file is a solc artifact JSON, will extract the abi field from it")
 	)
 	flag.Parse()
 
@@ -46,6 +47,7 @@ func main() {
 	generator.Command(
 		*inputFile,
 		*varName,
+		*artifactInput,
 		opts...,
 	)
 }

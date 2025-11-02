@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -16,7 +17,7 @@ import (
 )
 
 // Command runs the original generator
-func Command(inputFile, varName string, opts ...Option) {
+func Command(inputFile, varName string, artifactInput bool, opts ...Option) {
 	var abiDef ethabi.ABI
 	var err error
 
@@ -35,6 +36,22 @@ func Command(inputFile, varName string, opts ...Option) {
 		abiJSON, err := os.ReadFile(inputFile)
 		if err != nil {
 			log.Fatalf("Failed to read input file: %v", err)
+		}
+
+		if artifactInput {
+			// parse solc artifact to extract abi field
+			var artifact map[string]interface{}
+			if err := json.Unmarshal(abiJSON, &artifact); err != nil {
+				log.Fatalf("Failed to parse solc artifact JSON: %v", err)
+			}
+			abiField, ok := artifact["abi"]
+			if !ok {
+				log.Fatalf("No 'abi' field found in solc artifact JSON")
+			}
+			abiJSON, err = json.Marshal(abiField)
+			if err != nil {
+				log.Fatalf("Failed to marshal 'abi' field back to JSON: %v", err)
+			}
 		}
 
 		abiDef, err = ethabi.JSON(bytes.NewReader(abiJSON))
