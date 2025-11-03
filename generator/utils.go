@@ -111,3 +111,50 @@ func GoFieldName(name string) string {
 	name = strings.TrimPrefix(name, "_")
 	return Title.String(name)
 }
+
+// ParseExternalTuples parses external tuple mappings from string format
+// Format: "key1=value1,key2=value2"
+func ParseExternalTuples(s string) map[string]string {
+	result := make(map[string]string)
+	if s == "" {
+		return result
+	}
+
+	pairs := strings.Split(s, ",")
+	for _, pair := range pairs {
+		parts := strings.SplitN(pair, "=", 2)
+		if len(parts) == 2 {
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+			if key != "" && value != "" {
+				result[key] = value
+			}
+		}
+	}
+	return result
+}
+
+// ParseImport parses an import string that may contain an alias
+// Examples:
+//
+//	"github.com/ethereum/go-ethereum/common" -> ImportSpec{Path: "github.com/ethereum/go-ethereum/common", Alias: ""}
+//	"cmn=github.com/ethereum/go-ethereum/common" -> ImportSpec{Path: "github.com/ethereum/go-ethereum/common", Alias: "cmn"}
+func ParseImport(imp string) ImportSpec {
+	parts := strings.Split(imp, "=")
+	var spec ImportSpec
+
+	switch len(parts) {
+	case 2:
+		spec = ImportSpec{
+			Alias: parts[0],
+			Path:  parts[1],
+		}
+	case 1:
+		spec = ImportSpec{
+			Path: parts[0],
+		}
+	default:
+		panic("invalid import format " + imp)
+	}
+	return spec
+}
