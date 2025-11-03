@@ -824,8 +824,8 @@ func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 // NewBalanceOfCall constructs a new BalanceOfCall
 func NewBalanceOfCall(
 	account common.Address,
-) BalanceOfCall {
-	return BalanceOfCall{
+) *BalanceOfCall {
+	return &BalanceOfCall{
 		Account: account,
 	}
 }
@@ -986,8 +986,8 @@ func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 // NewBatchProcessCall constructs a new BatchProcessCall
 func NewBatchProcessCall(
 	users []UserData,
-) BatchProcessCall {
-	return BatchProcessCall{
+) *BatchProcessCall {
+	return &BatchProcessCall{
 		Users: users,
 	}
 }
@@ -1079,8 +1079,8 @@ func (t CommunityPoolCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewCommunityPoolCall constructs a new CommunityPoolCall
-func NewCommunityPoolCall() CommunityPoolCall {
-	return CommunityPoolCall{}
+func NewCommunityPoolCall() *CommunityPoolCall {
+	return &CommunityPoolCall{}
 }
 
 const CommunityPoolReturnStaticSize = 32
@@ -1188,8 +1188,8 @@ func (t EmptyArgsCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewEmptyArgsCall constructs a new EmptyArgsCall
-func NewEmptyArgsCall() EmptyArgsCall {
-	return EmptyArgsCall{}
+func NewEmptyArgsCall() *EmptyArgsCall {
+	return &EmptyArgsCall{}
 }
 
 // EmptyArgsReturn represents the output arguments for emptyArgs function
@@ -1281,8 +1281,8 @@ func (t GetBalancesCall) EncodeWithSelector() ([]byte, error) {
 // NewGetBalancesCall constructs a new GetBalancesCall
 func NewGetBalancesCall(
 	accounts [10]common.Address,
-) GetBalancesCall {
-	return GetBalancesCall{
+) *GetBalancesCall {
+	return &GetBalancesCall{
 		Accounts: accounts,
 	}
 }
@@ -1468,8 +1468,8 @@ func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 func NewProcessUserDataCall(
 	user1 User,
 	user2 User,
-) ProcessUserDataCall {
-	return ProcessUserDataCall{
+) *ProcessUserDataCall {
+	return &ProcessUserDataCall{
 		User1: user1,
 		User2: user2,
 	}
@@ -1643,8 +1643,8 @@ func (t SetDataCall) EncodeWithSelector() ([]byte, error) {
 func NewSetDataCall(
 	key [32]byte,
 	value []byte,
-) SetDataCall {
-	return SetDataCall{
+) *SetDataCall {
+	return &SetDataCall{
 		Key:   key,
 		Value: value,
 	}
@@ -1757,8 +1757,8 @@ func (t SetMessageCall) EncodeWithSelector() ([]byte, error) {
 // NewSetMessageCall constructs a new SetMessageCall
 func NewSetMessageCall(
 	message string,
-) SetMessageCall {
-	return SetMessageCall{
+) *SetMessageCall {
+	return &SetMessageCall{
 		Message: message,
 	}
 }
@@ -1985,8 +1985,8 @@ func NewSmallIntegersCall(
 	i16 int16,
 	i32 int32,
 	i64 int64,
-) SmallIntegersCall {
-	return SmallIntegersCall{
+) *SmallIntegersCall {
+	return &SmallIntegersCall{
 		U8:  u8,
 		U16: u16,
 		U32: u32,
@@ -2148,8 +2148,8 @@ func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 func NewTransferCall(
 	to common.Address,
 	amount *big.Int,
-) TransferCall {
-	return TransferCall{
+) *TransferCall {
+	return &TransferCall{
 		To:     to,
 		Amount: amount,
 	}
@@ -2336,8 +2336,8 @@ func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 func NewTransferBatchCall(
 	recipients []common.Address,
 	amounts []*big.Int,
-) TransferBatchCall {
-	return TransferBatchCall{
+) *TransferBatchCall {
+	return &TransferBatchCall{
 		Recipients: recipients,
 		Amounts:    amounts,
 	}
@@ -2499,8 +2499,8 @@ func (t UnderstoreCall) EncodeWithSelector() ([]byte, error) {
 // NewUnderstoreCall constructs a new UnderstoreCall
 func NewUnderstoreCall(
 	name string,
-) UnderstoreCall {
-	return UnderstoreCall{
+) *UnderstoreCall {
+	return &UnderstoreCall{
 		Name: name,
 	}
 }
@@ -2636,8 +2636,8 @@ func NewUpdateProfileCall(
 	user common.Address,
 	name string,
 	age *big.Int,
-) UpdateProfileCall {
-	return UpdateProfileCall{
+) *UpdateProfileCall {
+	return &UpdateProfileCall{
 		User: user,
 		Name: name,
 		Age:  age,

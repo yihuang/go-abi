@@ -117,8 +117,8 @@ func (t SendCall) EncodeWithSelector() ([]byte, error) {
 func NewSendCall(
 	to common.Address,
 	amount *big.Int,
-) SendCall {
-	return SendCall{
+) *SendCall {
+	return &SendCall{
 		To:     to,
 		Amount: amount,
 	}

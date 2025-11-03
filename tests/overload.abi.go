@@ -131,8 +131,8 @@ func (t Overloaded1Call) EncodeWithSelector() ([]byte, error) {
 func NewOverloaded1Call(
 	to common.Address,
 	amount *big.Int,
-) Overloaded1Call {
-	return Overloaded1Call{
+) *Overloaded1Call {
+	return &Overloaded1Call{
 		To:     to,
 		Amount: amount,
 	}
@@ -300,8 +300,8 @@ func NewOverloaded10Call(
 	from common.Address,
 	to common.Address,
 	amount *big.Int,
-) Overloaded10Call {
-	return Overloaded10Call{
+) *Overloaded10Call {
+	return &Overloaded10Call{
 		From:   from,
 		To:     to,
 		Amount: amount,
@@ -500,8 +500,8 @@ func NewOverloaded11Call(
 	to common.Address,
 	amount *big.Int,
 	data []byte,
-) Overloaded11Call {
-	return Overloaded11Call{
+) *Overloaded11Call {
+	return &Overloaded11Call{
 		From:   from,
 		To:     to,
 		Amount: amount,
@@ -647,8 +647,8 @@ func (t Overloaded2Call) EncodeWithSelector() ([]byte, error) {
 // NewOverloaded2Call constructs a new Overloaded2Call
 func NewOverloaded2Call(
 	account common.Address,
-) Overloaded2Call {
-	return Overloaded2Call{
+) *Overloaded2Call {
+	return &Overloaded2Call{
 		Account: account,
 	}
 }
@@ -740,8 +740,8 @@ func (t Overloaded20Call) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewOverloaded20Call constructs a new Overloaded20Call
-func NewOverloaded20Call() Overloaded20Call {
-	return Overloaded20Call{}
+func NewOverloaded20Call() *Overloaded20Call {
+	return &Overloaded20Call{}
 }
 
 const Overloaded20ReturnStaticSize = 32

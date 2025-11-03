@@ -3151,8 +3151,8 @@ func NewStdlibCall(
 	field72 []*big.Int,
 	field73 []*big.Int,
 	field74 []*big.Int,
-) StdlibCall {
-	return StdlibCall{
+) *StdlibCall {
+	return &StdlibCall{
 		Field1:  field1,
 		Field2:  field2,
 		Field3:  field3,

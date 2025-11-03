@@ -770,8 +770,8 @@ func (t GetAddressStringPairCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetAddressStringPairCall constructs a new GetAddressStringPairCall
-func NewGetAddressStringPairCall() GetAddressStringPairCall {
-	return GetAddressStringPairCall{}
+func NewGetAddressStringPairCall() *GetAddressStringPairCall {
+	return &GetAddressStringPairCall{}
 }
 
 const GetAddressStringPairReturnStaticSize = 32
@@ -879,8 +879,8 @@ func (t GetComplexNestedCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetComplexNestedCall constructs a new GetComplexNestedCall
-func NewGetComplexNestedCall() GetComplexNestedCall {
-	return GetComplexNestedCall{}
+func NewGetComplexNestedCall() *GetComplexNestedCall {
+	return &GetComplexNestedCall{}
 }
 
 const GetComplexNestedReturnStaticSize = 32
@@ -988,8 +988,8 @@ func (t GetDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetDeeplyNestedCall constructs a new GetDeeplyNestedCall
-func NewGetDeeplyNestedCall() GetDeeplyNestedCall {
-	return GetDeeplyNestedCall{}
+func NewGetDeeplyNestedCall() *GetDeeplyNestedCall {
+	return &GetDeeplyNestedCall{}
 }
 
 const GetDeeplyNestedReturnStaticSize = 32
@@ -1097,8 +1097,8 @@ func (t GetMultipleReturnsCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetMultipleReturnsCall constructs a new GetMultipleReturnsCall
-func NewGetMultipleReturnsCall() GetMultipleReturnsCall {
-	return GetMultipleReturnsCall{}
+func NewGetMultipleReturnsCall() *GetMultipleReturnsCall {
+	return &GetMultipleReturnsCall{}
 }
 
 const GetMultipleReturnsReturnStaticSize = 96
@@ -1228,8 +1228,8 @@ func (t GetNestedTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetNestedTupleArrayCall constructs a new GetNestedTupleArrayCall
-func NewGetNestedTupleArrayCall() GetNestedTupleArrayCall {
-	return GetNestedTupleArrayCall{}
+func NewGetNestedTupleArrayCall() *GetNestedTupleArrayCall {
+	return &GetNestedTupleArrayCall{}
 }
 
 const GetNestedTupleArrayReturnStaticSize = 32
@@ -1337,8 +1337,8 @@ func (t GetSimplePairCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetSimplePairCall constructs a new GetSimplePairCall
-func NewGetSimplePairCall() GetSimplePairCall {
-	return GetSimplePairCall{}
+func NewGetSimplePairCall() *GetSimplePairCall {
+	return &GetSimplePairCall{}
 }
 
 const GetSimplePairReturnStaticSize = 64
@@ -1428,8 +1428,8 @@ func (t GetTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetTupleArrayCall constructs a new GetTupleArrayCall
-func NewGetTupleArrayCall() GetTupleArrayCall {
-	return GetTupleArrayCall{}
+func NewGetTupleArrayCall() *GetTupleArrayCall {
+	return &GetTupleArrayCall{}
 }
 
 const GetTupleArrayReturnStaticSize = 32
@@ -1537,8 +1537,8 @@ func (t GetUserWithMetadataCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetUserWithMetadataCall constructs a new GetUserWithMetadataCall
-func NewGetUserWithMetadataCall() GetUserWithMetadataCall {
-	return GetUserWithMetadataCall{}
+func NewGetUserWithMetadataCall() *GetUserWithMetadataCall {
+	return &GetUserWithMetadataCall{}
 }
 
 const GetUserWithMetadataReturnStaticSize = 32
@@ -1646,8 +1646,8 @@ func (t GetUsersArrayCall) EncodeWithSelector() ([]byte, error) {
 }
 
 // NewGetUsersArrayCall constructs a new GetUsersArrayCall
-func NewGetUsersArrayCall() GetUsersArrayCall {
-	return GetUsersArrayCall{}
+func NewGetUsersArrayCall() *GetUsersArrayCall {
+	return &GetUsersArrayCall{}
 }
 
 const GetUsersArrayReturnStaticSize = 32

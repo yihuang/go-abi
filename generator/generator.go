@@ -613,8 +613,8 @@ func (g *Generator) genStructDecode(s Struct) {
 func (g *Generator) genCallConstructor(s Struct) {
 	if len(s.Fields) == 0 {
 		g.L("// New%s constructs a new %s", s.Name, s.Name)
-		g.L("func New%s() %s {", s.Name, s.Name)
-		g.L("\treturn %s{}", s.Name)
+		g.L("func New%s() *%s {", s.Name, s.Name)
+		g.L("\treturn &%s{}", s.Name)
 		g.L("}")
 		return
 	}
@@ -629,8 +629,8 @@ func (g *Generator) genCallConstructor(s Struct) {
 		g.L("\t%s %s,", ToArgName(f.Name), goType)
 	}
 
-	g.L(") %s {", s.Name)
-	g.L("return %s{", s.Name)
+	g.L(") *%s {", s.Name)
+	g.L("return &%s{", s.Name)
 
 	// Generate struct initialization
 	for _, f := range s.Fields {

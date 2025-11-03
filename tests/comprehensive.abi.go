@@ -1552,8 +1552,8 @@ func (t TestComplexDynamicTuplesCall) EncodeWithSelector() ([]byte, error) {
 // NewTestComplexDynamicTuplesCall constructs a new TestComplexDynamicTuplesCall
 func NewTestComplexDynamicTuplesCall(
 	users []User2,
-) TestComplexDynamicTuplesCall {
-	return TestComplexDynamicTuplesCall{
+) *TestComplexDynamicTuplesCall {
+	return &TestComplexDynamicTuplesCall{
 		Users: users,
 	}
 }
@@ -1714,8 +1714,8 @@ func (t TestDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 // NewTestDeeplyNestedCall constructs a new TestDeeplyNestedCall
 func NewTestDeeplyNestedCall(
 	data Level1,
-) TestDeeplyNestedCall {
-	return TestDeeplyNestedCall{
+) *TestDeeplyNestedCall {
+	return &TestDeeplyNestedCall{
 		Data: data,
 	}
 }
@@ -1876,8 +1876,8 @@ func (t TestExternalTupleCall) EncodeWithSelector() ([]byte, error) {
 // NewTestExternalTupleCall constructs a new TestExternalTupleCall
 func NewTestExternalTupleCall(
 	user User,
-) TestExternalTupleCall {
-	return TestExternalTupleCall{
+) *TestExternalTupleCall {
+	return &TestExternalTupleCall{
 		User: user,
 	}
 }
@@ -2044,8 +2044,8 @@ func NewTestFixedArraysCall(
 	addresses [5]common.Address,
 	uints [3]*big.Int,
 	bytes32s [2][32]byte,
-) TestFixedArraysCall {
-	return TestFixedArraysCall{
+) *TestFixedArraysCall {
+	return &TestFixedArraysCall{
 		Addresses: addresses,
 		Uints:     uints,
 		Bytes32s:  bytes32s,
@@ -2269,8 +2269,8 @@ func NewTestMixedTypesCall(
 	flag bool,
 	count uint8,
 	items []Item,
-) TestMixedTypesCall {
-	return TestMixedTypesCall{
+) *TestMixedTypesCall {
+	return &TestMixedTypesCall{
 		FixedData:   fixedData,
 		DynamicData: dynamicData,
 		Flag:        flag,
@@ -2485,8 +2485,8 @@ func NewTestNestedDynamicArraysCall(
 	matrix [][]*big.Int,
 	addressMatrix [][3][]common.Address,
 	dymMatrix [][]string,
-) TestNestedDynamicArraysCall {
-	return TestNestedDynamicArraysCall{
+) *TestNestedDynamicArraysCall {
+	return &TestNestedDynamicArraysCall{
 		Matrix:        matrix,
 		AddressMatrix: addressMatrix,
 		DymMatrix:     dymMatrix,
@@ -2649,8 +2649,8 @@ func (t TestNestedStructCall) EncodeWithSelector() ([]byte, error) {
 // NewTestNestedStructCall constructs a new TestNestedStructCall
 func NewTestNestedStructCall(
 	group Group,
-) TestNestedStructCall {
-	return TestNestedStructCall{
+) *TestNestedStructCall {
+	return &TestNestedStructCall{
 		Group: group,
 	}
 }
@@ -2925,8 +2925,8 @@ func NewTestNonStandardIntegersCall(
 	i72 *big.Int,
 	i96 *big.Int,
 	i120 *big.Int,
-) TestNonStandardIntegersCall {
-	return TestNonStandardIntegersCall{
+) *TestNonStandardIntegersCall {
+	return &TestNonStandardIntegersCall{
 		U24:  u24,
 		U36:  u36,
 		U48:  u48,
@@ -3164,8 +3164,8 @@ func NewTestSmallIntegersCall(
 	i16 int16,
 	i32 int32,
 	i64 int64,
-) TestSmallIntegersCall {
-	return TestSmallIntegersCall{
+) *TestSmallIntegersCall {
+	return &TestSmallIntegersCall{
 		U8:  u8,
 		U16: u16,
 		U32: u32,
