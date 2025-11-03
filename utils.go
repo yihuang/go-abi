@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -57,6 +58,29 @@ func DecodeBigInt(data []byte, signed bool) (*big.Int, error) {
 
 	bigN := new(big.Int).SetBytes(data[:32])
 	return bigN, nil
+}
+
+func EncodeEvent(event Event) ([]common.Hash, []byte, error) {
+	topics, err := event.EncodeTopics()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	data, err := event.Encode()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return topics, data, nil
+}
+
+func DecodeEvent(event Event, topics []common.Hash, data []byte) error {
+	if err := event.DecodeTopics(topics); err != nil {
+		return err
+	}
+
+	_, err := event.Decode(data)
+	return err
 }
 
 // GenTypeIdentifier generates a unique identifier for any ABI type
