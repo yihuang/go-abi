@@ -2717,8 +2717,8 @@ type DynamicIndexedEvent struct {
 // NewDynamicIndexedEvent constructs a new DynamicIndexed event
 func NewDynamicIndexedEvent(
 	denom string,
-) DynamicIndexedEvent {
-	return DynamicIndexedEvent{
+) *DynamicIndexedEvent {
+	return &DynamicIndexedEvent{
 		DynamicIndexedEventIndexed: DynamicIndexedEventIndexed{
 			Denom: denom,
 		},
@@ -2784,8 +2784,8 @@ type EmptyIndexedEvent struct {
 // NewEmptyIndexedEvent constructs a new EmptyIndexed event
 func NewEmptyIndexedEvent(
 	denom string,
-) EmptyIndexedEvent {
-	return EmptyIndexedEvent{
+) *EmptyIndexedEvent {
+	return &EmptyIndexedEvent{
 		EmptyIndexedEventIndexed: EmptyIndexedEventIndexed{},
 		EmptyIndexedEventData: EmptyIndexedEventData{
 			Denom: denom,

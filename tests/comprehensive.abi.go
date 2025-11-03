@@ -3256,8 +3256,8 @@ func NewComplexEvent(
 	message string,
 	numbers []*big.Int,
 	sender common.Address,
-) ComplexEvent {
-	return ComplexEvent{
+) *ComplexEvent {
+	return &ComplexEvent{
 		ComplexEventIndexed: ComplexEventIndexed{
 			Sender: sender,
 		},
@@ -3421,8 +3421,8 @@ type IndexOnlyEvent struct {
 // NewIndexOnlyEvent constructs a new IndexOnly event
 func NewIndexOnlyEvent(
 	sender common.Address,
-) IndexOnlyEvent {
-	return IndexOnlyEvent{
+) *IndexOnlyEvent {
+	return &IndexOnlyEvent{
 		IndexOnlyEventIndexed: IndexOnlyEventIndexed{
 			Sender: sender,
 		},
@@ -3493,8 +3493,8 @@ func NewTransferEvent(
 	from common.Address,
 	to common.Address,
 	value *big.Int,
-) TransferEvent {
-	return TransferEvent{
+) *TransferEvent {
+	return &TransferEvent{
 		TransferEventIndexed: TransferEventIndexed{
 			From: from,
 			To:   to,
@@ -3630,8 +3630,8 @@ type UserCreatedEvent struct {
 func NewUserCreatedEvent(
 	user User,
 	creator common.Address,
-) UserCreatedEvent {
-	return UserCreatedEvent{
+) *UserCreatedEvent {
+	return &UserCreatedEvent{
 		UserCreatedEventIndexed: UserCreatedEventIndexed{
 			Creator: creator,
 		},

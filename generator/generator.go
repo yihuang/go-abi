@@ -897,8 +897,8 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 		g.L("\t%s %s,", input.Name, goType)
 	}
 
-	g.L(") %sEvent {", event.Name)
-	g.L("return %sEvent{", event.Name)
+	g.L(") *%sEvent {", event.Name)
+	g.L("return &%sEvent{", event.Name)
 	g.L("\t%sEventIndexed: %sEventIndexed{", event.Name, event.Name)
 
 	for _, input := range event.Inputs {
