@@ -635,14 +635,14 @@ func (g *Generator) genFunction(method ethabi.Method) {
 
 	// GetMethodID method
 	g.L("")
-	g.L("// GetMethodID returns the function name")
+	g.L("// GetMethodID returns the function id")
 	g.L("func (t %s) GetMethodID() uint32 {", name)
 	g.L("\treturn %sID", Title.String(method.Name))
 	g.L("}")
 
 	// GetMethodSelector method
 	g.L("")
-	g.L("// GetMethodSelector returns the function name")
+	g.L("// GetMethodSelector returns the function selector")
 	g.L("func (t %s) GetMethodSelector() [4]byte {", name)
 	g.L("\treturn %sSelector", Title.String(method.Name))
 	g.L("}")
@@ -664,7 +664,7 @@ func (g *Generator) genFunction(method ethabi.Method) {
 		g.genStruct(s)
 	} else {
 		g.L("")
-		g.L("// %s represents the input arguments for %s function", name, method.Name)
+		g.L("// %s represents the output arguments for %s function", name, method.Name)
 		g.L("type %s struct {", name)
 		g.L("\t%sEmptyTuple", g.StdPrefix)
 		g.L("}")
