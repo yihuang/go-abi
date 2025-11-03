@@ -749,12 +749,12 @@ func (t GetAddressStringPairCall) GetMethodName() string {
 	return "getAddressStringPair"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetAddressStringPairCall) GetMethodID() uint32 {
 	return GetAddressStringPairID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetAddressStringPairCall) GetMethodSelector() [4]byte {
 	return GetAddressStringPairSelector
 }
@@ -767,6 +767,11 @@ func (t GetAddressStringPairCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetAddressStringPairCall constructs a new GetAddressStringPairCall
+func NewGetAddressStringPairCall() GetAddressStringPairCall {
+	return GetAddressStringPairCall{}
 }
 
 const GetAddressStringPairReturnStaticSize = 32
@@ -853,12 +858,12 @@ func (t GetComplexNestedCall) GetMethodName() string {
 	return "getComplexNested"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetComplexNestedCall) GetMethodID() uint32 {
 	return GetComplexNestedID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetComplexNestedCall) GetMethodSelector() [4]byte {
 	return GetComplexNestedSelector
 }
@@ -871,6 +876,11 @@ func (t GetComplexNestedCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetComplexNestedCall constructs a new GetComplexNestedCall
+func NewGetComplexNestedCall() GetComplexNestedCall {
+	return GetComplexNestedCall{}
 }
 
 const GetComplexNestedReturnStaticSize = 32
@@ -957,12 +967,12 @@ func (t GetDeeplyNestedCall) GetMethodName() string {
 	return "getDeeplyNested"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetDeeplyNestedCall) GetMethodID() uint32 {
 	return GetDeeplyNestedID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetDeeplyNestedCall) GetMethodSelector() [4]byte {
 	return GetDeeplyNestedSelector
 }
@@ -975,6 +985,11 @@ func (t GetDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetDeeplyNestedCall constructs a new GetDeeplyNestedCall
+func NewGetDeeplyNestedCall() GetDeeplyNestedCall {
+	return GetDeeplyNestedCall{}
 }
 
 const GetDeeplyNestedReturnStaticSize = 32
@@ -1061,12 +1076,12 @@ func (t GetMultipleReturnsCall) GetMethodName() string {
 	return "getMultipleReturns"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetMultipleReturnsCall) GetMethodID() uint32 {
 	return GetMultipleReturnsID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetMultipleReturnsCall) GetMethodSelector() [4]byte {
 	return GetMultipleReturnsSelector
 }
@@ -1079,6 +1094,11 @@ func (t GetMultipleReturnsCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetMultipleReturnsCall constructs a new GetMultipleReturnsCall
+func NewGetMultipleReturnsCall() GetMultipleReturnsCall {
+	return GetMultipleReturnsCall{}
 }
 
 const GetMultipleReturnsReturnStaticSize = 96
@@ -1187,12 +1207,12 @@ func (t GetNestedTupleArrayCall) GetMethodName() string {
 	return "getNestedTupleArray"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetNestedTupleArrayCall) GetMethodID() uint32 {
 	return GetNestedTupleArrayID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetNestedTupleArrayCall) GetMethodSelector() [4]byte {
 	return GetNestedTupleArraySelector
 }
@@ -1205,6 +1225,11 @@ func (t GetNestedTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetNestedTupleArrayCall constructs a new GetNestedTupleArrayCall
+func NewGetNestedTupleArrayCall() GetNestedTupleArrayCall {
+	return GetNestedTupleArrayCall{}
 }
 
 const GetNestedTupleArrayReturnStaticSize = 32
@@ -1291,12 +1316,12 @@ func (t GetSimplePairCall) GetMethodName() string {
 	return "getSimplePair"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetSimplePairCall) GetMethodID() uint32 {
 	return GetSimplePairID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetSimplePairCall) GetMethodSelector() [4]byte {
 	return GetSimplePairSelector
 }
@@ -1309,6 +1334,11 @@ func (t GetSimplePairCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetSimplePairCall constructs a new GetSimplePairCall
+func NewGetSimplePairCall() GetSimplePairCall {
+	return GetSimplePairCall{}
 }
 
 const GetSimplePairReturnStaticSize = 64
@@ -1377,12 +1407,12 @@ func (t GetTupleArrayCall) GetMethodName() string {
 	return "getTupleArray"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetTupleArrayCall) GetMethodID() uint32 {
 	return GetTupleArrayID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetTupleArrayCall) GetMethodSelector() [4]byte {
 	return GetTupleArraySelector
 }
@@ -1395,6 +1425,11 @@ func (t GetTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetTupleArrayCall constructs a new GetTupleArrayCall
+func NewGetTupleArrayCall() GetTupleArrayCall {
+	return GetTupleArrayCall{}
 }
 
 const GetTupleArrayReturnStaticSize = 32
@@ -1481,12 +1516,12 @@ func (t GetUserWithMetadataCall) GetMethodName() string {
 	return "getUserWithMetadata"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetUserWithMetadataCall) GetMethodID() uint32 {
 	return GetUserWithMetadataID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetUserWithMetadataCall) GetMethodSelector() [4]byte {
 	return GetUserWithMetadataSelector
 }
@@ -1499,6 +1534,11 @@ func (t GetUserWithMetadataCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetUserWithMetadataCall constructs a new GetUserWithMetadataCall
+func NewGetUserWithMetadataCall() GetUserWithMetadataCall {
+	return GetUserWithMetadataCall{}
 }
 
 const GetUserWithMetadataReturnStaticSize = 32
@@ -1585,12 +1625,12 @@ func (t GetUsersArrayCall) GetMethodName() string {
 	return "getUsersArray"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetUsersArrayCall) GetMethodID() uint32 {
 	return GetUsersArrayID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetUsersArrayCall) GetMethodSelector() [4]byte {
 	return GetUsersArraySelector
 }
@@ -1603,6 +1643,11 @@ func (t GetUsersArrayCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetUsersArrayCall constructs a new GetUsersArrayCall
+func NewGetUsersArrayCall() GetUsersArrayCall {
+	return GetUsersArrayCall{}
 }
 
 const GetUsersArrayReturnStaticSize = 32

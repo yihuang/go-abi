@@ -21,6 +21,13 @@ func ToCamel(s string) string {
 	return strings.Join(parts, "")
 }
 
+func ToArgName(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToLower(s[:1]) + s[1:]
+}
+
 func SortedMapKeys[K cmp.Ordered, V any](m map[K]V) []K {
 	keys := make([]K, 0, len(m))
 	for k := range m {

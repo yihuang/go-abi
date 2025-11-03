@@ -610,13 +610,45 @@ func (g *Generator) genStructDecode(s Struct) {
 	g.L("}")
 }
 
+func (g *Generator) genCallConstructor(s Struct) {
+	if len(s.Fields) == 0 {
+		g.L("// New%s constructs a new %s", s.Name, s.Name)
+		g.L("func New%s() %s {", s.Name, s.Name)
+		g.L("\treturn %s{}", s.Name)
+		g.L("}")
+		return
+	}
+
+	g.L("")
+	g.L("// New%s constructs a new %s", s.Name, s.Name)
+	g.L("func New%s(", s.Name)
+
+	// Generate function parameters
+	for _, f := range s.Fields {
+		goType := g.abiTypeToGoType(*f.Type)
+		g.L("\t%s %s,", ToArgName(f.Name), goType)
+	}
+
+	g.L(") %s {", s.Name)
+	g.L("return %s{", s.Name)
+
+	// Generate struct initialization
+	for _, f := range s.Fields {
+		g.L("\t%s: %s,", f.Name, ToArgName(f.Name))
+	}
+
+	g.L("}")
+	g.L("}")
+}
+
 func (g *Generator) genFunction(method ethabi.Method) {
 	// Generate struct and methods for functions with inputs
 	name := fmt.Sprintf("%sCall", Title.String(method.Name))
 	// assert interface
 	g.L("var _ %sMethod = (*%s)(nil)", g.StdPrefix, name)
+
+	s := StructFromArguments(name, method.Inputs)
 	if len(method.Inputs) > 0 {
-		s := StructFromArguments(name, method.Inputs)
 		g.genStruct(s)
 	} else {
 		g.L("")
@@ -657,6 +689,9 @@ func (g *Generator) genFunction(method ethabi.Method) {
 	g.L("\t}")
 	g.L("\treturn result, nil")
 	g.L("}")
+
+	// Generate constructor for Call struct
+	g.genCallConstructor(s)
 
 	name = fmt.Sprintf("%sReturn", Title.String(method.Name))
 	if len(method.Outputs) > 0 {
