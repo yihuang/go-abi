@@ -801,12 +801,12 @@ func (t BalanceOfCall) GetMethodName() string {
 	return "balanceOf"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t BalanceOfCall) GetMethodID() uint32 {
 	return BalanceOfID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t BalanceOfCall) GetMethodSelector() [4]byte {
 	return BalanceOfSelector
 }
@@ -819,6 +819,15 @@ func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewBalanceOfCall constructs a new BalanceOfCall
+func NewBalanceOfCall(
+	Account common.Address,
+) BalanceOfCall {
+	return BalanceOfCall{
+		Account: Account,
+	}
 }
 
 const BalanceOfReturnStaticSize = 32
@@ -954,12 +963,12 @@ func (t BatchProcessCall) GetMethodName() string {
 	return "batchProcess"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t BatchProcessCall) GetMethodID() uint32 {
 	return BatchProcessID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t BatchProcessCall) GetMethodSelector() [4]byte {
 	return BatchProcessSelector
 }
@@ -972,6 +981,15 @@ func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewBatchProcessCall constructs a new BatchProcessCall
+func NewBatchProcessCall(
+	Users []UserData,
+) BatchProcessCall {
+	return BatchProcessCall{
+		Users: Users,
+	}
 }
 
 const BatchProcessReturnStaticSize = 32
@@ -1040,12 +1058,12 @@ func (t CommunityPoolCall) GetMethodName() string {
 	return "communityPool"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t CommunityPoolCall) GetMethodID() uint32 {
 	return CommunityPoolID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t CommunityPoolCall) GetMethodSelector() [4]byte {
 	return CommunityPoolSelector
 }
@@ -1144,12 +1162,12 @@ func (t EmptyArgsCall) GetMethodName() string {
 	return "emptyArgs"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t EmptyArgsCall) GetMethodID() uint32 {
 	return EmptyArgsID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t EmptyArgsCall) GetMethodSelector() [4]byte {
 	return EmptyArgsSelector
 }
@@ -1164,7 +1182,7 @@ func (t EmptyArgsCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
-// EmptyArgsReturn represents the input arguments for emptyArgs function
+// EmptyArgsReturn represents the output arguments for emptyArgs function
 type EmptyArgsReturn struct {
 	abi.EmptyTuple
 }
@@ -1230,12 +1248,12 @@ func (t GetBalancesCall) GetMethodName() string {
 	return "getBalances"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t GetBalancesCall) GetMethodID() uint32 {
 	return GetBalancesID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t GetBalancesCall) GetMethodSelector() [4]byte {
 	return GetBalancesSelector
 }
@@ -1248,6 +1266,15 @@ func (t GetBalancesCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewGetBalancesCall constructs a new GetBalancesCall
+func NewGetBalancesCall(
+	Accounts [10]common.Address,
+) GetBalancesCall {
+	return GetBalancesCall{
+		Accounts: Accounts,
+	}
 }
 
 const GetBalancesReturnStaticSize = 320
@@ -1407,12 +1434,12 @@ func (t ProcessUserDataCall) GetMethodName() string {
 	return "processUserData"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t ProcessUserDataCall) GetMethodID() uint32 {
 	return ProcessUserDataID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t ProcessUserDataCall) GetMethodSelector() [4]byte {
 	return ProcessUserDataSelector
 }
@@ -1425,6 +1452,17 @@ func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewProcessUserDataCall constructs a new ProcessUserDataCall
+func NewProcessUserDataCall(
+	User1 User,
+	User2 User,
+) ProcessUserDataCall {
+	return ProcessUserDataCall{
+		User1: User1,
+		User2: User2,
+	}
 }
 
 const ProcessUserDataReturnStaticSize = 32
@@ -1571,12 +1609,12 @@ func (t SetDataCall) GetMethodName() string {
 	return "setData"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t SetDataCall) GetMethodID() uint32 {
 	return SetDataID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t SetDataCall) GetMethodSelector() [4]byte {
 	return SetDataSelector
 }
@@ -1591,7 +1629,18 @@ func (t SetDataCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
-// SetDataReturn represents the input arguments for setData function
+// NewSetDataCall constructs a new SetDataCall
+func NewSetDataCall(
+	Key [32]byte,
+	Value []byte,
+) SetDataCall {
+	return SetDataCall{
+		Key:   Key,
+		Value: Value,
+	}
+}
+
+// SetDataReturn represents the output arguments for setData function
 type SetDataReturn struct {
 	abi.EmptyTuple
 }
@@ -1675,12 +1724,12 @@ func (t SetMessageCall) GetMethodName() string {
 	return "setMessage"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t SetMessageCall) GetMethodID() uint32 {
 	return SetMessageID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t SetMessageCall) GetMethodSelector() [4]byte {
 	return SetMessageSelector
 }
@@ -1693,6 +1742,15 @@ func (t SetMessageCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewSetMessageCall constructs a new SetMessageCall
+func NewSetMessageCall(
+	Message string,
+) SetMessageCall {
+	return SetMessageCall{
+		Message: Message,
+	}
 }
 
 const SetMessageReturnStaticSize = 32
@@ -1887,12 +1945,12 @@ func (t SmallIntegersCall) GetMethodName() string {
 	return "smallIntegers"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t SmallIntegersCall) GetMethodID() uint32 {
 	return SmallIntegersID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t SmallIntegersCall) GetMethodSelector() [4]byte {
 	return SmallIntegersSelector
 }
@@ -1905,6 +1963,29 @@ func (t SmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewSmallIntegersCall constructs a new SmallIntegersCall
+func NewSmallIntegersCall(
+	U8 uint8,
+	U16 uint16,
+	U32 uint32,
+	U64 uint64,
+	I8 int8,
+	I16 int16,
+	I32 int32,
+	I64 int64,
+) SmallIntegersCall {
+	return SmallIntegersCall{
+		U8:  U8,
+		U16: U16,
+		U32: U32,
+		U64: U64,
+		I8:  I8,
+		I16: I16,
+		I32: I32,
+		I64: I64,
+	}
 }
 
 const SmallIntegersReturnStaticSize = 32
@@ -2033,12 +2114,12 @@ func (t TransferCall) GetMethodName() string {
 	return "transfer"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TransferCall) GetMethodID() uint32 {
 	return TransferID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TransferCall) GetMethodSelector() [4]byte {
 	return TransferSelector
 }
@@ -2051,6 +2132,17 @@ func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTransferCall constructs a new TransferCall
+func NewTransferCall(
+	To common.Address,
+	Amount *big.Int,
+) TransferCall {
+	return TransferCall{
+		To:     To,
+		Amount: Amount,
+	}
 }
 
 const TransferReturnStaticSize = 32
@@ -2210,12 +2302,12 @@ func (t TransferBatchCall) GetMethodName() string {
 	return "transferBatch"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TransferBatchCall) GetMethodID() uint32 {
 	return TransferBatchID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TransferBatchCall) GetMethodSelector() [4]byte {
 	return TransferBatchSelector
 }
@@ -2228,6 +2320,17 @@ func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTransferBatchCall constructs a new TransferBatchCall
+func NewTransferBatchCall(
+	Recipients []common.Address,
+	Amounts []*big.Int,
+) TransferBatchCall {
+	return TransferBatchCall{
+		Recipients: Recipients,
+		Amounts:    Amounts,
+	}
 }
 
 const TransferBatchReturnStaticSize = 32
@@ -2363,12 +2466,12 @@ func (t UnderstoreCall) GetMethodName() string {
 	return "understore"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t UnderstoreCall) GetMethodID() uint32 {
 	return UnderstoreID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t UnderstoreCall) GetMethodSelector() [4]byte {
 	return UnderstoreSelector
 }
@@ -2383,7 +2486,16 @@ func (t UnderstoreCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
-// UnderstoreReturn represents the input arguments for understore function
+// NewUnderstoreCall constructs a new UnderstoreCall
+func NewUnderstoreCall(
+	Name string,
+) UnderstoreCall {
+	return UnderstoreCall{
+		Name: Name,
+	}
+}
+
+// UnderstoreReturn represents the output arguments for understore function
 type UnderstoreReturn struct {
 	abi.EmptyTuple
 }
@@ -2489,12 +2601,12 @@ func (t UpdateProfileCall) GetMethodName() string {
 	return "updateProfile"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t UpdateProfileCall) GetMethodID() uint32 {
 	return UpdateProfileID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t UpdateProfileCall) GetMethodSelector() [4]byte {
 	return UpdateProfileSelector
 }
@@ -2507,6 +2619,19 @@ func (t UpdateProfileCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewUpdateProfileCall constructs a new UpdateProfileCall
+func NewUpdateProfileCall(
+	User common.Address,
+	Name string,
+	Age *big.Int,
+) UpdateProfileCall {
+	return UpdateProfileCall{
+		User: User,
+		Name: Name,
+		Age:  Age,
+	}
 }
 
 const UpdateProfileReturnStaticSize = 32

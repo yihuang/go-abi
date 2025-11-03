@@ -120,12 +120,12 @@ func (t AllowanceCall) GetMethodName() string {
 	return "allowance"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t AllowanceCall) GetMethodID() uint32 {
 	return AllowanceID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t AllowanceCall) GetMethodSelector() [4]byte {
 	return AllowanceSelector
 }
@@ -138,6 +138,17 @@ func (t AllowanceCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewAllowanceCall constructs a new AllowanceCall
+func NewAllowanceCall(
+	Owner common.Address,
+	Spender common.Address,
+) AllowanceCall {
+	return AllowanceCall{
+		Owner:   Owner,
+		Spender: Spender,
+	}
 }
 
 const AllowanceReturnStaticSize = 32
@@ -266,12 +277,12 @@ func (t ApproveCall) GetMethodName() string {
 	return "approve"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t ApproveCall) GetMethodID() uint32 {
 	return ApproveID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t ApproveCall) GetMethodSelector() [4]byte {
 	return ApproveSelector
 }
@@ -284,6 +295,17 @@ func (t ApproveCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewApproveCall constructs a new ApproveCall
+func NewApproveCall(
+	Spender common.Address,
+	Amount *big.Int,
+) ApproveCall {
+	return ApproveCall{
+		Spender: Spender,
+		Amount:  Amount,
+	}
 }
 
 const ApproveReturnStaticSize = 32
@@ -401,12 +423,12 @@ func (t BalanceOfCall) GetMethodName() string {
 	return "balanceOf"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t BalanceOfCall) GetMethodID() uint32 {
 	return BalanceOfID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t BalanceOfCall) GetMethodSelector() [4]byte {
 	return BalanceOfSelector
 }
@@ -419,6 +441,15 @@ func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewBalanceOfCall constructs a new BalanceOfCall
+func NewBalanceOfCall(
+	Account common.Address,
+) BalanceOfCall {
+	return BalanceOfCall{
+		Account: Account,
+	}
 }
 
 const BalanceOfReturnStaticSize = 32
@@ -487,12 +518,12 @@ func (t DecimalsCall) GetMethodName() string {
 	return "decimals"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t DecimalsCall) GetMethodID() uint32 {
 	return DecimalsID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t DecimalsCall) GetMethodSelector() [4]byte {
 	return DecimalsSelector
 }
@@ -573,12 +604,12 @@ func (t NameCall) GetMethodName() string {
 	return "name"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t NameCall) GetMethodID() uint32 {
 	return NameID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t NameCall) GetMethodSelector() [4]byte {
 	return NameSelector
 }
@@ -677,12 +708,12 @@ func (t SymbolCall) GetMethodName() string {
 	return "symbol"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t SymbolCall) GetMethodID() uint32 {
 	return SymbolID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t SymbolCall) GetMethodSelector() [4]byte {
 	return SymbolSelector
 }
@@ -781,12 +812,12 @@ func (t TotalSupplyCall) GetMethodName() string {
 	return "totalSupply"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TotalSupplyCall) GetMethodID() uint32 {
 	return TotalSupplyID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TotalSupplyCall) GetMethodSelector() [4]byte {
 	return TotalSupplySelector
 }
@@ -927,12 +958,12 @@ func (t TransferCall) GetMethodName() string {
 	return "transfer"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TransferCall) GetMethodID() uint32 {
 	return TransferID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TransferCall) GetMethodSelector() [4]byte {
 	return TransferSelector
 }
@@ -945,6 +976,17 @@ func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTransferCall constructs a new TransferCall
+func NewTransferCall(
+	To common.Address,
+	Amount *big.Int,
+) TransferCall {
+	return TransferCall{
+		To:     To,
+		Amount: Amount,
+	}
 }
 
 const TransferReturnStaticSize = 32
@@ -1084,12 +1126,12 @@ func (t TransferFromCall) GetMethodName() string {
 	return "transferFrom"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TransferFromCall) GetMethodID() uint32 {
 	return TransferFromID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TransferFromCall) GetMethodSelector() [4]byte {
 	return TransferFromSelector
 }
@@ -1102,6 +1144,19 @@ func (t TransferFromCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTransferFromCall constructs a new TransferFromCall
+func NewTransferFromCall(
+	From common.Address,
+	To common.Address,
+	Amount *big.Int,
+) TransferFromCall {
+	return TransferFromCall{
+		From:   From,
+		To:     To,
+		Amount: Amount,
+	}
 }
 
 const TransferFromReturnStaticSize = 32

@@ -610,6 +610,36 @@ func (g *Generator) genStructDecode(s Struct) {
 	g.L("}")
 }
 
+func (g *Generator) genCallConstructor(name string, args []ethabi.Argument) {
+	if len(args) == 0 {
+		// No constructor for empty structs
+		return
+	}
+
+	g.L("")
+	g.L("// New%s constructs a new %s", name, name)
+	g.L("func New%s(", name)
+
+	// Generate function parameters
+	for _, arg := range args {
+		fieldName := GoFieldName(arg.Name)
+		goType := g.abiTypeToGoType(arg.Type)
+		g.L("\t%s %s,", fieldName, goType)
+	}
+
+	g.L(") %s {", name)
+	g.L("return %s{", name)
+
+	// Generate struct initialization
+	for _, arg := range args {
+		fieldName := GoFieldName(arg.Name)
+		g.L("\t%s: %s,", fieldName, fieldName)
+	}
+
+	g.L("}")
+	g.L("}")
+}
+
 func (g *Generator) genFunction(method ethabi.Method) {
 	// Generate struct and methods for functions with inputs
 	name := fmt.Sprintf("%sCall", Title.String(method.Name))
@@ -657,6 +687,9 @@ func (g *Generator) genFunction(method ethabi.Method) {
 	g.L("\t}")
 	g.L("\treturn result, nil")
 	g.L("}")
+
+	// Generate constructor for Call struct
+	g.genCallConstructor(name, method.Inputs)
 
 	name = fmt.Sprintf("%sReturn", Title.String(method.Name))
 	if len(method.Outputs) > 0 {

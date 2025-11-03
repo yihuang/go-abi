@@ -1529,12 +1529,12 @@ func (t TestComplexDynamicTuplesCall) GetMethodName() string {
 	return "testComplexDynamicTuples"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestComplexDynamicTuplesCall) GetMethodID() uint32 {
 	return TestComplexDynamicTuplesID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestComplexDynamicTuplesCall) GetMethodSelector() [4]byte {
 	return TestComplexDynamicTuplesSelector
 }
@@ -1547,6 +1547,15 @@ func (t TestComplexDynamicTuplesCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestComplexDynamicTuplesCall constructs a new TestComplexDynamicTuplesCall
+func NewTestComplexDynamicTuplesCall(
+	Users []User2,
+) TestComplexDynamicTuplesCall {
+	return TestComplexDynamicTuplesCall{
+		Users: Users,
+	}
 }
 
 const TestComplexDynamicTuplesReturnStaticSize = 32
@@ -1682,12 +1691,12 @@ func (t TestDeeplyNestedCall) GetMethodName() string {
 	return "testDeeplyNested"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestDeeplyNestedCall) GetMethodID() uint32 {
 	return TestDeeplyNestedID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestDeeplyNestedCall) GetMethodSelector() [4]byte {
 	return TestDeeplyNestedSelector
 }
@@ -1700,6 +1709,15 @@ func (t TestDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestDeeplyNestedCall constructs a new TestDeeplyNestedCall
+func NewTestDeeplyNestedCall(
+	Data Level1,
+) TestDeeplyNestedCall {
+	return TestDeeplyNestedCall{
+		Data: Data,
+	}
 }
 
 const TestDeeplyNestedReturnStaticSize = 32
@@ -1835,12 +1853,12 @@ func (t TestExternalTupleCall) GetMethodName() string {
 	return "testExternalTuple"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestExternalTupleCall) GetMethodID() uint32 {
 	return TestExternalTupleID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestExternalTupleCall) GetMethodSelector() [4]byte {
 	return TestExternalTupleSelector
 }
@@ -1853,6 +1871,15 @@ func (t TestExternalTupleCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestExternalTupleCall constructs a new TestExternalTupleCall
+func NewTestExternalTupleCall(
+	User User,
+) TestExternalTupleCall {
+	return TestExternalTupleCall{
+		User: User,
+	}
 }
 
 const TestExternalTupleReturnStaticSize = 32
@@ -1992,12 +2019,12 @@ func (t TestFixedArraysCall) GetMethodName() string {
 	return "testFixedArrays"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestFixedArraysCall) GetMethodID() uint32 {
 	return TestFixedArraysID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestFixedArraysCall) GetMethodSelector() [4]byte {
 	return TestFixedArraysSelector
 }
@@ -2010,6 +2037,19 @@ func (t TestFixedArraysCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestFixedArraysCall constructs a new TestFixedArraysCall
+func NewTestFixedArraysCall(
+	Addresses [5]common.Address,
+	Uints [3]*big.Int,
+	Bytes32s [2][32]byte,
+) TestFixedArraysCall {
+	return TestFixedArraysCall{
+		Addresses: Addresses,
+		Uints:     Uints,
+		Bytes32s:  Bytes32s,
+	}
 }
 
 const TestFixedArraysReturnStaticSize = 32
@@ -2202,12 +2242,12 @@ func (t TestMixedTypesCall) GetMethodName() string {
 	return "testMixedTypes"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestMixedTypesCall) GetMethodID() uint32 {
 	return TestMixedTypesID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestMixedTypesCall) GetMethodSelector() [4]byte {
 	return TestMixedTypesSelector
 }
@@ -2220,6 +2260,23 @@ func (t TestMixedTypesCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestMixedTypesCall constructs a new TestMixedTypesCall
+func NewTestMixedTypesCall(
+	FixedData [32]byte,
+	DynamicData []byte,
+	Flag bool,
+	Count uint8,
+	Items []Item,
+) TestMixedTypesCall {
+	return TestMixedTypesCall{
+		FixedData:   FixedData,
+		DynamicData: DynamicData,
+		Flag:        Flag,
+		Count:       Count,
+		Items:       Items,
+	}
 }
 
 const TestMixedTypesReturnStaticSize = 32
@@ -2403,12 +2460,12 @@ func (t TestNestedDynamicArraysCall) GetMethodName() string {
 	return "testNestedDynamicArrays"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestNestedDynamicArraysCall) GetMethodID() uint32 {
 	return TestNestedDynamicArraysID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestNestedDynamicArraysCall) GetMethodSelector() [4]byte {
 	return TestNestedDynamicArraysSelector
 }
@@ -2421,6 +2478,19 @@ func (t TestNestedDynamicArraysCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestNestedDynamicArraysCall constructs a new TestNestedDynamicArraysCall
+func NewTestNestedDynamicArraysCall(
+	Matrix [][]*big.Int,
+	AddressMatrix [][3][]common.Address,
+	DymMatrix [][]string,
+) TestNestedDynamicArraysCall {
+	return TestNestedDynamicArraysCall{
+		Matrix:        Matrix,
+		AddressMatrix: AddressMatrix,
+		DymMatrix:     DymMatrix,
+	}
 }
 
 const TestNestedDynamicArraysReturnStaticSize = 32
@@ -2556,12 +2626,12 @@ func (t TestNestedStructCall) GetMethodName() string {
 	return "testNestedStruct"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestNestedStructCall) GetMethodID() uint32 {
 	return TestNestedStructID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestNestedStructCall) GetMethodSelector() [4]byte {
 	return TestNestedStructSelector
 }
@@ -2574,6 +2644,15 @@ func (t TestNestedStructCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestNestedStructCall constructs a new TestNestedStructCall
+func NewTestNestedStructCall(
+	Group Group,
+) TestNestedStructCall {
+	return TestNestedStructCall{
+		Group: Group,
+	}
 }
 
 const TestNestedStructReturnStaticSize = 32
@@ -2812,12 +2891,12 @@ func (t TestNonStandardIntegersCall) GetMethodName() string {
 	return "testNonStandardIntegers"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestNonStandardIntegersCall) GetMethodID() uint32 {
 	return TestNonStandardIntegersID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestNonStandardIntegersCall) GetMethodSelector() [4]byte {
 	return TestNonStandardIntegersSelector
 }
@@ -2830,6 +2909,37 @@ func (t TestNonStandardIntegersCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestNonStandardIntegersCall constructs a new TestNonStandardIntegersCall
+func NewTestNonStandardIntegersCall(
+	U24 uint32,
+	U36 uint64,
+	U48 uint64,
+	U72 *big.Int,
+	U96 *big.Int,
+	U120 *big.Int,
+	I24 int32,
+	I36 int64,
+	I48 int64,
+	I72 *big.Int,
+	I96 *big.Int,
+	I120 *big.Int,
+) TestNonStandardIntegersCall {
+	return TestNonStandardIntegersCall{
+		U24:  U24,
+		U36:  U36,
+		U48:  U48,
+		U72:  U72,
+		U96:  U96,
+		U120: U120,
+		I24:  I24,
+		I36:  I36,
+		I48:  I48,
+		I72:  I72,
+		I96:  I96,
+		I120: I120,
+	}
 }
 
 const TestNonStandardIntegersReturnStaticSize = 32
@@ -3024,12 +3134,12 @@ func (t TestSmallIntegersCall) GetMethodName() string {
 	return "testSmallIntegers"
 }
 
-// GetMethodID returns the function name
+// GetMethodID returns the function id
 func (t TestSmallIntegersCall) GetMethodID() uint32 {
 	return TestSmallIntegersID
 }
 
-// GetMethodSelector returns the function name
+// GetMethodSelector returns the function selector
 func (t TestSmallIntegersCall) GetMethodSelector() [4]byte {
 	return TestSmallIntegersSelector
 }
@@ -3042,6 +3152,29 @@ func (t TestSmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+// NewTestSmallIntegersCall constructs a new TestSmallIntegersCall
+func NewTestSmallIntegersCall(
+	U8 uint8,
+	U16 uint16,
+	U32 uint32,
+	U64 uint64,
+	I8 int8,
+	I16 int16,
+	I32 int32,
+	I64 int64,
+) TestSmallIntegersCall {
+	return TestSmallIntegersCall{
+		U8:  U8,
+		U16: U16,
+		U32: U32,
+		U64: U64,
+		I8:  I8,
+		I16: I16,
+		I32: I32,
+		I64: I64,
+	}
 }
 
 const TestSmallIntegersReturnStaticSize = 32
