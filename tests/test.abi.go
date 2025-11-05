@@ -26,8 +26,8 @@ var (
 	EmptyArgsSelector = [4]byte{0xf9, 0xce, 0x95, 0xfe}
 	// getBalances(address[10])
 	GetBalancesSelector = [4]byte{0x51, 0x68, 0x3d, 0x7d}
-	// processUserData((address,string,uint256),(address,string,uint256))
-	ProcessUserDataSelector = [4]byte{0xe0, 0x33, 0x24, 0x04}
+	// processUserData((address,string,int256),(address,string,int256))
+	ProcessUserDataSelector = [4]byte{0x95, 0xb2, 0x3f, 0x8a}
 	// setData(bytes32,bytes)
 	SetDataSelector = [4]byte{0x7f, 0x23, 0x69, 0x0c}
 	// setMessage(string)
@@ -51,7 +51,7 @@ const (
 	CommunityPoolID   = 349257904
 	EmptyArgsID       = 4191065598
 	GetBalancesID     = 1365785981
-	ProcessUserDataID = 3761447940
+	ProcessUserDataID = 2511486858
 	SetDataID         = 2133027084
 	SetMessageID      = 915113842
 	SmallIntegersID   = 2558787146
@@ -186,8 +186,8 @@ func (value User) EncodeTo(buf []byte) (int, error) {
 	}
 	dynamicOffset += n
 
-	// Field Age: uint256
-	if _, err := abi.EncodeUint256(value.Age, buf[64:]); err != nil {
+	// Field Age: int256
+	if _, err := abi.EncodeInt256(value.Age, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -230,8 +230,8 @@ func (t *User) Decode(data []byte) (int, error) {
 		}
 		dynamicOffset += n
 	}
-	// Decode static field Age: uint256
-	t.Age, _, err = abi.DecodeUint256(data[64:])
+	// Decode static field Age: int256
+	t.Age, _, err = abi.DecodeInt256(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -1370,7 +1370,7 @@ func (value ProcessUserDataCall) EncodeTo(buf []byte) (int, error) {
 		err error
 		n   int
 	)
-	// Field User1: (address,string,uint256)
+	// Field User1: (address,string,int256)
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 	// Encode dynamic data
@@ -1380,7 +1380,7 @@ func (value ProcessUserDataCall) EncodeTo(buf []byte) (int, error) {
 	}
 	dynamicOffset += n
 
-	// Field User2: (address,string,uint256)
+	// Field User2: (address,string,int256)
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data

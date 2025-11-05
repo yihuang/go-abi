@@ -16,14 +16,14 @@ import (
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{
-	"function transfer(address to, uint256 amount) returns (bool)",
+	"function transfer(address to, uint amount) returns (bool)",
 	"function balanceOf(address account) view returns (uint256)",
 	"function setMessage(string message) returns (bool)",
 	"function updateProfile(address user, string name, uint256 age) returns (bool)",
 	"function transferBatch(address[] recipients, uint256[] amounts) returns (bool)",
 	"function setData(bytes32 key, bytes value)",
 	"function getBalances(address[10] accounts) view returns (uint256[10])",
-	"struct User { address address; string name; uint256 age }",
+	"struct User { address address; string name; int age }",
 	"function processUserData(User user1, User user2) returns (bool)",
 	"struct UserMetadata { bytes32 key; string value }",
 	"struct UserData { uint256 id; UserMetadata data }",

@@ -659,6 +659,12 @@ func parseStructs(lines []string) (map[string][]map[string]interface{}, error) {
 				paramName = parts[1]
 			}
 
+			var err error
+			paramType, err = normalizeType(paramType)
+			if err != nil {
+				return nil, fmt.Errorf("invalid type in struct %s: %s", name, paramType)
+			}
+
 			// For struct parsing, we don't validate types yet
 			component := map[string]interface{}{
 				"name": paramName,
