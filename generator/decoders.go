@@ -203,7 +203,7 @@ func (g *Generator) genSliceDecoding(t abi.Type) {
 		g.L("\t\toffset += 32")
 		g.L("\t\ttmp := int(binary.BigEndian.Uint64(data[offset-8:offset]))")
 		g.L("\t\tif dynamicOffset != tmp {")
-		g.L("\t\t\treturn nil, 0, fmt.Errorf(\"invalid offset for slice element %%d: expected %%d, got %%d\", i, dynamicOffset, tmp)")
+		g.L("\t\t\treturn nil, 0, %sErrInvalidOffsetForSliceElement", g.StdPrefix)
 		g.L("\t\t}")
 
 		if t.Elem.T == abi.TupleTy {
@@ -264,7 +264,7 @@ func (g *Generator) genArrayDecoding(t abi.Type) {
 		g.L("\t\toffset += 32")
 		g.L("\t\ttmp := int(binary.BigEndian.Uint64(data[offset-8:offset]))")
 		g.L("\t\tif dynamicOffset != tmp {")
-		g.L("\t\t\treturn result, 0, fmt.Errorf(\"invalid offset for array element %%d: expected %%d, got %%d\", i, dynamicOffset, tmp)")
+		g.L("\t\t\treturn result, 0, %sErrInvalidOffsetForArrayElement", g.StdPrefix)
 		g.L("\t\t}")
 		if t.Elem.T == abi.TupleTy {
 			g.L("\t\tn, err = result[i].Decode(data[dynamicOffset:])")

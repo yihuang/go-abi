@@ -585,7 +585,7 @@ func (g *Generator) genStructDecode(s Struct) {
 
 			g.L("\t\toffset := int(binary.BigEndian.Uint64(data[%d+24:%d+32]))", offset, offset)
 			g.L("\t\tif offset != dynamicOffset {")
-			g.L("\t\t\treturn 0, errors.New(\"invalid offset for dynamic field %s\")", f.Name)
+			g.L("\t\t\treturn 0, %sErrInvalidOffsetForDynamicField", g.StdPrefix)
 			g.L("\t\t}")
 
 			if f.Type.T == ethabi.TupleTy {
@@ -941,11 +941,11 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	g.L("func (e *%sEventIndexed) DecodeTopics(topics []common.Hash) error {", name)
 
 	g.L("\tif len(topics) != %d {", len(fields)+1)
-	g.L("\t\treturn fmt.Errorf(\"invalid number of topics for %s event: expected %d, got %%d\", len(topics))", name, len(fields)+1)
+	g.L("\t\treturn %sErrInvalidNumberOfTopics", g.StdPrefix)
 	g.L("\t}")
 
 	g.L("\tif topics[0] != %sEventTopic {", name)
-	g.L("\t\treturn fmt.Errorf(\"invalid event topic for %s event\")", name)
+	g.L("\t\treturn %sErrInvalidEventTopic", g.StdPrefix)
 	g.L("\t}")
 
 	decodeFields := make(map[int]struct{})
