@@ -1679,7 +1679,11 @@ func DecodeUint8Slice(data []byte) ([]uint8, int, error) {
 	return result, offset + 32, nil
 }
 
+var _ Method = (*StdlibCall)(nil)
+
 const StdlibCallStaticSize = 2368
+
+var _ Tuple = (*StdlibCall)(nil)
 
 // StdlibCall represents an ABI tuple
 type StdlibCall struct {
@@ -3051,8 +3055,13 @@ func (t StdlibCall) GetMethodName() string {
 	return "stdlib"
 }
 
-// GetMethodID returns the function name
-func (t StdlibCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t StdlibCall) GetMethodID() uint32 {
+	return StdlibID
+}
+
+// GetMethodSelector returns the function selector
+func (t StdlibCall) GetMethodSelector() [4]byte {
 	return StdlibSelector
 }
 
@@ -3066,7 +3075,162 @@ func (t StdlibCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
-// StdlibReturn represents the input arguments for stdlib function
+// NewStdlibCall constructs a new StdlibCall
+func NewStdlibCall(
+	field1 bool,
+	field2 common.Address,
+	field3 [32]byte,
+	field4 string,
+	field5 []byte,
+	field6 uint8,
+	field7 int8,
+	field8 uint16,
+	field9 int16,
+	field10 uint32,
+	field11 int32,
+	field12 uint32,
+	field13 int32,
+	field14 uint64,
+	field15 int64,
+	field16 uint64,
+	field17 int64,
+	field18 uint64,
+	field19 int64,
+	field20 uint64,
+	field21 int64,
+	field22 *big.Int,
+	field23 *big.Int,
+	field24 *big.Int,
+	field25 *big.Int,
+	field26 *big.Int,
+	field27 *big.Int,
+	field28 *big.Int,
+	field29 *big.Int,
+	field30 *big.Int,
+	field31 *big.Int,
+	field32 *big.Int,
+	field33 *big.Int,
+	field34 *big.Int,
+	field35 *big.Int,
+	field36 *big.Int,
+	field37 *big.Int,
+	field38 []bool,
+	field39 []common.Address,
+	field40 [][32]byte,
+	field41 []string,
+	field42 [][]byte,
+	field43 []uint8,
+	field44 []int8,
+	field45 []uint16,
+	field46 []int16,
+	field47 []uint32,
+	field48 []int32,
+	field49 []uint32,
+	field50 []int32,
+	field51 []uint64,
+	field52 []int64,
+	field53 []uint64,
+	field54 []int64,
+	field55 []uint64,
+	field56 []int64,
+	field57 []uint64,
+	field58 []int64,
+	field59 []*big.Int,
+	field60 []*big.Int,
+	field61 []*big.Int,
+	field62 []*big.Int,
+	field63 []*big.Int,
+	field64 []*big.Int,
+	field65 []*big.Int,
+	field66 []*big.Int,
+	field67 []*big.Int,
+	field68 []*big.Int,
+	field69 []*big.Int,
+	field70 []*big.Int,
+	field71 []*big.Int,
+	field72 []*big.Int,
+	field73 []*big.Int,
+	field74 []*big.Int,
+) *StdlibCall {
+	return &StdlibCall{
+		Field1:  field1,
+		Field2:  field2,
+		Field3:  field3,
+		Field4:  field4,
+		Field5:  field5,
+		Field6:  field6,
+		Field7:  field7,
+		Field8:  field8,
+		Field9:  field9,
+		Field10: field10,
+		Field11: field11,
+		Field12: field12,
+		Field13: field13,
+		Field14: field14,
+		Field15: field15,
+		Field16: field16,
+		Field17: field17,
+		Field18: field18,
+		Field19: field19,
+		Field20: field20,
+		Field21: field21,
+		Field22: field22,
+		Field23: field23,
+		Field24: field24,
+		Field25: field25,
+		Field26: field26,
+		Field27: field27,
+		Field28: field28,
+		Field29: field29,
+		Field30: field30,
+		Field31: field31,
+		Field32: field32,
+		Field33: field33,
+		Field34: field34,
+		Field35: field35,
+		Field36: field36,
+		Field37: field37,
+		Field38: field38,
+		Field39: field39,
+		Field40: field40,
+		Field41: field41,
+		Field42: field42,
+		Field43: field43,
+		Field44: field44,
+		Field45: field45,
+		Field46: field46,
+		Field47: field47,
+		Field48: field48,
+		Field49: field49,
+		Field50: field50,
+		Field51: field51,
+		Field52: field52,
+		Field53: field53,
+		Field54: field54,
+		Field55: field55,
+		Field56: field56,
+		Field57: field57,
+		Field58: field58,
+		Field59: field59,
+		Field60: field60,
+		Field61: field61,
+		Field62: field62,
+		Field63: field63,
+		Field64: field64,
+		Field65: field65,
+		Field66: field66,
+		Field67: field67,
+		Field68: field68,
+		Field69: field69,
+		Field70: field70,
+		Field71: field71,
+		Field72: field72,
+		Field73: field73,
+		Field74: field74,
+	}
+}
+
+// StdlibReturn represents the output arguments for stdlib function
 type StdlibReturn struct {
 	EmptyTuple
 }

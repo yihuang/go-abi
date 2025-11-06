@@ -395,6 +395,8 @@ func (g *Generator) genStruct(s Struct) {
 	g.L("")
 	g.L("const %sStaticSize = %d", s.Name, GetTupleSize(s.Types()))
 	g.L("")
+	// assert interface
+	g.L("var _ %sTuple = (*%s)(nil)", g.StdPrefix, s.Name)
 	g.L("// %s represents an ABI tuple", s.Name)
 	g.L("type %s struct {", s.Name)
 
@@ -608,11 +610,45 @@ func (g *Generator) genStructDecode(s Struct) {
 	g.L("}")
 }
 
+func (g *Generator) genCallConstructor(s Struct) {
+	if len(s.Fields) == 0 {
+		g.L("// New%s constructs a new %s", s.Name, s.Name)
+		g.L("func New%s() *%s {", s.Name, s.Name)
+		g.L("\treturn &%s{}", s.Name)
+		g.L("}")
+		return
+	}
+
+	g.L("")
+	g.L("// New%s constructs a new %s", s.Name, s.Name)
+	g.L("func New%s(", s.Name)
+
+	// Generate function parameters
+	for _, f := range s.Fields {
+		goType := g.abiTypeToGoType(*f.Type)
+		g.L("\t%s %s,", ToArgName(f.Name), goType)
+	}
+
+	g.L(") *%s {", s.Name)
+	g.L("return &%s{", s.Name)
+
+	// Generate struct initialization
+	for _, f := range s.Fields {
+		g.L("\t%s: %s,", f.Name, ToArgName(f.Name))
+	}
+
+	g.L("}")
+	g.L("}")
+}
+
 func (g *Generator) genFunction(method ethabi.Method) {
 	// Generate struct and methods for functions with inputs
 	name := fmt.Sprintf("%sCall", Title.String(method.Name))
+	// assert interface
+	g.L("var _ %sMethod = (*%s)(nil)", g.StdPrefix, name)
+
+	s := StructFromArguments(name, method.Inputs)
 	if len(method.Inputs) > 0 {
-		s := StructFromArguments(name, method.Inputs)
 		g.genStruct(s)
 	} else {
 		g.L("")
@@ -631,8 +667,15 @@ func (g *Generator) genFunction(method ethabi.Method) {
 
 	// GetMethodID method
 	g.L("")
-	g.L("// GetMethodID returns the function name")
-	g.L("func (t %s) GetMethodID() [4]byte {", name)
+	g.L("// GetMethodID returns the function id")
+	g.L("func (t %s) GetMethodID() uint32 {", name)
+	g.L("\treturn %sID", Title.String(method.Name))
+	g.L("}")
+
+	// GetMethodSelector method
+	g.L("")
+	g.L("// GetMethodSelector returns the function selector")
+	g.L("func (t %s) GetMethodSelector() [4]byte {", name)
 	g.L("\treturn %sSelector", Title.String(method.Name))
 	g.L("}")
 
@@ -647,13 +690,16 @@ func (g *Generator) genFunction(method ethabi.Method) {
 	g.L("\treturn result, nil")
 	g.L("}")
 
+	// Generate constructor for Call struct
+	g.genCallConstructor(s)
+
 	name = fmt.Sprintf("%sReturn", Title.String(method.Name))
 	if len(method.Outputs) > 0 {
 		s := StructFromArguments(name, method.Outputs)
 		g.genStruct(s)
 	} else {
 		g.L("")
-		g.L("// %s represents the input arguments for %s function", name, method.Name)
+		g.L("// %s represents the output arguments for %s function", name, method.Name)
 		g.L("type %s struct {", name)
 		g.L("\t%sEmptyTuple", g.StdPrefix)
 		g.L("}")
@@ -835,6 +881,8 @@ func (g *Generator) genEvent(event ethabi.Event) {
 
 func (g *Generator) genEventTopLevel(event ethabi.Event) {
 	g.L("// %sEvent represents the %s event", event.Name, event.Name)
+	// assert interface
+	g.L("var _ %sEvent = (*%sEvent)(nil)", g.StdPrefix, event.Name)
 	g.L("type %sEvent struct {", event.Name)
 	g.L("%sEventIndexed", event.Name)
 	g.L("%sEventData", event.Name)
@@ -849,15 +897,15 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 		g.L("\t%s %s,", input.Name, goType)
 	}
 
-	g.L(") %sEvent {", event.Name)
-	g.L("return %sEvent{", event.Name)
+	g.L(") *%sEvent {", event.Name)
+	g.L("return &%sEvent{", event.Name)
 	g.L("\t%sEventIndexed: %sEventIndexed{", event.Name, event.Name)
 
 	for _, input := range event.Inputs {
 		if !input.Indexed {
 			continue
 		}
-		g.L("%s: %s,", Title.String(input.Name), input.Name)
+		g.L("%s: %s,", GoFieldName(input.Name), input.Name)
 	}
 
 	g.L("\t},")
@@ -867,7 +915,7 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 		if input.Indexed {
 			continue
 		}
-		g.L("%s: %s,", Title.String(input.Name), input.Name)
+		g.L("%s: %s,", GoFieldName(input.Name), input.Name)
 	}
 
 	g.L("\t},")
@@ -901,7 +949,9 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	}
 
 	if len(fields) == 0 {
-		g.L(`type %sEventIndexed %sEmptyIndexed`, event.Name, g.StdPrefix)
+		g.L("type %sEventIndexed struct {", event.Name)
+		g.L("\t%sEmptyIndexed", g.StdPrefix)
+		g.L("}")
 		return
 	}
 
@@ -910,7 +960,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 
 	for _, input := range fields {
 		goType := g.abiTypeToGoType(input.Type)
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 		g.L("%s %s", fieldName, goType)
 	}
 	g.L("}")
@@ -922,7 +972,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	g.L("\ttopics = append(topics, %sEventTopic)", name)
 
 	for _, input := range fields {
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 
 		g.L("\t{")
 		g.L("\t\t// %s", fieldName)
@@ -965,7 +1015,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 			continue
 		}
 
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 		dataRef := fmt.Sprintf("topics[%d][:]", i+1)
 		g.L("\te.%s, _, err = %s", fieldName, g.genDecodeCall(input.Type, dataRef))
 		g.L("\tif err != nil {")
