@@ -97,11 +97,12 @@ func RequiresLengthPrefix(t abi.Type) bool {
 
 func VisitABIType(t abi.Type, visit func(abi.Type)) {
 	visit(t)
-	if t.T == abi.TupleTy {
+	switch t.T {
+	case abi.TupleTy:
 		for _, elem := range t.TupleElems {
 			VisitABIType(*elem, visit)
 		}
-	} else if t.T == abi.ArrayTy || t.T == abi.SliceTy {
+	case abi.ArrayTy, abi.SliceTy:
 		VisitABIType(*t.Elem, visit)
 	}
 }

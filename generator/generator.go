@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"text/template"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/yihuang/go-abi"
@@ -71,11 +70,6 @@ func NewGenerator(opts ...Option) *Generator {
 func (g *Generator) L(format string, args ...any) {
 	fmt.Fprintf(&g.buf, format, args...)
 	fmt.Fprint(&g.buf, "\n")
-}
-
-func (g *Generator) T(tpl string, m map[string]interface{}) {
-	t := template.Must(template.New("").Parse(tpl))
-	t.Execute(&g.buf, m)
 }
 
 // GenerateFromABI generates Go code from ABI JSON using standalone functions
@@ -156,7 +150,7 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 	}
 
 	// Format the generated code
-	return string(g.buf.Bytes()), nil
+	return g.buf.String(), nil
 }
 
 // collectAllTypes collects all unique ABI types needed for encoding functions
@@ -356,8 +350,7 @@ func (g *Generator) genTuples(methods []ethabi.Method) {
 	// Collect all tuple types from function inputs and outputs
 	tupleTypes := make(map[string]ethabi.Type)
 
-	var collectTupleVisitor func(t ethabi.Type)
-	collectTupleVisitor = func(t ethabi.Type) {
+	var collectTupleVisitor = func(t ethabi.Type) {
 		if t.T != ethabi.TupleTy {
 			return
 		}
@@ -434,7 +427,7 @@ func (g *Generator) genStructMethods(s Struct) {
 }
 
 // genStructEncodeTo generates the EncodeTo method that calls standalone function
-func (g *Generator) genStructEncodeTo(s Struct) error {
+func (g *Generator) genStructEncodeTo(s Struct) {
 	g.L("")
 	g.L("// EncodeTo encodes %s to ABI bytes in the provided buffer", s.Name)
 	g.L("func (value %s) EncodeTo(buf []byte) (int, error) {", s.Name)
@@ -442,7 +435,6 @@ func (g *Generator) genStructEncodeTo(s Struct) error {
 	g.genTupleEncoding(s.T)
 
 	g.L("}")
-	return nil
 }
 
 // genEncodedSize generates the size calculation logic without selector
@@ -463,88 +455,6 @@ func (g *Generator) genEncodedSize(s Struct) {
 	g.L("")
 	g.L("\treturn %sStaticSize + dynamicSize", s.Name)
 	g.L("}")
-}
-
-// genSize generates size calculation logic for a type
-func (g *Generator) genSize(t ethabi.Type, acc string, ref string) {
-	if !IsDynamicType(t) {
-		g.L("%s += %d // static element %s", acc, GetTypeSize(t), ref)
-		return
-	}
-
-	switch t.T {
-	case ethabi.StringTy:
-		g.L("%s += 32 + %sPad32(len(%s)) // length + padded string data", acc, g.StdPrefix, ref)
-
-	case ethabi.BytesTy:
-		g.L("%s += 32 + %sPad32(len(%s)) // length + padded bytes data", acc, g.StdPrefix, ref)
-
-	case ethabi.SliceTy:
-		if IsDynamicType(*t.Elem) {
-			// Dynamic array with dynamic elements
-			g.L("%s += 32 + 32 * len(%s) // length + offset pointers for dynamic elements", acc, ref)
-			g.L("for _, elem := range %s {", ref)
-			g.genSizeIndented(*t.Elem, acc, "elem")
-			g.L("}")
-		} else {
-			// Dynamic array with static elements
-			g.L("%s += 32 + %d * len(%s) // length + static elements", acc, GetTypeSize(*t.Elem), ref)
-		}
-
-	case ethabi.ArrayTy:
-		// Fixed size array of dynamic element types
-		g.L("for _, elem := range %s {", ref)
-		g.genSizeIndented(*t.Elem, acc, "elem")
-		g.L("}")
-
-	case ethabi.TupleTy:
-		// Dynamic tuple, just call tuple struct method
-		g.L("%s += %s.EncodedSize() // dynamic tuple", acc, ref)
-
-	default:
-		panic("impossible")
-	}
-}
-
-// genSizeIndented generates size calculation logic with proper indentation
-func (g *Generator) genSizeIndented(t ethabi.Type, acc string, ref string) {
-	if !IsDynamicType(t) {
-		g.L("\t%s += %d // static element %s", acc, GetTypeSize(t), ref)
-		return
-	}
-
-	switch t.T {
-	case ethabi.StringTy:
-		g.L("\t%s += 32 + %sPad32(len(%s)) // length + padded string data", acc, g.StdPrefix, ref)
-
-	case ethabi.BytesTy:
-		g.L("\t%s += 32 + %sPad32(len(%s)) // length + padded bytes data", acc, g.StdPrefix, ref)
-
-	case ethabi.SliceTy:
-		if IsDynamicType(*t.Elem) {
-			// Dynamic array with dynamic elements
-			g.L("\t%s += 32 + 32 * len(%s) // length + offset pointers for dynamic elements", acc, ref)
-			g.L("\tfor _, elem := range %s {", ref)
-			g.genSizeIndented(*t.Elem, acc, "elem")
-			g.L("\t}")
-		} else {
-			// Dynamic array with static elements
-			g.L("\t%s += 32 + %d * len(%s) // length + static elements", acc, GetTypeSize(*t.Elem), ref)
-		}
-
-	case ethabi.ArrayTy:
-		// Fixed size array of dynamic element types
-		g.L("\tfor _, elem := range %s {", ref)
-		g.genSizeIndented(*t.Elem, acc, "elem")
-		g.L("\t}")
-
-	case ethabi.TupleTy:
-		// Dynamic tuple, just call tuple struct method
-		g.L("\t%s += %s.EncodedSize() // dynamic tuple", acc, ref)
-
-	default:
-		panic("impossible")
-	}
 }
 
 // genStructDecode generates the Decode method (placeholder for now)
@@ -875,8 +785,6 @@ func (g *Generator) genEvent(event ethabi.Event) {
 		g.L("\t%sEmptyTuple", g.StdPrefix)
 		g.L("}")
 	}
-
-	return
 }
 
 func (g *Generator) genEventTopLevel(event ethabi.Event) {
