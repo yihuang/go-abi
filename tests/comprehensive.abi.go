@@ -4,8 +4,6 @@ package tests
 
 import (
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"io"
 	"math/big"
 
@@ -109,7 +107,7 @@ func (t *Group) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Users")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Users, n, err = DecodeUserSlice(data[dynamicOffset:])
 		if err != nil {
@@ -198,7 +196,7 @@ func (t *Item) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Data")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Data, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -275,7 +273,7 @@ func (t *Level1) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Level1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Level1.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -347,7 +345,7 @@ func (t *Level2) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Level2")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Level2.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -419,7 +417,7 @@ func (t *Level3) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Level3")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Level3.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -502,7 +500,7 @@ func (t *Level4) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Description")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Description, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -585,7 +583,7 @@ func (t *User2) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Profile")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Profile.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -668,7 +666,7 @@ func (t *UserMetadata2) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Tags")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Tags, n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
@@ -764,7 +762,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Name")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -776,7 +774,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Emails")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Emails, n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
@@ -788,7 +786,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Metadata")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Metadata.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1167,7 +1165,7 @@ func DecodeAddressSliceArray3(data []byte) ([3][]common.Address, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return result, 0, fmt.Errorf("invalid offset for array element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return result, 0, abi.ErrInvalidOffsetForArrayElement
 		}
 		result[i], n, err = abi.DecodeAddressSlice(data[dynamicOffset:])
 		if err != nil {
@@ -1201,7 +1199,7 @@ func DecodeAddressSliceArray3Slice(data []byte) ([][3][]common.Address, int, err
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = DecodeAddressSliceArray3(data[dynamicOffset:])
 		if err != nil {
@@ -1268,7 +1266,7 @@ func DecodeItemSlice(data []byte) ([]Item, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1302,7 +1300,7 @@ func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
@@ -1364,7 +1362,7 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = abi.DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -1405,7 +1403,7 @@ func DecodeUser2Slice(data []byte) ([]User2, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1439,7 +1437,7 @@ func DecodeUserSlice(data []byte) ([]User, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1513,7 +1511,7 @@ func (t *TestComplexDynamicTuplesCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Users")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Users, n, err = DecodeUser2Slice(data[dynamicOffset:])
 		if err != nil {
@@ -1675,7 +1673,7 @@ func (t *TestDeeplyNestedCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Data")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Data.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1837,7 +1835,7 @@ func (t *TestExternalTupleCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field User")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.User.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -2204,7 +2202,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field DynamicData")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.DynamicData, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -2226,7 +2224,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[128+24 : 128+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Items")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Items, n, err = DecodeItemSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2420,7 +2418,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Matrix")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Matrix, n, err = DecodeUint256SliceSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2432,7 +2430,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field AddressMatrix")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.AddressMatrix, n, err = DecodeAddressSliceArray3Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2444,7 +2442,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field DymMatrix")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.DymMatrix, n, err = DecodeStringSliceSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2610,7 +2608,7 @@ func (t *TestNestedStructCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Group")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Group.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -3301,10 +3299,10 @@ func (e ComplexEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of Complex event from topics, ignore hash topics
 func (e *ComplexEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 2 {
-		return fmt.Errorf("invalid number of topics for Complex event: expected 2, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != ComplexEventTopic {
-		return fmt.Errorf("invalid event topic for Complex event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.Sender, _, err = abi.DecodeAddress(topics[1][:])
@@ -3387,7 +3385,7 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Message")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Message, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -3399,7 +3397,7 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Numbers")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Numbers, n, err = abi.DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -3463,10 +3461,10 @@ func (e IndexOnlyEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of IndexOnly event from topics, ignore hash topics
 func (e *IndexOnlyEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 2 {
-		return fmt.Errorf("invalid number of topics for IndexOnly event: expected 2, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != IndexOnlyEventTopic {
-		return fmt.Errorf("invalid event topic for IndexOnly event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.Sender, _, err = abi.DecodeAddress(topics[1][:])
@@ -3547,10 +3545,10 @@ func (e TransferEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of Transfer event from topics, ignore hash topics
 func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 3 {
-		return fmt.Errorf("invalid number of topics for Transfer event: expected 3, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != TransferEventTopic {
-		return fmt.Errorf("invalid event topic for Transfer event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.From, _, err = abi.DecodeAddress(topics[1][:])
@@ -3674,10 +3672,10 @@ func (e UserCreatedEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of UserCreated event from topics, ignore hash topics
 func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 2 {
-		return fmt.Errorf("invalid number of topics for UserCreated event: expected 2, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != UserCreatedEventTopic {
-		return fmt.Errorf("invalid event topic for UserCreated event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.Creator, _, err = abi.DecodeAddress(topics[1][:])
@@ -3748,7 +3746,7 @@ func (t *UserCreatedEventData) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field User")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.User.Decode(data[dynamicOffset:])
 		if err != nil {

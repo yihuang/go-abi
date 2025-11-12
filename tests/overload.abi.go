@@ -4,7 +4,6 @@ package tests
 
 import (
 	"encoding/binary"
-	"errors"
 	"io"
 	"math/big"
 
@@ -458,7 +457,7 @@ func (t *Overloaded11Call) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Data")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Data, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {

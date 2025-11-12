@@ -4,8 +4,6 @@ package abi
 
 import (
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"io"
 	"math/big"
 
@@ -963,7 +961,7 @@ func DecodeBytesSlice(data []byte) ([][]byte, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -1351,7 +1349,7 @@ func DecodeStringSlice(data []byte) ([]string, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -2423,7 +2421,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field4")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field4, n, err = DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -2435,7 +2433,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[128+24 : 128+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field5")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field5, n, err = DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -2607,7 +2605,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1184+24 : 1184+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field38")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field38, n, err = DecodeBoolSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2619,7 +2617,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1216+24 : 1216+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field39")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field39, n, err = DecodeAddressSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2631,7 +2629,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1248+24 : 1248+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field40")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field40, n, err = DecodeBytes32Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2643,7 +2641,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1280+24 : 1280+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field41")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field41, n, err = DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2655,7 +2653,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1312+24 : 1312+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field42")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field42, n, err = DecodeBytesSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2667,7 +2665,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1344+24 : 1344+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field43")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field43, n, err = DecodeUint8Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2679,7 +2677,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1376+24 : 1376+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field44")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field44, n, err = DecodeInt8Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2691,7 +2689,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1408+24 : 1408+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field45")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field45, n, err = DecodeUint16Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2703,7 +2701,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1440+24 : 1440+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field46")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field46, n, err = DecodeInt16Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2715,7 +2713,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1472+24 : 1472+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field47")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field47, n, err = DecodeUint24Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2727,7 +2725,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1504+24 : 1504+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field48")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field48, n, err = DecodeInt24Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2739,7 +2737,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1536+24 : 1536+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field49")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field49, n, err = DecodeUint32Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2751,7 +2749,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1568+24 : 1568+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field50")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field50, n, err = DecodeInt32Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2763,7 +2761,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1600+24 : 1600+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field51")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field51, n, err = DecodeUint40Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2775,7 +2773,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1632+24 : 1632+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field52")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field52, n, err = DecodeInt40Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2787,7 +2785,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1664+24 : 1664+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field53")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field53, n, err = DecodeUint48Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2799,7 +2797,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1696+24 : 1696+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field54")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field54, n, err = DecodeInt48Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2811,7 +2809,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1728+24 : 1728+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field55")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field55, n, err = DecodeUint56Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2823,7 +2821,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1760+24 : 1760+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field56")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field56, n, err = DecodeInt56Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2835,7 +2833,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1792+24 : 1792+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field57")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field57, n, err = DecodeUint64Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2847,7 +2845,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1824+24 : 1824+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field58")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field58, n, err = DecodeInt64Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2859,7 +2857,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1856+24 : 1856+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field59")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field59, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2871,7 +2869,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1888+24 : 1888+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field60")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field60, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2883,7 +2881,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1920+24 : 1920+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field61")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field61, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2895,7 +2893,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1952+24 : 1952+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field62")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field62, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2907,7 +2905,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[1984+24 : 1984+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field63")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field63, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2919,7 +2917,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2016+24 : 2016+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field64")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field64, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2931,7 +2929,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2048+24 : 2048+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field65")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field65, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2943,7 +2941,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2080+24 : 2080+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field66")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field66, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2955,7 +2953,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2112+24 : 2112+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field67")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field67, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2967,7 +2965,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2144+24 : 2144+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field68")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field68, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2979,7 +2977,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2176+24 : 2176+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field69")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field69, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2991,7 +2989,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2208+24 : 2208+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field70")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field70, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -3003,7 +3001,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2240+24 : 2240+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field71")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field71, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -3015,7 +3013,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2272+24 : 2272+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field72")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field72, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -3027,7 +3025,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2304+24 : 2304+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field73")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field73, n, err = DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -3039,7 +3037,7 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[2336+24 : 2336+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field74")
+			return 0, ErrInvalidOffsetForDynamicField
 		}
 		t.Field74, n, err = DecodeInt256Slice(data[dynamicOffset:])
 		if err != nil {
