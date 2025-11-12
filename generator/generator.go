@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"text/template"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/yihuang/go-abi"
@@ -71,11 +70,6 @@ func NewGenerator(opts ...Option) *Generator {
 func (g *Generator) L(format string, args ...any) {
 	fmt.Fprintf(&g.buf, format, args...)
 	fmt.Fprint(&g.buf, "\n")
-}
-
-func (g *Generator) T(tpl string, m map[string]interface{}) {
-	t := template.Must(template.New("").Parse(tpl))
-	t.Execute(&g.buf, m)
 }
 
 // GenerateFromABI generates Go code from ABI JSON using standalone functions
@@ -156,7 +150,7 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 	}
 
 	// Format the generated code
-	return string(g.buf.Bytes()), nil
+	return g.buf.String(), nil
 }
 
 // collectAllTypes collects all unique ABI types needed for encoding functions
@@ -356,8 +350,7 @@ func (g *Generator) genTuples(methods []ethabi.Method) {
 	// Collect all tuple types from function inputs and outputs
 	tupleTypes := make(map[string]ethabi.Type)
 
-	var collectTupleVisitor func(t ethabi.Type)
-	collectTupleVisitor = func(t ethabi.Type) {
+	var collectTupleVisitor = func(t ethabi.Type) {
 		if t.T != ethabi.TupleTy {
 			return
 		}
@@ -395,6 +388,8 @@ func (g *Generator) genStruct(s Struct) {
 	g.L("")
 	g.L("const %sStaticSize = %d", s.Name, GetTupleSize(s.Types()))
 	g.L("")
+	// assert interface
+	g.L("var _ %sTuple = (*%s)(nil)", g.StdPrefix, s.Name)
 	g.L("// %s represents an ABI tuple", s.Name)
 	g.L("type %s struct {", s.Name)
 
@@ -432,7 +427,7 @@ func (g *Generator) genStructMethods(s Struct) {
 }
 
 // genStructEncodeTo generates the EncodeTo method that calls standalone function
-func (g *Generator) genStructEncodeTo(s Struct) error {
+func (g *Generator) genStructEncodeTo(s Struct) {
 	g.L("")
 	g.L("// EncodeTo encodes %s to ABI bytes in the provided buffer", s.Name)
 	g.L("func (value %s) EncodeTo(buf []byte) (int, error) {", s.Name)
@@ -440,7 +435,6 @@ func (g *Generator) genStructEncodeTo(s Struct) error {
 	g.genTupleEncoding(s.T)
 
 	g.L("}")
-	return nil
 }
 
 // genEncodedSize generates the size calculation logic without selector
@@ -461,88 +455,6 @@ func (g *Generator) genEncodedSize(s Struct) {
 	g.L("")
 	g.L("\treturn %sStaticSize + dynamicSize", s.Name)
 	g.L("}")
-}
-
-// genSize generates size calculation logic for a type
-func (g *Generator) genSize(t ethabi.Type, acc string, ref string) {
-	if !IsDynamicType(t) {
-		g.L("%s += %d // static element %s", acc, GetTypeSize(t), ref)
-		return
-	}
-
-	switch t.T {
-	case ethabi.StringTy:
-		g.L("%s += 32 + %sPad32(len(%s)) // length + padded string data", acc, g.StdPrefix, ref)
-
-	case ethabi.BytesTy:
-		g.L("%s += 32 + %sPad32(len(%s)) // length + padded bytes data", acc, g.StdPrefix, ref)
-
-	case ethabi.SliceTy:
-		if IsDynamicType(*t.Elem) {
-			// Dynamic array with dynamic elements
-			g.L("%s += 32 + 32 * len(%s) // length + offset pointers for dynamic elements", acc, ref)
-			g.L("for _, elem := range %s {", ref)
-			g.genSizeIndented(*t.Elem, acc, "elem")
-			g.L("}")
-		} else {
-			// Dynamic array with static elements
-			g.L("%s += 32 + %d * len(%s) // length + static elements", acc, GetTypeSize(*t.Elem), ref)
-		}
-
-	case ethabi.ArrayTy:
-		// Fixed size array of dynamic element types
-		g.L("for _, elem := range %s {", ref)
-		g.genSizeIndented(*t.Elem, acc, "elem")
-		g.L("}")
-
-	case ethabi.TupleTy:
-		// Dynamic tuple, just call tuple struct method
-		g.L("%s += %s.EncodedSize() // dynamic tuple", acc, ref)
-
-	default:
-		panic("impossible")
-	}
-}
-
-// genSizeIndented generates size calculation logic with proper indentation
-func (g *Generator) genSizeIndented(t ethabi.Type, acc string, ref string) {
-	if !IsDynamicType(t) {
-		g.L("\t%s += %d // static element %s", acc, GetTypeSize(t), ref)
-		return
-	}
-
-	switch t.T {
-	case ethabi.StringTy:
-		g.L("\t%s += 32 + %sPad32(len(%s)) // length + padded string data", acc, g.StdPrefix, ref)
-
-	case ethabi.BytesTy:
-		g.L("\t%s += 32 + %sPad32(len(%s)) // length + padded bytes data", acc, g.StdPrefix, ref)
-
-	case ethabi.SliceTy:
-		if IsDynamicType(*t.Elem) {
-			// Dynamic array with dynamic elements
-			g.L("\t%s += 32 + 32 * len(%s) // length + offset pointers for dynamic elements", acc, ref)
-			g.L("\tfor _, elem := range %s {", ref)
-			g.genSizeIndented(*t.Elem, acc, "elem")
-			g.L("\t}")
-		} else {
-			// Dynamic array with static elements
-			g.L("\t%s += 32 + %d * len(%s) // length + static elements", acc, GetTypeSize(*t.Elem), ref)
-		}
-
-	case ethabi.ArrayTy:
-		// Fixed size array of dynamic element types
-		g.L("\tfor _, elem := range %s {", ref)
-		g.genSizeIndented(*t.Elem, acc, "elem")
-		g.L("\t}")
-
-	case ethabi.TupleTy:
-		// Dynamic tuple, just call tuple struct method
-		g.L("\t%s += %s.EncodedSize() // dynamic tuple", acc, ref)
-
-	default:
-		panic("impossible")
-	}
 }
 
 // genStructDecode generates the Decode method (placeholder for now)
@@ -585,7 +497,7 @@ func (g *Generator) genStructDecode(s Struct) {
 
 			g.L("\t\toffset := int(binary.BigEndian.Uint64(data[%d+24:%d+32]))", offset, offset)
 			g.L("\t\tif offset != dynamicOffset {")
-			g.L("\t\t\treturn 0, errors.New(\"invalid offset for dynamic field %s\")", f.Name)
+			g.L("\t\t\treturn 0, %sErrInvalidOffsetForDynamicField", g.StdPrefix)
 			g.L("\t\t}")
 
 			if f.Type.T == ethabi.TupleTy {
@@ -608,11 +520,45 @@ func (g *Generator) genStructDecode(s Struct) {
 	g.L("}")
 }
 
+func (g *Generator) genCallConstructor(s Struct) {
+	if len(s.Fields) == 0 {
+		g.L("// New%s constructs a new %s", s.Name, s.Name)
+		g.L("func New%s() *%s {", s.Name, s.Name)
+		g.L("\treturn &%s{}", s.Name)
+		g.L("}")
+		return
+	}
+
+	g.L("")
+	g.L("// New%s constructs a new %s", s.Name, s.Name)
+	g.L("func New%s(", s.Name)
+
+	// Generate function parameters
+	for _, f := range s.Fields {
+		goType := g.abiTypeToGoType(*f.Type)
+		g.L("\t%s %s,", ToArgName(f.Name), goType)
+	}
+
+	g.L(") *%s {", s.Name)
+	g.L("return &%s{", s.Name)
+
+	// Generate struct initialization
+	for _, f := range s.Fields {
+		g.L("\t%s: %s,", f.Name, ToArgName(f.Name))
+	}
+
+	g.L("}")
+	g.L("}")
+}
+
 func (g *Generator) genFunction(method ethabi.Method) {
 	// Generate struct and methods for functions with inputs
 	name := fmt.Sprintf("%sCall", Title.String(method.Name))
+	// assert interface
+	g.L("var _ %sMethod = (*%s)(nil)", g.StdPrefix, name)
+
+	s := StructFromArguments(name, method.Inputs)
 	if len(method.Inputs) > 0 {
-		s := StructFromArguments(name, method.Inputs)
 		g.genStruct(s)
 	} else {
 		g.L("")
@@ -631,8 +577,15 @@ func (g *Generator) genFunction(method ethabi.Method) {
 
 	// GetMethodID method
 	g.L("")
-	g.L("// GetMethodID returns the function name")
-	g.L("func (t %s) GetMethodID() [4]byte {", name)
+	g.L("// GetMethodID returns the function id")
+	g.L("func (t %s) GetMethodID() uint32 {", name)
+	g.L("\treturn %sID", Title.String(method.Name))
+	g.L("}")
+
+	// GetMethodSelector method
+	g.L("")
+	g.L("// GetMethodSelector returns the function selector")
+	g.L("func (t %s) GetMethodSelector() [4]byte {", name)
 	g.L("\treturn %sSelector", Title.String(method.Name))
 	g.L("}")
 
@@ -647,13 +600,16 @@ func (g *Generator) genFunction(method ethabi.Method) {
 	g.L("\treturn result, nil")
 	g.L("}")
 
+	// Generate constructor for Call struct
+	g.genCallConstructor(s)
+
 	name = fmt.Sprintf("%sReturn", Title.String(method.Name))
 	if len(method.Outputs) > 0 {
 		s := StructFromArguments(name, method.Outputs)
 		g.genStruct(s)
 	} else {
 		g.L("")
-		g.L("// %s represents the input arguments for %s function", name, method.Name)
+		g.L("// %s represents the output arguments for %s function", name, method.Name)
 		g.L("type %s struct {", name)
 		g.L("\t%sEmptyTuple", g.StdPrefix)
 		g.L("}")
@@ -829,12 +785,12 @@ func (g *Generator) genEvent(event ethabi.Event) {
 		g.L("\t%sEmptyTuple", g.StdPrefix)
 		g.L("}")
 	}
-
-	return
 }
 
 func (g *Generator) genEventTopLevel(event ethabi.Event) {
 	g.L("// %sEvent represents the %s event", event.Name, event.Name)
+	// assert interface
+	g.L("var _ %sEvent = (*%sEvent)(nil)", g.StdPrefix, event.Name)
 	g.L("type %sEvent struct {", event.Name)
 	g.L("%sEventIndexed", event.Name)
 	g.L("%sEventData", event.Name)
@@ -849,15 +805,15 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 		g.L("\t%s %s,", input.Name, goType)
 	}
 
-	g.L(") %sEvent {", event.Name)
-	g.L("return %sEvent{", event.Name)
+	g.L(") *%sEvent {", event.Name)
+	g.L("return &%sEvent{", event.Name)
 	g.L("\t%sEventIndexed: %sEventIndexed{", event.Name, event.Name)
 
 	for _, input := range event.Inputs {
 		if !input.Indexed {
 			continue
 		}
-		g.L("%s: %s,", Title.String(input.Name), input.Name)
+		g.L("%s: %s,", GoFieldName(input.Name), input.Name)
 	}
 
 	g.L("\t},")
@@ -867,7 +823,7 @@ func (g *Generator) genEventTopLevel(event ethabi.Event) {
 		if input.Indexed {
 			continue
 		}
-		g.L("%s: %s,", Title.String(input.Name), input.Name)
+		g.L("%s: %s,", GoFieldName(input.Name), input.Name)
 	}
 
 	g.L("\t},")
@@ -901,7 +857,9 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	}
 
 	if len(fields) == 0 {
-		g.L(`type %sEventIndexed %sEmptyIndexed`, event.Name, g.StdPrefix)
+		g.L("type %sEventIndexed struct {", event.Name)
+		g.L("\t%sEmptyIndexed", g.StdPrefix)
+		g.L("}")
 		return
 	}
 
@@ -910,7 +868,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 
 	for _, input := range fields {
 		goType := g.abiTypeToGoType(input.Type)
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 		g.L("%s %s", fieldName, goType)
 	}
 	g.L("}")
@@ -922,7 +880,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	g.L("\ttopics = append(topics, %sEventTopic)", name)
 
 	for _, input := range fields {
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 
 		g.L("\t{")
 		g.L("\t\t// %s", fieldName)
@@ -941,11 +899,11 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 	g.L("func (e *%sEventIndexed) DecodeTopics(topics []common.Hash) error {", name)
 
 	g.L("\tif len(topics) != %d {", len(fields)+1)
-	g.L("\t\treturn fmt.Errorf(\"invalid number of topics for %s event: expected %d, got %%d\", len(topics))", name, len(fields)+1)
+	g.L("\t\treturn %sErrInvalidNumberOfTopics", g.StdPrefix)
 	g.L("\t}")
 
 	g.L("\tif topics[0] != %sEventTopic {", name)
-	g.L("\t\treturn fmt.Errorf(\"invalid event topic for %s event\")", name)
+	g.L("\t\treturn %sErrInvalidEventTopic", g.StdPrefix)
 	g.L("\t}")
 
 	decodeFields := make(map[int]struct{})
@@ -965,7 +923,7 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 			continue
 		}
 
-		fieldName := Title.String(input.Name)
+		fieldName := GoFieldName(input.Name)
 		dataRef := fmt.Sprintf("topics[%d][:]", i+1)
 		g.L("\te.%s, _, err = %s", fieldName, g.genDecodeCall(input.Type, dataRef))
 		g.L("\tif err != nil {")

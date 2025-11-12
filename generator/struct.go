@@ -15,7 +15,7 @@ type StructField struct {
 func StructFieldFromArgument(arg ethabi.Argument) StructField {
 	return StructField{
 		Type: &arg.Type,
-		Name: Title.String(arg.Name),
+		Name: GoFieldName(arg.Name),
 	}
 }
 
@@ -26,7 +26,7 @@ func StructFieldFromTupleElement(t ethabi.Type, index int) StructField {
 	}
 	return StructField{
 		Type: t.TupleElems[index],
-		Name: Title.String(fieldName),
+		Name: GoFieldName(fieldName),
 	}
 }
 
@@ -71,7 +71,7 @@ func StructFromTuple(t ethabi.Type) Struct {
 }
 
 func StructFromEventData(event ethabi.Event) Struct {
-	name := fmt.Sprintf("%sEventData", Title.String(event.Name))
+	name := fmt.Sprintf("%sEventData", event.Name)
 	arguments := make([]ethabi.Argument, 0)
 	for _, input := range event.Inputs {
 		if input.Indexed {

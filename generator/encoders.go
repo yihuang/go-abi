@@ -251,10 +251,8 @@ func (g *Generator) genTupleEncoding(t ethabi.Type) {
 	var offset int
 	for i, elem := range t.TupleElems {
 		// Generate field access - use meaningful field names if available
-		var fieldName string
-		if t.TupleRawNames[i] != "" {
-			fieldName = Title.String(t.TupleRawNames[i])
-		} else {
+		fieldName := GoFieldName(t.TupleRawNames[i])
+		if fieldName == "" {
 			fieldName = fmt.Sprintf("Field%d", i+1)
 		}
 		g.L("\t// Field %s: %s", fieldName, elem.String())

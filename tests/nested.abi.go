@@ -4,8 +4,6 @@ package tests
 
 import (
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"io"
 	"math/big"
 
@@ -49,6 +47,8 @@ const (
 )
 
 const AddressStringPairStaticSize = 64
+
+var _ abi.Tuple = (*AddressStringPair)(nil)
 
 // AddressStringPair represents an ABI tuple
 type AddressStringPair struct {
@@ -118,7 +118,7 @@ func (t *AddressStringPair) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Str")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Str, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -130,6 +130,8 @@ func (t *AddressStringPair) Decode(data []byte) (int, error) {
 }
 
 const ComplexNestedStaticSize = 128
+
+var _ abi.Tuple = (*ComplexNested)(nil)
 
 // ComplexNested represents an ABI tuple
 type ComplexNested struct {
@@ -222,7 +224,7 @@ func (t *ComplexNested) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Str")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Str, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -234,7 +236,7 @@ func (t *ComplexNested) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Data")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Data, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -246,6 +248,8 @@ func (t *ComplexNested) Decode(data []byte) (int, error) {
 }
 
 const DeeplyNestedStaticSize = 160
+
+var _ abi.Tuple = (*DeeplyNested)(nil)
 
 // DeeplyNested represents an ABI tuple
 type DeeplyNested struct {
@@ -333,7 +337,7 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Str")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Str, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -360,6 +364,8 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 }
 
 const SimplePairStaticSize = 64
+
+var _ abi.Tuple = (*SimplePair)(nil)
 
 // SimplePair represents an ABI tuple
 type SimplePair struct {
@@ -423,6 +429,8 @@ func (t *SimplePair) Decode(data []byte) (int, error) {
 }
 
 const UserWithMetadataStaticSize = 128
+
+var _ abi.Tuple = (*UserWithMetadata)(nil)
 
 // UserWithMetadata represents an ABI tuple
 type UserWithMetadata struct {
@@ -505,7 +513,7 @@ func (t *UserWithMetadata) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Name")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -527,7 +535,7 @@ func (t *UserWithMetadata) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Metadata")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Metadata, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -654,7 +662,7 @@ func NestedDecodeAddressStringPairSlice(data []byte) ([]AddressStringPair, int, 
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -688,7 +696,7 @@ func NestedDecodeComplexNestedSlice(data []byte) ([]ComplexNested, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -727,6 +735,8 @@ func NestedDecodeSimplePairSlice(data []byte) ([]SimplePair, int, error) {
 	return result, offset + 32, nil
 }
 
+var _ abi.Method = (*GetAddressStringPairCall)(nil)
+
 // GetAddressStringPairCall represents the input arguments for getAddressStringPair function
 type GetAddressStringPairCall struct {
 	abi.EmptyTuple
@@ -737,8 +747,13 @@ func (t GetAddressStringPairCall) GetMethodName() string {
 	return "getAddressStringPair"
 }
 
-// GetMethodID returns the function name
-func (t GetAddressStringPairCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetAddressStringPairCall) GetMethodID() uint32 {
+	return GetAddressStringPairID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetAddressStringPairCall) GetMethodSelector() [4]byte {
 	return GetAddressStringPairSelector
 }
 
@@ -752,7 +767,14 @@ func (t GetAddressStringPairCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetAddressStringPairCall constructs a new GetAddressStringPairCall
+func NewGetAddressStringPairCall() *GetAddressStringPairCall {
+	return &GetAddressStringPairCall{}
+}
+
 const GetAddressStringPairReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetAddressStringPairReturn)(nil)
 
 // GetAddressStringPairReturn represents an ABI tuple
 type GetAddressStringPairReturn struct {
@@ -811,7 +833,7 @@ func (t *GetAddressStringPairReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Field1.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -821,6 +843,8 @@ func (t *GetAddressStringPairReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetComplexNestedCall)(nil)
 
 // GetComplexNestedCall represents the input arguments for getComplexNested function
 type GetComplexNestedCall struct {
@@ -832,8 +856,13 @@ func (t GetComplexNestedCall) GetMethodName() string {
 	return "getComplexNested"
 }
 
-// GetMethodID returns the function name
-func (t GetComplexNestedCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetComplexNestedCall) GetMethodID() uint32 {
+	return GetComplexNestedID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetComplexNestedCall) GetMethodSelector() [4]byte {
 	return GetComplexNestedSelector
 }
 
@@ -847,7 +876,14 @@ func (t GetComplexNestedCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetComplexNestedCall constructs a new GetComplexNestedCall
+func NewGetComplexNestedCall() *GetComplexNestedCall {
+	return &GetComplexNestedCall{}
+}
+
 const GetComplexNestedReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetComplexNestedReturn)(nil)
 
 // GetComplexNestedReturn represents an ABI tuple
 type GetComplexNestedReturn struct {
@@ -906,7 +942,7 @@ func (t *GetComplexNestedReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Field1.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -916,6 +952,8 @@ func (t *GetComplexNestedReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetDeeplyNestedCall)(nil)
 
 // GetDeeplyNestedCall represents the input arguments for getDeeplyNested function
 type GetDeeplyNestedCall struct {
@@ -927,8 +965,13 @@ func (t GetDeeplyNestedCall) GetMethodName() string {
 	return "getDeeplyNested"
 }
 
-// GetMethodID returns the function name
-func (t GetDeeplyNestedCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetDeeplyNestedCall) GetMethodID() uint32 {
+	return GetDeeplyNestedID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetDeeplyNestedCall) GetMethodSelector() [4]byte {
 	return GetDeeplyNestedSelector
 }
 
@@ -942,7 +985,14 @@ func (t GetDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetDeeplyNestedCall constructs a new GetDeeplyNestedCall
+func NewGetDeeplyNestedCall() *GetDeeplyNestedCall {
+	return &GetDeeplyNestedCall{}
+}
+
 const GetDeeplyNestedReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetDeeplyNestedReturn)(nil)
 
 // GetDeeplyNestedReturn represents an ABI tuple
 type GetDeeplyNestedReturn struct {
@@ -1001,7 +1051,7 @@ func (t *GetDeeplyNestedReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Field1.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1011,6 +1061,8 @@ func (t *GetDeeplyNestedReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetMultipleReturnsCall)(nil)
 
 // GetMultipleReturnsCall represents the input arguments for getMultipleReturns function
 type GetMultipleReturnsCall struct {
@@ -1022,8 +1074,13 @@ func (t GetMultipleReturnsCall) GetMethodName() string {
 	return "getMultipleReturns"
 }
 
-// GetMethodID returns the function name
-func (t GetMultipleReturnsCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetMultipleReturnsCall) GetMethodID() uint32 {
+	return GetMultipleReturnsID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetMultipleReturnsCall) GetMethodSelector() [4]byte {
 	return GetMultipleReturnsSelector
 }
 
@@ -1037,7 +1094,14 @@ func (t GetMultipleReturnsCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetMultipleReturnsCall constructs a new GetMultipleReturnsCall
+func NewGetMultipleReturnsCall() *GetMultipleReturnsCall {
+	return &GetMultipleReturnsCall{}
+}
+
 const GetMultipleReturnsReturnStaticSize = 96
+
+var _ abi.Tuple = (*GetMultipleReturnsReturn)(nil)
 
 // GetMultipleReturnsReturn represents an ABI tuple
 type GetMultipleReturnsReturn struct {
@@ -1113,7 +1177,7 @@ func (t *GetMultipleReturnsReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field2")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Field2.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1129,6 +1193,8 @@ func (t *GetMultipleReturnsReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*GetNestedTupleArrayCall)(nil)
+
 // GetNestedTupleArrayCall represents the input arguments for getNestedTupleArray function
 type GetNestedTupleArrayCall struct {
 	abi.EmptyTuple
@@ -1139,8 +1205,13 @@ func (t GetNestedTupleArrayCall) GetMethodName() string {
 	return "getNestedTupleArray"
 }
 
-// GetMethodID returns the function name
-func (t GetNestedTupleArrayCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetNestedTupleArrayCall) GetMethodID() uint32 {
+	return GetNestedTupleArrayID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetNestedTupleArrayCall) GetMethodSelector() [4]byte {
 	return GetNestedTupleArraySelector
 }
 
@@ -1154,7 +1225,14 @@ func (t GetNestedTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetNestedTupleArrayCall constructs a new GetNestedTupleArrayCall
+func NewGetNestedTupleArrayCall() *GetNestedTupleArrayCall {
+	return &GetNestedTupleArrayCall{}
+}
+
 const GetNestedTupleArrayReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetNestedTupleArrayReturn)(nil)
 
 // GetNestedTupleArrayReturn represents an ABI tuple
 type GetNestedTupleArrayReturn struct {
@@ -1213,7 +1291,7 @@ func (t *GetNestedTupleArrayReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Field1, n, err = NestedDecodeComplexNestedSlice(data[dynamicOffset:])
 		if err != nil {
@@ -1223,6 +1301,8 @@ func (t *GetNestedTupleArrayReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetSimplePairCall)(nil)
 
 // GetSimplePairCall represents the input arguments for getSimplePair function
 type GetSimplePairCall struct {
@@ -1234,8 +1314,13 @@ func (t GetSimplePairCall) GetMethodName() string {
 	return "getSimplePair"
 }
 
-// GetMethodID returns the function name
-func (t GetSimplePairCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetSimplePairCall) GetMethodID() uint32 {
+	return GetSimplePairID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetSimplePairCall) GetMethodSelector() [4]byte {
 	return GetSimplePairSelector
 }
 
@@ -1249,7 +1334,14 @@ func (t GetSimplePairCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetSimplePairCall constructs a new GetSimplePairCall
+func NewGetSimplePairCall() *GetSimplePairCall {
+	return &GetSimplePairCall{}
+}
+
 const GetSimplePairReturnStaticSize = 64
+
+var _ abi.Tuple = (*GetSimplePairReturn)(nil)
 
 // GetSimplePairReturn represents an ABI tuple
 type GetSimplePairReturn struct {
@@ -1301,6 +1393,8 @@ func (t *GetSimplePairReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*GetTupleArrayCall)(nil)
+
 // GetTupleArrayCall represents the input arguments for getTupleArray function
 type GetTupleArrayCall struct {
 	abi.EmptyTuple
@@ -1311,8 +1405,13 @@ func (t GetTupleArrayCall) GetMethodName() string {
 	return "getTupleArray"
 }
 
-// GetMethodID returns the function name
-func (t GetTupleArrayCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetTupleArrayCall) GetMethodID() uint32 {
+	return GetTupleArrayID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetTupleArrayCall) GetMethodSelector() [4]byte {
 	return GetTupleArraySelector
 }
 
@@ -1326,7 +1425,14 @@ func (t GetTupleArrayCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetTupleArrayCall constructs a new GetTupleArrayCall
+func NewGetTupleArrayCall() *GetTupleArrayCall {
+	return &GetTupleArrayCall{}
+}
+
 const GetTupleArrayReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetTupleArrayReturn)(nil)
 
 // GetTupleArrayReturn represents an ABI tuple
 type GetTupleArrayReturn struct {
@@ -1385,7 +1491,7 @@ func (t *GetTupleArrayReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Field1, n, err = NestedDecodeSimplePairSlice(data[dynamicOffset:])
 		if err != nil {
@@ -1395,6 +1501,8 @@ func (t *GetTupleArrayReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetUserWithMetadataCall)(nil)
 
 // GetUserWithMetadataCall represents the input arguments for getUserWithMetadata function
 type GetUserWithMetadataCall struct {
@@ -1406,8 +1514,13 @@ func (t GetUserWithMetadataCall) GetMethodName() string {
 	return "getUserWithMetadata"
 }
 
-// GetMethodID returns the function name
-func (t GetUserWithMetadataCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetUserWithMetadataCall) GetMethodID() uint32 {
+	return GetUserWithMetadataID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetUserWithMetadataCall) GetMethodSelector() [4]byte {
 	return GetUserWithMetadataSelector
 }
 
@@ -1421,7 +1534,14 @@ func (t GetUserWithMetadataCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetUserWithMetadataCall constructs a new GetUserWithMetadataCall
+func NewGetUserWithMetadataCall() *GetUserWithMetadataCall {
+	return &GetUserWithMetadataCall{}
+}
+
 const GetUserWithMetadataReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetUserWithMetadataReturn)(nil)
 
 // GetUserWithMetadataReturn represents an ABI tuple
 type GetUserWithMetadataReturn struct {
@@ -1480,7 +1600,7 @@ func (t *GetUserWithMetadataReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Field1.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1490,6 +1610,8 @@ func (t *GetUserWithMetadataReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*GetUsersArrayCall)(nil)
 
 // GetUsersArrayCall represents the input arguments for getUsersArray function
 type GetUsersArrayCall struct {
@@ -1501,8 +1623,13 @@ func (t GetUsersArrayCall) GetMethodName() string {
 	return "getUsersArray"
 }
 
-// GetMethodID returns the function name
-func (t GetUsersArrayCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetUsersArrayCall) GetMethodID() uint32 {
+	return GetUsersArrayID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetUsersArrayCall) GetMethodSelector() [4]byte {
 	return GetUsersArraySelector
 }
 
@@ -1516,7 +1643,14 @@ func (t GetUsersArrayCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetUsersArrayCall constructs a new GetUsersArrayCall
+func NewGetUsersArrayCall() *GetUsersArrayCall {
+	return &GetUsersArrayCall{}
+}
+
 const GetUsersArrayReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetUsersArrayReturn)(nil)
 
 // GetUsersArrayReturn represents an ABI tuple
 type GetUsersArrayReturn struct {
@@ -1575,7 +1709,7 @@ func (t *GetUsersArrayReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Field1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Field1, n, err = NestedDecodeAddressStringPairSlice(data[dynamicOffset:])
 		if err != nil {

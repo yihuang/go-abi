@@ -21,7 +21,11 @@ const (
 	SendID = 3496451380
 )
 
+var _ abi.Method = (*SendCall)(nil)
+
 const SendCallStaticSize = 64
+
+var _ abi.Tuple = (*SendCall)(nil)
 
 // SendCall represents an ABI tuple
 type SendCall struct {
@@ -89,8 +93,13 @@ func (t SendCall) GetMethodName() string {
 	return "send"
 }
 
-// GetMethodID returns the function name
-func (t SendCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t SendCall) GetMethodID() uint32 {
+	return SendID
+}
+
+// GetMethodSelector returns the function selector
+func (t SendCall) GetMethodSelector() [4]byte {
 	return SendSelector
 }
 
@@ -104,7 +113,18 @@ func (t SendCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
-// SendReturn represents the input arguments for send function
+// NewSendCall constructs a new SendCall
+func NewSendCall(
+	to common.Address,
+	amount *big.Int,
+) *SendCall {
+	return &SendCall{
+		To:     to,
+		Amount: amount,
+	}
+}
+
+// SendReturn represents the output arguments for send function
 type SendReturn struct {
 	abi.EmptyTuple
 }

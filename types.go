@@ -26,12 +26,13 @@ type Method interface {
 	EncodeWithSelector() ([]byte, error)
 
 	GetMethodName() string
-	GetMethodID() [4]byte
+	GetMethodID() uint32
+	GetMethodSelector() [4]byte
 }
 
 type Event interface {
 	// indexed fields
-	EncodeTopics() []common.Hash
+	EncodeTopics() ([]common.Hash, error)
 	DecodeTopics([]common.Hash) error
 
 	// data fields
@@ -62,8 +63,8 @@ func (e *EmptyTuple) Decode(data []byte) (int, error) {
 
 type EmptyIndexed struct{}
 
-func (e EmptyIndexed) EncodeTopics() []common.Hash {
-	return nil
+func (e EmptyIndexed) EncodeTopics() ([]common.Hash, error) {
+	return nil, nil
 }
 
 func (e *EmptyIndexed) DecodeTopics([]common.Hash) error {

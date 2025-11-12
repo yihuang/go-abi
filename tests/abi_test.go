@@ -12,18 +12,18 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var TestABI -module test -prefix test
+//go:generate go run ../cmd -var TestABI -output test.abi.go -prefix test
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{
-	"function transfer(address to, uint256 amount) returns (bool)",
+	"function transfer(address to, uint amount) returns (bool)",
 	"function balanceOf(address account) view returns (uint256)",
 	"function setMessage(string message) returns (bool)",
 	"function updateProfile(address user, string name, uint256 age) returns (bool)",
 	"function transferBatch(address[] recipients, uint256[] amounts) returns (bool)",
 	"function setData(bytes32 key, bytes value)",
 	"function getBalances(address[10] accounts) view returns (uint256[10])",
-	"struct User { address address; string name; uint256 age }",
+	"struct User { address address; string name; int age }",
 	"function processUserData(User user1, User user2) returns (bool)",
 	"struct UserMetadata { bytes32 key; string value }",
 	"struct UserData { uint256 id; UserMetadata data }",
@@ -31,7 +31,9 @@ var TestABI = []string{
 	"function smallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
 	"function communityPool() view returns ((string denom, uint256 amount)[] coins)",
 	"event DynamicIndexed(string indexed denom)",
+	"event EmptyIndexed(string denom)",
 	"function emptyArgs() returns ()",
+	"function understore(string _name) returns ()",
 }
 
 var TestABIDef ethabi.ABI
@@ -218,6 +220,27 @@ func TestEmptyFuncCall(t *testing.T) {
 
 	// Get go-ethereum encoding
 	goEthEncoded, err := TestABIDef.Pack("emptyArgs")
+	require.NoError(t, err)
+
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
+}
+
+func TestUnderstoreFieldName(t *testing.T) {
+	name := "TestName"
+
+	// Get our generated encoding
+	args := &UnderstoreCall{
+		Name: name,
+	}
+
+	// Test encoding with selector
+	encoded, err := args.EncodeWithSelector()
+	require.NoError(t, err)
+
+	// Get go-ethereum encoding
+	goEthEncoded, err := TestABIDef.Pack("understore", args.Name)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)

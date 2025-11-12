@@ -117,11 +117,6 @@ func parseLineWithStructs(line string, structs map[string][]map[string]interface
 	return nil, fmt.Errorf("unrecognized ABI line format: %s", line)
 }
 
-// parseLine parses a single line of human-readable ABI
-func parseLine(line string) (map[string]interface{}, error) {
-	return parseLineWithStructs(line, nil)
-}
-
 // parseFunctionWithStructs parses a function definition with struct context
 func parseFunctionWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	matches := functionRegex.FindStringSubmatch(line)
@@ -184,11 +179,12 @@ func parseFunctionWithStructs(line string, structs map[string][]map[string]inter
 		endOfParams := openParen + len(inputsStr) + 2 // position after closing parenthesis of parameters
 		if endOfParams < returnsIndex {
 			between := strings.TrimSpace(line[endOfParams:returnsIndex])
-			if between == "payable" {
+			switch between {
+			case "payable":
 				stateMutability = "payable"
-			} else if between == "view" {
+			case "view":
 				stateMutability = "view"
-			} else if between == "pure" {
+			case "pure":
 				stateMutability = "pure"
 			}
 		}
@@ -197,11 +193,12 @@ func parseFunctionWithStructs(line string, structs map[string][]map[string]inter
 		endOfParams := openParen + len(inputsStr) + 2 // position after closing parenthesis of parameters
 		if endOfParams < len(line) {
 			remaining := strings.TrimSpace(line[endOfParams:])
-			if remaining == "payable" {
+			switch remaining {
+			case "payable":
 				stateMutability = "payable"
-			} else if remaining == "view" {
+			case "view":
 				stateMutability = "view"
-			} else if remaining == "pure" {
+			case "pure":
 				stateMutability = "pure"
 			}
 		}
@@ -229,11 +226,6 @@ func parseFunctionWithStructs(line string, structs map[string][]map[string]inter
 	}, nil
 }
 
-// parseFunction parses a function definition
-func parseFunction(line string) (map[string]interface{}, error) {
-	return parseFunctionWithStructs(line, nil)
-}
-
 // parseEventWithStructs parses an event definition with struct context
 func parseEventWithStructs(line string, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	matches := eventRegex.FindStringSubmatch(line)
@@ -255,11 +247,6 @@ func parseEventWithStructs(line string, structs map[string][]map[string]interfac
 		"inputs":    inputs,
 		"anonymous": false,
 	}, nil
-}
-
-// parseEvent parses an event definition
-func parseEvent(line string) (map[string]interface{}, error) {
-	return parseEventWithStructs(line, nil)
 }
 
 // parseConstructorWithStructs parses a constructor definition with struct context
@@ -286,11 +273,6 @@ func parseConstructorWithStructs(line string, structs map[string][]map[string]in
 		"inputs":          inputs,
 		"stateMutability": stateMutability,
 	}, nil
-}
-
-// parseConstructor parses a constructor definition
-func parseConstructor(line string) (map[string]interface{}, error) {
-	return parseConstructorWithStructs(line, nil)
 }
 
 // parseFallback parses fallback and receive function definitions
@@ -353,9 +335,10 @@ func parseParameterWithStructs(paramStr string, isEvent bool, structs map[string
 		// Find the matching closing parenthesis
 		parenCount := 0
 		for _, ch := range paramStr {
-			if ch == '(' {
+			switch ch {
+			case '(':
 				parenCount++
-			} else if ch == ')' {
+			case ')':
 				parenCount--
 				if parenCount == 0 {
 					// Found matching closing parenthesis at position i
@@ -657,6 +640,12 @@ func parseStructs(lines []string) (map[string][]map[string]interface{}, error) {
 			paramName := ""
 			if len(parts) > 1 {
 				paramName = parts[1]
+			}
+
+			var err error
+			paramType, err = normalizeType(paramType)
+			if err != nil {
+				return nil, fmt.Errorf("invalid type in struct %s: %s", name, paramType)
 			}
 
 			// For struct parsing, we don't validate types yet

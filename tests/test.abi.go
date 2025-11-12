@@ -4,8 +4,6 @@ package tests
 
 import (
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"io"
 	"math/big"
 
@@ -26,8 +24,8 @@ var (
 	EmptyArgsSelector = [4]byte{0xf9, 0xce, 0x95, 0xfe}
 	// getBalances(address[10])
 	GetBalancesSelector = [4]byte{0x51, 0x68, 0x3d, 0x7d}
-	// processUserData((address,string,uint256),(address,string,uint256))
-	ProcessUserDataSelector = [4]byte{0xe0, 0x33, 0x24, 0x04}
+	// processUserData((address,string,int256),(address,string,int256))
+	ProcessUserDataSelector = [4]byte{0x95, 0xb2, 0x3f, 0x8a}
 	// setData(bytes32,bytes)
 	SetDataSelector = [4]byte{0x7f, 0x23, 0x69, 0x0c}
 	// setMessage(string)
@@ -38,6 +36,8 @@ var (
 	TransferSelector = [4]byte{0xa9, 0x05, 0x9c, 0xbb}
 	// transferBatch(address[],uint256[])
 	TransferBatchSelector = [4]byte{0x3b, 0x3e, 0x67, 0x2f}
+	// understore(string)
+	UnderstoreSelector = [4]byte{0x58, 0x56, 0x2a, 0x35}
 	// updateProfile(address,string,uint256)
 	UpdateProfileSelector = [4]byte{0x6d, 0xe9, 0x52, 0x01}
 )
@@ -49,16 +49,19 @@ const (
 	CommunityPoolID   = 349257904
 	EmptyArgsID       = 4191065598
 	GetBalancesID     = 1365785981
-	ProcessUserDataID = 3761447940
+	ProcessUserDataID = 2511486858
 	SetDataID         = 2133027084
 	SetMessageID      = 915113842
 	SmallIntegersID   = 2558787146
 	TransferID        = 2835717307
 	TransferBatchID   = 993945391
+	UnderstoreID      = 1482041909
 	UpdateProfileID   = 1844007425
 )
 
 const Tuple45c89796StaticSize = 64
+
+var _ abi.Tuple = (*Tuple45c89796)(nil)
 
 // Tuple45c89796 represents an ABI tuple
 type Tuple45c89796 struct {
@@ -123,7 +126,7 @@ func (t *Tuple45c89796) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Denom")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Denom, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -140,6 +143,8 @@ func (t *Tuple45c89796) Decode(data []byte) (int, error) {
 }
 
 const UserStaticSize = 96
+
+var _ abi.Tuple = (*User)(nil)
 
 // User represents an ABI tuple
 type User struct {
@@ -179,8 +184,8 @@ func (value User) EncodeTo(buf []byte) (int, error) {
 	}
 	dynamicOffset += n
 
-	// Field Age: uint256
-	if _, err := abi.EncodeUint256(value.Age, buf[64:]); err != nil {
+	// Field Age: int256
+	if _, err := abi.EncodeInt256(value.Age, buf[64:]); err != nil {
 		return 0, err
 	}
 
@@ -215,7 +220,7 @@ func (t *User) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Name")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -223,8 +228,8 @@ func (t *User) Decode(data []byte) (int, error) {
 		}
 		dynamicOffset += n
 	}
-	// Decode static field Age: uint256
-	t.Age, _, err = abi.DecodeUint256(data[64:])
+	// Decode static field Age: int256
+	t.Age, _, err = abi.DecodeInt256(data[64:])
 	if err != nil {
 		return 0, err
 	}
@@ -232,6 +237,8 @@ func (t *User) Decode(data []byte) (int, error) {
 }
 
 const UserDataStaticSize = 64
+
+var _ abi.Tuple = (*UserData)(nil)
 
 // UserData represents an ABI tuple
 type UserData struct {
@@ -301,7 +308,7 @@ func (t *UserData) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Data")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Data.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -313,6 +320,8 @@ func (t *UserData) Decode(data []byte) (int, error) {
 }
 
 const UserMetadataStaticSize = 64
+
+var _ abi.Tuple = (*UserMetadata)(nil)
 
 // UserMetadata represents an ABI tuple
 type UserMetadata struct {
@@ -382,7 +391,7 @@ func (t *UserMetadata) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Value")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Value, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -621,7 +630,7 @@ func TestDecodeTuple45c89796Slice(data []byte) ([]Tuple45c89796, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -718,7 +727,7 @@ func TestDecodeUserDataSlice(data []byte) ([]UserData, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -729,7 +738,11 @@ func TestDecodeUserDataSlice(data []byte) ([]UserData, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
+var _ abi.Method = (*BalanceOfCall)(nil)
+
 const BalanceOfCallStaticSize = 32
+
+var _ abi.Tuple = (*BalanceOfCall)(nil)
 
 // BalanceOfCall represents an ABI tuple
 type BalanceOfCall struct {
@@ -786,8 +799,13 @@ func (t BalanceOfCall) GetMethodName() string {
 	return "balanceOf"
 }
 
-// GetMethodID returns the function name
-func (t BalanceOfCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t BalanceOfCall) GetMethodID() uint32 {
+	return BalanceOfID
+}
+
+// GetMethodSelector returns the function selector
+func (t BalanceOfCall) GetMethodSelector() [4]byte {
 	return BalanceOfSelector
 }
 
@@ -801,7 +819,18 @@ func (t BalanceOfCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewBalanceOfCall constructs a new BalanceOfCall
+func NewBalanceOfCall(
+	account common.Address,
+) *BalanceOfCall {
+	return &BalanceOfCall{
+		Account: account,
+	}
+}
+
 const BalanceOfReturnStaticSize = 32
+
+var _ abi.Tuple = (*BalanceOfReturn)(nil)
 
 // BalanceOfReturn represents an ABI tuple
 type BalanceOfReturn struct {
@@ -853,7 +882,11 @@ func (t *BalanceOfReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*BatchProcessCall)(nil)
+
 const BatchProcessCallStaticSize = 32
+
+var _ abi.Tuple = (*BatchProcessCall)(nil)
 
 // BatchProcessCall represents an ABI tuple
 type BatchProcessCall struct {
@@ -912,7 +945,7 @@ func (t *BatchProcessCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Users")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Users, n, err = TestDecodeUserDataSlice(data[dynamicOffset:])
 		if err != nil {
@@ -928,8 +961,13 @@ func (t BatchProcessCall) GetMethodName() string {
 	return "batchProcess"
 }
 
-// GetMethodID returns the function name
-func (t BatchProcessCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t BatchProcessCall) GetMethodID() uint32 {
+	return BatchProcessID
+}
+
+// GetMethodSelector returns the function selector
+func (t BatchProcessCall) GetMethodSelector() [4]byte {
 	return BatchProcessSelector
 }
 
@@ -943,7 +981,18 @@ func (t BatchProcessCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewBatchProcessCall constructs a new BatchProcessCall
+func NewBatchProcessCall(
+	users []UserData,
+) *BatchProcessCall {
+	return &BatchProcessCall{
+		Users: users,
+	}
+}
+
 const BatchProcessReturnStaticSize = 32
+
+var _ abi.Tuple = (*BatchProcessReturn)(nil)
 
 // BatchProcessReturn represents an ABI tuple
 type BatchProcessReturn struct {
@@ -995,6 +1044,8 @@ func (t *BatchProcessReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*CommunityPoolCall)(nil)
+
 // CommunityPoolCall represents the input arguments for communityPool function
 type CommunityPoolCall struct {
 	abi.EmptyTuple
@@ -1005,8 +1056,13 @@ func (t CommunityPoolCall) GetMethodName() string {
 	return "communityPool"
 }
 
-// GetMethodID returns the function name
-func (t CommunityPoolCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t CommunityPoolCall) GetMethodID() uint32 {
+	return CommunityPoolID
+}
+
+// GetMethodSelector returns the function selector
+func (t CommunityPoolCall) GetMethodSelector() [4]byte {
 	return CommunityPoolSelector
 }
 
@@ -1020,7 +1076,14 @@ func (t CommunityPoolCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewCommunityPoolCall constructs a new CommunityPoolCall
+func NewCommunityPoolCall() *CommunityPoolCall {
+	return &CommunityPoolCall{}
+}
+
 const CommunityPoolReturnStaticSize = 32
+
+var _ abi.Tuple = (*CommunityPoolReturn)(nil)
 
 // CommunityPoolReturn represents an ABI tuple
 type CommunityPoolReturn struct {
@@ -1079,7 +1142,7 @@ func (t *CommunityPoolReturn) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Coins")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Coins, n, err = TestDecodeTuple45c89796Slice(data[dynamicOffset:])
 		if err != nil {
@@ -1089,6 +1152,8 @@ func (t *CommunityPoolReturn) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+var _ abi.Method = (*EmptyArgsCall)(nil)
 
 // EmptyArgsCall represents the input arguments for emptyArgs function
 type EmptyArgsCall struct {
@@ -1100,8 +1165,13 @@ func (t EmptyArgsCall) GetMethodName() string {
 	return "emptyArgs"
 }
 
-// GetMethodID returns the function name
-func (t EmptyArgsCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t EmptyArgsCall) GetMethodID() uint32 {
+	return EmptyArgsID
+}
+
+// GetMethodSelector returns the function selector
+func (t EmptyArgsCall) GetMethodSelector() [4]byte {
 	return EmptyArgsSelector
 }
 
@@ -1115,12 +1185,21 @@ func (t EmptyArgsCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
-// EmptyArgsReturn represents the input arguments for emptyArgs function
+// NewEmptyArgsCall constructs a new EmptyArgsCall
+func NewEmptyArgsCall() *EmptyArgsCall {
+	return &EmptyArgsCall{}
+}
+
+// EmptyArgsReturn represents the output arguments for emptyArgs function
 type EmptyArgsReturn struct {
 	abi.EmptyTuple
 }
 
+var _ abi.Method = (*GetBalancesCall)(nil)
+
 const GetBalancesCallStaticSize = 320
+
+var _ abi.Tuple = (*GetBalancesCall)(nil)
 
 // GetBalancesCall represents an ABI tuple
 type GetBalancesCall struct {
@@ -1177,8 +1256,13 @@ func (t GetBalancesCall) GetMethodName() string {
 	return "getBalances"
 }
 
-// GetMethodID returns the function name
-func (t GetBalancesCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t GetBalancesCall) GetMethodID() uint32 {
+	return GetBalancesID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetBalancesCall) GetMethodSelector() [4]byte {
 	return GetBalancesSelector
 }
 
@@ -1192,7 +1276,18 @@ func (t GetBalancesCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewGetBalancesCall constructs a new GetBalancesCall
+func NewGetBalancesCall(
+	accounts [10]common.Address,
+) *GetBalancesCall {
+	return &GetBalancesCall{
+		Accounts: accounts,
+	}
+}
+
 const GetBalancesReturnStaticSize = 320
+
+var _ abi.Tuple = (*GetBalancesReturn)(nil)
 
 // GetBalancesReturn represents an ABI tuple
 type GetBalancesReturn struct {
@@ -1244,7 +1339,11 @@ func (t *GetBalancesReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*ProcessUserDataCall)(nil)
+
 const ProcessUserDataCallStaticSize = 64
+
+var _ abi.Tuple = (*ProcessUserDataCall)(nil)
 
 // ProcessUserDataCall represents an ABI tuple
 type ProcessUserDataCall struct {
@@ -1269,7 +1368,7 @@ func (value ProcessUserDataCall) EncodeTo(buf []byte) (int, error) {
 		err error
 		n   int
 	)
-	// Field User1: (address,string,uint256)
+	// Field User1: (address,string,int256)
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
 	// Encode dynamic data
@@ -1279,7 +1378,7 @@ func (value ProcessUserDataCall) EncodeTo(buf []byte) (int, error) {
 	}
 	dynamicOffset += n
 
-	// Field User2: (address,string,uint256)
+	// Field User2: (address,string,int256)
 	// Encode offset pointer
 	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
 	// Encode dynamic data
@@ -1315,7 +1414,7 @@ func (t *ProcessUserDataCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field User1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.User1.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1327,7 +1426,7 @@ func (t *ProcessUserDataCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field User2")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.User2.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1343,8 +1442,13 @@ func (t ProcessUserDataCall) GetMethodName() string {
 	return "processUserData"
 }
 
-// GetMethodID returns the function name
-func (t ProcessUserDataCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t ProcessUserDataCall) GetMethodID() uint32 {
+	return ProcessUserDataID
+}
+
+// GetMethodSelector returns the function selector
+func (t ProcessUserDataCall) GetMethodSelector() [4]byte {
 	return ProcessUserDataSelector
 }
 
@@ -1358,7 +1462,20 @@ func (t ProcessUserDataCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewProcessUserDataCall constructs a new ProcessUserDataCall
+func NewProcessUserDataCall(
+	user1 User,
+	user2 User,
+) *ProcessUserDataCall {
+	return &ProcessUserDataCall{
+		User1: user1,
+		User2: user2,
+	}
+}
+
 const ProcessUserDataReturnStaticSize = 32
+
+var _ abi.Tuple = (*ProcessUserDataReturn)(nil)
 
 // ProcessUserDataReturn represents an ABI tuple
 type ProcessUserDataReturn struct {
@@ -1410,7 +1527,11 @@ func (t *ProcessUserDataReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*SetDataCall)(nil)
+
 const SetDataCallStaticSize = 64
+
+var _ abi.Tuple = (*SetDataCall)(nil)
 
 // SetDataCall represents an ABI tuple
 type SetDataCall struct {
@@ -1480,7 +1601,7 @@ func (t *SetDataCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Value")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Value, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -1496,8 +1617,13 @@ func (t SetDataCall) GetMethodName() string {
 	return "setData"
 }
 
-// GetMethodID returns the function name
-func (t SetDataCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t SetDataCall) GetMethodID() uint32 {
+	return SetDataID
+}
+
+// GetMethodSelector returns the function selector
+func (t SetDataCall) GetMethodSelector() [4]byte {
 	return SetDataSelector
 }
 
@@ -1511,12 +1637,27 @@ func (t SetDataCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
-// SetDataReturn represents the input arguments for setData function
+// NewSetDataCall constructs a new SetDataCall
+func NewSetDataCall(
+	key [32]byte,
+	value []byte,
+) *SetDataCall {
+	return &SetDataCall{
+		Key:   key,
+		Value: value,
+	}
+}
+
+// SetDataReturn represents the output arguments for setData function
 type SetDataReturn struct {
 	abi.EmptyTuple
 }
 
+var _ abi.Method = (*SetMessageCall)(nil)
+
 const SetMessageCallStaticSize = 32
+
+var _ abi.Tuple = (*SetMessageCall)(nil)
 
 // SetMessageCall represents an ABI tuple
 type SetMessageCall struct {
@@ -1575,7 +1716,7 @@ func (t *SetMessageCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Message")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Message, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -1591,8 +1732,13 @@ func (t SetMessageCall) GetMethodName() string {
 	return "setMessage"
 }
 
-// GetMethodID returns the function name
-func (t SetMessageCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t SetMessageCall) GetMethodID() uint32 {
+	return SetMessageID
+}
+
+// GetMethodSelector returns the function selector
+func (t SetMessageCall) GetMethodSelector() [4]byte {
 	return SetMessageSelector
 }
 
@@ -1606,7 +1752,18 @@ func (t SetMessageCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewSetMessageCall constructs a new SetMessageCall
+func NewSetMessageCall(
+	message string,
+) *SetMessageCall {
+	return &SetMessageCall{
+		Message: message,
+	}
+}
+
 const SetMessageReturnStaticSize = 32
+
+var _ abi.Tuple = (*SetMessageReturn)(nil)
 
 // SetMessageReturn represents an ABI tuple
 type SetMessageReturn struct {
@@ -1658,7 +1815,11 @@ func (t *SetMessageReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*SmallIntegersCall)(nil)
+
 const SmallIntegersCallStaticSize = 256
+
+var _ abi.Tuple = (*SmallIntegersCall)(nil)
 
 // SmallIntegersCall represents an ABI tuple
 type SmallIntegersCall struct {
@@ -1792,8 +1953,13 @@ func (t SmallIntegersCall) GetMethodName() string {
 	return "smallIntegers"
 }
 
-// GetMethodID returns the function name
-func (t SmallIntegersCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t SmallIntegersCall) GetMethodID() uint32 {
+	return SmallIntegersID
+}
+
+// GetMethodSelector returns the function selector
+func (t SmallIntegersCall) GetMethodSelector() [4]byte {
 	return SmallIntegersSelector
 }
 
@@ -1807,7 +1973,32 @@ func (t SmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewSmallIntegersCall constructs a new SmallIntegersCall
+func NewSmallIntegersCall(
+	u8 uint8,
+	u16 uint16,
+	u32 uint32,
+	u64 uint64,
+	i8 int8,
+	i16 int16,
+	i32 int32,
+	i64 int64,
+) *SmallIntegersCall {
+	return &SmallIntegersCall{
+		U8:  u8,
+		U16: u16,
+		U32: u32,
+		U64: u64,
+		I8:  i8,
+		I16: i16,
+		I32: i32,
+		I64: i64,
+	}
+}
+
 const SmallIntegersReturnStaticSize = 32
+
+var _ abi.Tuple = (*SmallIntegersReturn)(nil)
 
 // SmallIntegersReturn represents an ABI tuple
 type SmallIntegersReturn struct {
@@ -1859,7 +2050,11 @@ func (t *SmallIntegersReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TransferCall)(nil)
+
 const TransferCallStaticSize = 64
+
+var _ abi.Tuple = (*TransferCall)(nil)
 
 // TransferCall represents an ABI tuple
 type TransferCall struct {
@@ -1927,8 +2122,13 @@ func (t TransferCall) GetMethodName() string {
 	return "transfer"
 }
 
-// GetMethodID returns the function name
-func (t TransferCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TransferCall) GetMethodID() uint32 {
+	return TransferID
+}
+
+// GetMethodSelector returns the function selector
+func (t TransferCall) GetMethodSelector() [4]byte {
 	return TransferSelector
 }
 
@@ -1942,7 +2142,20 @@ func (t TransferCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTransferCall constructs a new TransferCall
+func NewTransferCall(
+	to common.Address,
+	amount *big.Int,
+) *TransferCall {
+	return &TransferCall{
+		To:     to,
+		Amount: amount,
+	}
+}
+
 const TransferReturnStaticSize = 32
+
+var _ abi.Tuple = (*TransferReturn)(nil)
 
 // TransferReturn represents an ABI tuple
 type TransferReturn struct {
@@ -1994,7 +2207,11 @@ func (t *TransferReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TransferBatchCall)(nil)
+
 const TransferBatchCallStaticSize = 64
+
+var _ abi.Tuple = (*TransferBatchCall)(nil)
 
 // TransferBatchCall represents an ABI tuple
 type TransferBatchCall struct {
@@ -2065,7 +2282,7 @@ func (t *TransferBatchCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Recipients")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Recipients, n, err = abi.DecodeAddressSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2077,7 +2294,7 @@ func (t *TransferBatchCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Amounts")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Amounts, n, err = abi.DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2093,8 +2310,13 @@ func (t TransferBatchCall) GetMethodName() string {
 	return "transferBatch"
 }
 
-// GetMethodID returns the function name
-func (t TransferBatchCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TransferBatchCall) GetMethodID() uint32 {
+	return TransferBatchID
+}
+
+// GetMethodSelector returns the function selector
+func (t TransferBatchCall) GetMethodSelector() [4]byte {
 	return TransferBatchSelector
 }
 
@@ -2108,7 +2330,20 @@ func (t TransferBatchCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTransferBatchCall constructs a new TransferBatchCall
+func NewTransferBatchCall(
+	recipients []common.Address,
+	amounts []*big.Int,
+) *TransferBatchCall {
+	return &TransferBatchCall{
+		Recipients: recipients,
+		Amounts:    amounts,
+	}
+}
+
 const TransferBatchReturnStaticSize = 32
+
+var _ abi.Tuple = (*TransferBatchReturn)(nil)
 
 // TransferBatchReturn represents an ABI tuple
 type TransferBatchReturn struct {
@@ -2160,7 +2395,124 @@ func (t *TransferBatchReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*UnderstoreCall)(nil)
+
+const UnderstoreCallStaticSize = 32
+
+var _ abi.Tuple = (*UnderstoreCall)(nil)
+
+// UnderstoreCall represents an ABI tuple
+type UnderstoreCall struct {
+	Name string
+}
+
+// EncodedSize returns the total encoded size of UnderstoreCall
+func (t UnderstoreCall) EncodedSize() int {
+	dynamicSize := 0
+	dynamicSize += abi.SizeString(t.Name)
+
+	return UnderstoreCallStaticSize + dynamicSize
+}
+
+// EncodeTo encodes UnderstoreCall to ABI bytes in the provided buffer
+func (value UnderstoreCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := UnderstoreCallStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Name: string
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = abi.EncodeString(value.Name, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes UnderstoreCall to ABI bytes
+func (value UnderstoreCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes UnderstoreCall from ABI bytes in the provided buffer
+func (t *UnderstoreCall) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Name
+	{
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t UnderstoreCall) GetMethodName() string {
+	return "understore"
+}
+
+// GetMethodID returns the function id
+func (t UnderstoreCall) GetMethodID() uint32 {
+	return UnderstoreID
+}
+
+// GetMethodSelector returns the function selector
+func (t UnderstoreCall) GetMethodSelector() [4]byte {
+	return UnderstoreSelector
+}
+
+// EncodeWithSelector encodes understore arguments to ABI bytes including function selector
+func (t UnderstoreCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], UnderstoreSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewUnderstoreCall constructs a new UnderstoreCall
+func NewUnderstoreCall(
+	name string,
+) *UnderstoreCall {
+	return &UnderstoreCall{
+		Name: name,
+	}
+}
+
+// UnderstoreReturn represents the output arguments for understore function
+type UnderstoreReturn struct {
+	abi.EmptyTuple
+}
+
+var _ abi.Method = (*UpdateProfileCall)(nil)
+
 const UpdateProfileCallStaticSize = 96
+
+var _ abi.Tuple = (*UpdateProfileCall)(nil)
 
 // UpdateProfileCall represents an ABI tuple
 type UpdateProfileCall struct {
@@ -2236,7 +2588,7 @@ func (t *UpdateProfileCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Name")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -2257,8 +2609,13 @@ func (t UpdateProfileCall) GetMethodName() string {
 	return "updateProfile"
 }
 
-// GetMethodID returns the function name
-func (t UpdateProfileCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t UpdateProfileCall) GetMethodID() uint32 {
+	return UpdateProfileID
+}
+
+// GetMethodSelector returns the function selector
+func (t UpdateProfileCall) GetMethodSelector() [4]byte {
 	return UpdateProfileSelector
 }
 
@@ -2272,7 +2629,22 @@ func (t UpdateProfileCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewUpdateProfileCall constructs a new UpdateProfileCall
+func NewUpdateProfileCall(
+	user common.Address,
+	name string,
+	age *big.Int,
+) *UpdateProfileCall {
+	return &UpdateProfileCall{
+		User: user,
+		Name: name,
+		Age:  age,
+	}
+}
+
 const UpdateProfileReturnStaticSize = 32
+
+var _ abi.Tuple = (*UpdateProfileReturn)(nil)
 
 // UpdateProfileReturn represents an ABI tuple
 type UpdateProfileReturn struct {
@@ -2328,9 +2700,13 @@ func (t *UpdateProfileReturn) Decode(data []byte) (int, error) {
 var (
 	// DynamicIndexed(string)
 	DynamicIndexedEventTopic = common.Hash{0x3f, 0x9f, 0x17, 0xba, 0xc9, 0x56, 0x4d, 0x19, 0xb3, 0x0d, 0x61, 0xf0, 0xe5, 0x07, 0x81, 0x21, 0xfc, 0x40, 0xc7, 0x25, 0x4a, 0xa1, 0xba, 0xb6, 0x7e, 0xee, 0x77, 0x38, 0x8c, 0x00, 0x92, 0xbd}
+	// EmptyIndexed(string)
+	EmptyIndexedEventTopic = common.Hash{0xe5, 0x2f, 0xef, 0xc3, 0xd9, 0xf6, 0x59, 0xfe, 0x1f, 0x72, 0x8a, 0x74, 0xef, 0x9d, 0x2e, 0x7e, 0x23, 0xfe, 0x1f, 0x4c, 0xfc, 0x2b, 0x16, 0x7e, 0x1d, 0x71, 0xaf, 0xa9, 0xf7, 0x0b, 0x29, 0x13}
 )
 
 // DynamicIndexedEvent represents the DynamicIndexed event
+var _ abi.Event = (*DynamicIndexedEvent)(nil)
+
 type DynamicIndexedEvent struct {
 	DynamicIndexedEventIndexed
 	DynamicIndexedEventData
@@ -2339,8 +2715,8 @@ type DynamicIndexedEvent struct {
 // NewDynamicIndexedEvent constructs a new DynamicIndexed event
 func NewDynamicIndexedEvent(
 	denom string,
-) DynamicIndexedEvent {
-	return DynamicIndexedEvent{
+) *DynamicIndexedEvent {
+	return &DynamicIndexedEvent{
 		DynamicIndexedEventIndexed: DynamicIndexedEventIndexed{
 			Denom: denom,
 		},
@@ -2383,14 +2759,120 @@ func (e DynamicIndexedEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of DynamicIndexed event from topics, ignore hash topics
 func (e *DynamicIndexedEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 2 {
-		return fmt.Errorf("invalid number of topics for DynamicIndexed event: expected 2, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != DynamicIndexedEventTopic {
-		return fmt.Errorf("invalid event topic for DynamicIndexed event")
+		return abi.ErrInvalidEventTopic
 	}
 	return nil
 }
 
 type DynamicIndexedEventData struct {
 	abi.EmptyTuple
+}
+
+// EmptyIndexedEvent represents the EmptyIndexed event
+var _ abi.Event = (*EmptyIndexedEvent)(nil)
+
+type EmptyIndexedEvent struct {
+	EmptyIndexedEventIndexed
+	EmptyIndexedEventData
+}
+
+// NewEmptyIndexedEvent constructs a new EmptyIndexed event
+func NewEmptyIndexedEvent(
+	denom string,
+) *EmptyIndexedEvent {
+	return &EmptyIndexedEvent{
+		EmptyIndexedEventIndexed: EmptyIndexedEventIndexed{},
+		EmptyIndexedEventData: EmptyIndexedEventData{
+			Denom: denom,
+		},
+	}
+}
+
+// GetEventName returns the event name
+func (e EmptyIndexedEvent) GetEventName() string {
+	return "EmptyIndexed"
+}
+
+// GetEventID returns the event ID (topic)
+func (e EmptyIndexedEvent) GetEventID() common.Hash {
+	return EmptyIndexedEventTopic
+}
+
+type EmptyIndexedEventIndexed struct {
+	abi.EmptyIndexed
+}
+
+const EmptyIndexedEventDataStaticSize = 32
+
+var _ abi.Tuple = (*EmptyIndexedEventData)(nil)
+
+// EmptyIndexedEventData represents an ABI tuple
+type EmptyIndexedEventData struct {
+	Denom string
+}
+
+// EncodedSize returns the total encoded size of EmptyIndexedEventData
+func (t EmptyIndexedEventData) EncodedSize() int {
+	dynamicSize := 0
+	dynamicSize += abi.SizeString(t.Denom)
+
+	return EmptyIndexedEventDataStaticSize + dynamicSize
+}
+
+// EncodeTo encodes EmptyIndexedEventData to ABI bytes in the provided buffer
+func (value EmptyIndexedEventData) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := EmptyIndexedEventDataStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Denom: string
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = abi.EncodeString(value.Denom, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes EmptyIndexedEventData to ABI bytes
+func (value EmptyIndexedEventData) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes EmptyIndexedEventData from ABI bytes in the provided buffer
+func (t *EmptyIndexedEventData) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+		n   int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Denom
+	{
+		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		if offset != dynamicOffset {
+			return 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		t.Denom, n, err = abi.DecodeString(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
 }

@@ -4,8 +4,6 @@ package tests
 
 import (
 	"encoding/binary"
-	"errors"
-	"fmt"
 	"io"
 	"math/big"
 
@@ -49,6 +47,8 @@ const (
 )
 
 const GroupStaticSize = 32
+
+var _ abi.Tuple = (*Group)(nil)
 
 // Group represents an ABI tuple
 type Group struct {
@@ -107,7 +107,7 @@ func (t *Group) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Users")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Users, n, err = DecodeUserSlice(data[dynamicOffset:])
 		if err != nil {
@@ -119,6 +119,8 @@ func (t *Group) Decode(data []byte) (int, error) {
 }
 
 const ItemStaticSize = 96
+
+var _ abi.Tuple = (*Item)(nil)
 
 // Item represents an ABI tuple
 type Item struct {
@@ -194,7 +196,7 @@ func (t *Item) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Data")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Data, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -211,6 +213,8 @@ func (t *Item) Decode(data []byte) (int, error) {
 }
 
 const Level1StaticSize = 32
+
+var _ abi.Tuple = (*Level1)(nil)
 
 // Level1 represents an ABI tuple
 type Level1 struct {
@@ -269,7 +273,7 @@ func (t *Level1) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Level1")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Level1.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -281,6 +285,8 @@ func (t *Level1) Decode(data []byte) (int, error) {
 }
 
 const Level2StaticSize = 32
+
+var _ abi.Tuple = (*Level2)(nil)
 
 // Level2 represents an ABI tuple
 type Level2 struct {
@@ -339,7 +345,7 @@ func (t *Level2) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Level2")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Level2.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -351,6 +357,8 @@ func (t *Level2) Decode(data []byte) (int, error) {
 }
 
 const Level3StaticSize = 32
+
+var _ abi.Tuple = (*Level3)(nil)
 
 // Level3 represents an ABI tuple
 type Level3 struct {
@@ -409,7 +417,7 @@ func (t *Level3) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Level3")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Level3.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -421,6 +429,8 @@ func (t *Level3) Decode(data []byte) (int, error) {
 }
 
 const Level4StaticSize = 64
+
+var _ abi.Tuple = (*Level4)(nil)
 
 // Level4 represents an ABI tuple
 type Level4 struct {
@@ -490,7 +500,7 @@ func (t *Level4) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Description")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Description, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -502,6 +512,8 @@ func (t *Level4) Decode(data []byte) (int, error) {
 }
 
 const User2StaticSize = 64
+
+var _ abi.Tuple = (*User2)(nil)
 
 // User2 represents an ABI tuple
 type User2 struct {
@@ -571,7 +583,7 @@ func (t *User2) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Profile")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Profile.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -583,6 +595,8 @@ func (t *User2) Decode(data []byte) (int, error) {
 }
 
 const UserMetadata2StaticSize = 64
+
+var _ abi.Tuple = (*UserMetadata2)(nil)
 
 // UserMetadata2 represents an ABI tuple
 type UserMetadata2 struct {
@@ -652,7 +666,7 @@ func (t *UserMetadata2) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Tags")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Tags, n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
@@ -664,6 +678,8 @@ func (t *UserMetadata2) Decode(data []byte) (int, error) {
 }
 
 const UserProfileStaticSize = 96
+
+var _ abi.Tuple = (*UserProfile)(nil)
 
 // UserProfile represents an ABI tuple
 type UserProfile struct {
@@ -746,7 +762,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Name")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Name, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -758,7 +774,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Emails")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Emails, n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
@@ -770,7 +786,7 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Metadata")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Metadata.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1149,7 +1165,7 @@ func DecodeAddressSliceArray3(data []byte) ([3][]common.Address, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return result, 0, fmt.Errorf("invalid offset for array element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return result, 0, abi.ErrInvalidOffsetForArrayElement
 		}
 		result[i], n, err = abi.DecodeAddressSlice(data[dynamicOffset:])
 		if err != nil {
@@ -1183,7 +1199,7 @@ func DecodeAddressSliceArray3Slice(data []byte) ([][3][]common.Address, int, err
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = DecodeAddressSliceArray3(data[dynamicOffset:])
 		if err != nil {
@@ -1250,7 +1266,7 @@ func DecodeItemSlice(data []byte) ([]Item, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1284,7 +1300,7 @@ func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = abi.DecodeStringSlice(data[dynamicOffset:])
 		if err != nil {
@@ -1346,7 +1362,7 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		result[i], n, err = abi.DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -1387,7 +1403,7 @@ func DecodeUser2Slice(data []byte) ([]User2, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1421,7 +1437,7 @@ func DecodeUserSlice(data []byte) ([]User, int, error) {
 		offset += 32
 		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
 		if dynamicOffset != tmp {
-			return nil, 0, fmt.Errorf("invalid offset for slice element %d: expected %d, got %d", i, dynamicOffset, tmp)
+			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		n, err = result[i].Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1432,7 +1448,11 @@ func DecodeUserSlice(data []byte) ([]User, int, error) {
 	return result, dynamicOffset + 32, nil
 }
 
+var _ abi.Method = (*TestComplexDynamicTuplesCall)(nil)
+
 const TestComplexDynamicTuplesCallStaticSize = 32
+
+var _ abi.Tuple = (*TestComplexDynamicTuplesCall)(nil)
 
 // TestComplexDynamicTuplesCall represents an ABI tuple
 type TestComplexDynamicTuplesCall struct {
@@ -1491,7 +1511,7 @@ func (t *TestComplexDynamicTuplesCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Users")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Users, n, err = DecodeUser2Slice(data[dynamicOffset:])
 		if err != nil {
@@ -1507,8 +1527,13 @@ func (t TestComplexDynamicTuplesCall) GetMethodName() string {
 	return "testComplexDynamicTuples"
 }
 
-// GetMethodID returns the function name
-func (t TestComplexDynamicTuplesCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestComplexDynamicTuplesCall) GetMethodID() uint32 {
+	return TestComplexDynamicTuplesID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestComplexDynamicTuplesCall) GetMethodSelector() [4]byte {
 	return TestComplexDynamicTuplesSelector
 }
 
@@ -1522,7 +1547,18 @@ func (t TestComplexDynamicTuplesCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestComplexDynamicTuplesCall constructs a new TestComplexDynamicTuplesCall
+func NewTestComplexDynamicTuplesCall(
+	users []User2,
+) *TestComplexDynamicTuplesCall {
+	return &TestComplexDynamicTuplesCall{
+		Users: users,
+	}
+}
+
 const TestComplexDynamicTuplesReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestComplexDynamicTuplesReturn)(nil)
 
 // TestComplexDynamicTuplesReturn represents an ABI tuple
 type TestComplexDynamicTuplesReturn struct {
@@ -1574,7 +1610,11 @@ func (t *TestComplexDynamicTuplesReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestDeeplyNestedCall)(nil)
+
 const TestDeeplyNestedCallStaticSize = 32
+
+var _ abi.Tuple = (*TestDeeplyNestedCall)(nil)
 
 // TestDeeplyNestedCall represents an ABI tuple
 type TestDeeplyNestedCall struct {
@@ -1633,7 +1673,7 @@ func (t *TestDeeplyNestedCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Data")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Data.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1649,8 +1689,13 @@ func (t TestDeeplyNestedCall) GetMethodName() string {
 	return "testDeeplyNested"
 }
 
-// GetMethodID returns the function name
-func (t TestDeeplyNestedCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestDeeplyNestedCall) GetMethodID() uint32 {
+	return TestDeeplyNestedID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestDeeplyNestedCall) GetMethodSelector() [4]byte {
 	return TestDeeplyNestedSelector
 }
 
@@ -1664,7 +1709,18 @@ func (t TestDeeplyNestedCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestDeeplyNestedCall constructs a new TestDeeplyNestedCall
+func NewTestDeeplyNestedCall(
+	data Level1,
+) *TestDeeplyNestedCall {
+	return &TestDeeplyNestedCall{
+		Data: data,
+	}
+}
+
 const TestDeeplyNestedReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestDeeplyNestedReturn)(nil)
 
 // TestDeeplyNestedReturn represents an ABI tuple
 type TestDeeplyNestedReturn struct {
@@ -1716,7 +1772,11 @@ func (t *TestDeeplyNestedReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestExternalTupleCall)(nil)
+
 const TestExternalTupleCallStaticSize = 32
+
+var _ abi.Tuple = (*TestExternalTupleCall)(nil)
 
 // TestExternalTupleCall represents an ABI tuple
 type TestExternalTupleCall struct {
@@ -1775,7 +1835,7 @@ func (t *TestExternalTupleCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field User")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.User.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -1791,8 +1851,13 @@ func (t TestExternalTupleCall) GetMethodName() string {
 	return "testExternalTuple"
 }
 
-// GetMethodID returns the function name
-func (t TestExternalTupleCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestExternalTupleCall) GetMethodID() uint32 {
+	return TestExternalTupleID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestExternalTupleCall) GetMethodSelector() [4]byte {
 	return TestExternalTupleSelector
 }
 
@@ -1806,7 +1871,18 @@ func (t TestExternalTupleCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestExternalTupleCall constructs a new TestExternalTupleCall
+func NewTestExternalTupleCall(
+	user User,
+) *TestExternalTupleCall {
+	return &TestExternalTupleCall{
+		User: user,
+	}
+}
+
 const TestExternalTupleReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestExternalTupleReturn)(nil)
 
 // TestExternalTupleReturn represents an ABI tuple
 type TestExternalTupleReturn struct {
@@ -1858,7 +1934,11 @@ func (t *TestExternalTupleReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestFixedArraysCall)(nil)
+
 const TestFixedArraysCallStaticSize = 320
+
+var _ abi.Tuple = (*TestFixedArraysCall)(nil)
 
 // TestFixedArraysCall represents an ABI tuple
 type TestFixedArraysCall struct {
@@ -1937,8 +2017,13 @@ func (t TestFixedArraysCall) GetMethodName() string {
 	return "testFixedArrays"
 }
 
-// GetMethodID returns the function name
-func (t TestFixedArraysCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestFixedArraysCall) GetMethodID() uint32 {
+	return TestFixedArraysID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestFixedArraysCall) GetMethodSelector() [4]byte {
 	return TestFixedArraysSelector
 }
 
@@ -1952,7 +2037,22 @@ func (t TestFixedArraysCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestFixedArraysCall constructs a new TestFixedArraysCall
+func NewTestFixedArraysCall(
+	addresses [5]common.Address,
+	uints [3]*big.Int,
+	bytes32s [2][32]byte,
+) *TestFixedArraysCall {
+	return &TestFixedArraysCall{
+		Addresses: addresses,
+		Uints:     uints,
+		Bytes32s:  bytes32s,
+	}
+}
+
 const TestFixedArraysReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestFixedArraysReturn)(nil)
 
 // TestFixedArraysReturn represents an ABI tuple
 type TestFixedArraysReturn struct {
@@ -2004,7 +2104,11 @@ func (t *TestFixedArraysReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestMixedTypesCall)(nil)
+
 const TestMixedTypesCallStaticSize = 160
+
+var _ abi.Tuple = (*TestMixedTypesCall)(nil)
 
 // TestMixedTypesCall represents an ABI tuple
 type TestMixedTypesCall struct {
@@ -2098,7 +2202,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field DynamicData")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.DynamicData, n, err = abi.DecodeBytes(data[dynamicOffset:])
 		if err != nil {
@@ -2120,7 +2224,7 @@ func (t *TestMixedTypesCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[128+24 : 128+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Items")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Items, n, err = DecodeItemSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2136,8 +2240,13 @@ func (t TestMixedTypesCall) GetMethodName() string {
 	return "testMixedTypes"
 }
 
-// GetMethodID returns the function name
-func (t TestMixedTypesCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestMixedTypesCall) GetMethodID() uint32 {
+	return TestMixedTypesID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestMixedTypesCall) GetMethodSelector() [4]byte {
 	return TestMixedTypesSelector
 }
 
@@ -2151,7 +2260,26 @@ func (t TestMixedTypesCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestMixedTypesCall constructs a new TestMixedTypesCall
+func NewTestMixedTypesCall(
+	fixedData [32]byte,
+	dynamicData []byte,
+	flag bool,
+	count uint8,
+	items []Item,
+) *TestMixedTypesCall {
+	return &TestMixedTypesCall{
+		FixedData:   fixedData,
+		DynamicData: dynamicData,
+		Flag:        flag,
+		Count:       count,
+		Items:       items,
+	}
+}
+
 const TestMixedTypesReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestMixedTypesReturn)(nil)
 
 // TestMixedTypesReturn represents an ABI tuple
 type TestMixedTypesReturn struct {
@@ -2203,7 +2331,11 @@ func (t *TestMixedTypesReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestNestedDynamicArraysCall)(nil)
+
 const TestNestedDynamicArraysCallStaticSize = 96
+
+var _ abi.Tuple = (*TestNestedDynamicArraysCall)(nil)
 
 // TestNestedDynamicArraysCall represents an ABI tuple
 type TestNestedDynamicArraysCall struct {
@@ -2286,7 +2418,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Matrix")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Matrix, n, err = DecodeUint256SliceSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2298,7 +2430,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field AddressMatrix")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.AddressMatrix, n, err = DecodeAddressSliceArray3Slice(data[dynamicOffset:])
 		if err != nil {
@@ -2310,7 +2442,7 @@ func (t *TestNestedDynamicArraysCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[64+24 : 64+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field DymMatrix")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.DymMatrix, n, err = DecodeStringSliceSlice(data[dynamicOffset:])
 		if err != nil {
@@ -2326,8 +2458,13 @@ func (t TestNestedDynamicArraysCall) GetMethodName() string {
 	return "testNestedDynamicArrays"
 }
 
-// GetMethodID returns the function name
-func (t TestNestedDynamicArraysCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestNestedDynamicArraysCall) GetMethodID() uint32 {
+	return TestNestedDynamicArraysID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestNestedDynamicArraysCall) GetMethodSelector() [4]byte {
 	return TestNestedDynamicArraysSelector
 }
 
@@ -2341,7 +2478,22 @@ func (t TestNestedDynamicArraysCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestNestedDynamicArraysCall constructs a new TestNestedDynamicArraysCall
+func NewTestNestedDynamicArraysCall(
+	matrix [][]*big.Int,
+	addressMatrix [][3][]common.Address,
+	dymMatrix [][]string,
+) *TestNestedDynamicArraysCall {
+	return &TestNestedDynamicArraysCall{
+		Matrix:        matrix,
+		AddressMatrix: addressMatrix,
+		DymMatrix:     dymMatrix,
+	}
+}
+
 const TestNestedDynamicArraysReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestNestedDynamicArraysReturn)(nil)
 
 // TestNestedDynamicArraysReturn represents an ABI tuple
 type TestNestedDynamicArraysReturn struct {
@@ -2393,7 +2545,11 @@ func (t *TestNestedDynamicArraysReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestNestedStructCall)(nil)
+
 const TestNestedStructCallStaticSize = 32
+
+var _ abi.Tuple = (*TestNestedStructCall)(nil)
 
 // TestNestedStructCall represents an ABI tuple
 type TestNestedStructCall struct {
@@ -2452,7 +2608,7 @@ func (t *TestNestedStructCall) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Group")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.Group.Decode(data[dynamicOffset:])
 		if err != nil {
@@ -2468,8 +2624,13 @@ func (t TestNestedStructCall) GetMethodName() string {
 	return "testNestedStruct"
 }
 
-// GetMethodID returns the function name
-func (t TestNestedStructCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestNestedStructCall) GetMethodID() uint32 {
+	return TestNestedStructID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestNestedStructCall) GetMethodSelector() [4]byte {
 	return TestNestedStructSelector
 }
 
@@ -2483,7 +2644,18 @@ func (t TestNestedStructCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestNestedStructCall constructs a new TestNestedStructCall
+func NewTestNestedStructCall(
+	group Group,
+) *TestNestedStructCall {
+	return &TestNestedStructCall{
+		Group: group,
+	}
+}
+
 const TestNestedStructReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestNestedStructReturn)(nil)
 
 // TestNestedStructReturn represents an ABI tuple
 type TestNestedStructReturn struct {
@@ -2535,7 +2707,11 @@ func (t *TestNestedStructReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestNonStandardIntegersCall)(nil)
+
 const TestNonStandardIntegersCallStaticSize = 384
+
+var _ abi.Tuple = (*TestNonStandardIntegersCall)(nil)
 
 // TestNonStandardIntegersCall represents an ABI tuple
 type TestNonStandardIntegersCall struct {
@@ -2713,8 +2889,13 @@ func (t TestNonStandardIntegersCall) GetMethodName() string {
 	return "testNonStandardIntegers"
 }
 
-// GetMethodID returns the function name
-func (t TestNonStandardIntegersCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestNonStandardIntegersCall) GetMethodID() uint32 {
+	return TestNonStandardIntegersID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestNonStandardIntegersCall) GetMethodSelector() [4]byte {
 	return TestNonStandardIntegersSelector
 }
 
@@ -2728,7 +2909,40 @@ func (t TestNonStandardIntegersCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestNonStandardIntegersCall constructs a new TestNonStandardIntegersCall
+func NewTestNonStandardIntegersCall(
+	u24 uint32,
+	u36 uint64,
+	u48 uint64,
+	u72 *big.Int,
+	u96 *big.Int,
+	u120 *big.Int,
+	i24 int32,
+	i36 int64,
+	i48 int64,
+	i72 *big.Int,
+	i96 *big.Int,
+	i120 *big.Int,
+) *TestNonStandardIntegersCall {
+	return &TestNonStandardIntegersCall{
+		U24:  u24,
+		U36:  u36,
+		U48:  u48,
+		U72:  u72,
+		U96:  u96,
+		U120: u120,
+		I24:  i24,
+		I36:  i36,
+		I48:  i48,
+		I72:  i72,
+		I96:  i96,
+		I120: i120,
+	}
+}
+
 const TestNonStandardIntegersReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestNonStandardIntegersReturn)(nil)
 
 // TestNonStandardIntegersReturn represents an ABI tuple
 type TestNonStandardIntegersReturn struct {
@@ -2780,7 +2994,11 @@ func (t *TestNonStandardIntegersReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+var _ abi.Method = (*TestSmallIntegersCall)(nil)
+
 const TestSmallIntegersCallStaticSize = 256
+
+var _ abi.Tuple = (*TestSmallIntegersCall)(nil)
 
 // TestSmallIntegersCall represents an ABI tuple
 type TestSmallIntegersCall struct {
@@ -2914,8 +3132,13 @@ func (t TestSmallIntegersCall) GetMethodName() string {
 	return "testSmallIntegers"
 }
 
-// GetMethodID returns the function name
-func (t TestSmallIntegersCall) GetMethodID() [4]byte {
+// GetMethodID returns the function id
+func (t TestSmallIntegersCall) GetMethodID() uint32 {
+	return TestSmallIntegersID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestSmallIntegersCall) GetMethodSelector() [4]byte {
 	return TestSmallIntegersSelector
 }
 
@@ -2929,7 +3152,32 @@ func (t TestSmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 	return result, nil
 }
 
+// NewTestSmallIntegersCall constructs a new TestSmallIntegersCall
+func NewTestSmallIntegersCall(
+	u8 uint8,
+	u16 uint16,
+	u32 uint32,
+	u64 uint64,
+	i8 int8,
+	i16 int16,
+	i32 int32,
+	i64 int64,
+) *TestSmallIntegersCall {
+	return &TestSmallIntegersCall{
+		U8:  u8,
+		U16: u16,
+		U32: u32,
+		U64: u64,
+		I8:  i8,
+		I16: i16,
+		I32: i32,
+		I64: i64,
+	}
+}
+
 const TestSmallIntegersReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestSmallIntegersReturn)(nil)
 
 // TestSmallIntegersReturn represents an ABI tuple
 type TestSmallIntegersReturn struct {
@@ -2994,6 +3242,8 @@ var (
 )
 
 // ComplexEvent represents the Complex event
+var _ abi.Event = (*ComplexEvent)(nil)
+
 type ComplexEvent struct {
 	ComplexEventIndexed
 	ComplexEventData
@@ -3004,8 +3254,8 @@ func NewComplexEvent(
 	message string,
 	numbers []*big.Int,
 	sender common.Address,
-) ComplexEvent {
-	return ComplexEvent{
+) *ComplexEvent {
+	return &ComplexEvent{
 		ComplexEventIndexed: ComplexEventIndexed{
 			Sender: sender,
 		},
@@ -3049,10 +3299,10 @@ func (e ComplexEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of Complex event from topics, ignore hash topics
 func (e *ComplexEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 2 {
-		return fmt.Errorf("invalid number of topics for Complex event: expected 2, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != ComplexEventTopic {
-		return fmt.Errorf("invalid event topic for Complex event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.Sender, _, err = abi.DecodeAddress(topics[1][:])
@@ -3063,6 +3313,8 @@ func (e *ComplexEventIndexed) DecodeTopics(topics []common.Hash) error {
 }
 
 const ComplexEventDataStaticSize = 64
+
+var _ abi.Tuple = (*ComplexEventData)(nil)
 
 // ComplexEventData represents an ABI tuple
 type ComplexEventData struct {
@@ -3133,7 +3385,7 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Message")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Message, n, err = abi.DecodeString(data[dynamicOffset:])
 		if err != nil {
@@ -3145,7 +3397,7 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[32+24 : 32+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field Numbers")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		t.Numbers, n, err = abi.DecodeUint256Slice(data[dynamicOffset:])
 		if err != nil {
@@ -3157,6 +3409,8 @@ func (t *ComplexEventData) Decode(data []byte) (int, error) {
 }
 
 // IndexOnlyEvent represents the IndexOnly event
+var _ abi.Event = (*IndexOnlyEvent)(nil)
+
 type IndexOnlyEvent struct {
 	IndexOnlyEventIndexed
 	IndexOnlyEventData
@@ -3165,8 +3419,8 @@ type IndexOnlyEvent struct {
 // NewIndexOnlyEvent constructs a new IndexOnly event
 func NewIndexOnlyEvent(
 	sender common.Address,
-) IndexOnlyEvent {
-	return IndexOnlyEvent{
+) *IndexOnlyEvent {
+	return &IndexOnlyEvent{
 		IndexOnlyEventIndexed: IndexOnlyEventIndexed{
 			Sender: sender,
 		},
@@ -3207,10 +3461,10 @@ func (e IndexOnlyEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of IndexOnly event from topics, ignore hash topics
 func (e *IndexOnlyEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 2 {
-		return fmt.Errorf("invalid number of topics for IndexOnly event: expected 2, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != IndexOnlyEventTopic {
-		return fmt.Errorf("invalid event topic for IndexOnly event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.Sender, _, err = abi.DecodeAddress(topics[1][:])
@@ -3225,6 +3479,8 @@ type IndexOnlyEventData struct {
 }
 
 // TransferEvent represents the Transfer event
+var _ abi.Event = (*TransferEvent)(nil)
+
 type TransferEvent struct {
 	TransferEventIndexed
 	TransferEventData
@@ -3235,8 +3491,8 @@ func NewTransferEvent(
 	from common.Address,
 	to common.Address,
 	value *big.Int,
-) TransferEvent {
-	return TransferEvent{
+) *TransferEvent {
+	return &TransferEvent{
 		TransferEventIndexed: TransferEventIndexed{
 			From: from,
 			To:   to,
@@ -3289,10 +3545,10 @@ func (e TransferEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of Transfer event from topics, ignore hash topics
 func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 3 {
-		return fmt.Errorf("invalid number of topics for Transfer event: expected 3, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != TransferEventTopic {
-		return fmt.Errorf("invalid event topic for Transfer event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.From, _, err = abi.DecodeAddress(topics[1][:])
@@ -3307,6 +3563,8 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 }
 
 const TransferEventDataStaticSize = 32
+
+var _ abi.Tuple = (*TransferEventData)(nil)
 
 // TransferEventData represents an ABI tuple
 type TransferEventData struct {
@@ -3359,6 +3617,8 @@ func (t *TransferEventData) Decode(data []byte) (int, error) {
 }
 
 // UserCreatedEvent represents the UserCreated event
+var _ abi.Event = (*UserCreatedEvent)(nil)
+
 type UserCreatedEvent struct {
 	UserCreatedEventIndexed
 	UserCreatedEventData
@@ -3368,8 +3628,8 @@ type UserCreatedEvent struct {
 func NewUserCreatedEvent(
 	user User,
 	creator common.Address,
-) UserCreatedEvent {
-	return UserCreatedEvent{
+) *UserCreatedEvent {
+	return &UserCreatedEvent{
 		UserCreatedEventIndexed: UserCreatedEventIndexed{
 			Creator: creator,
 		},
@@ -3412,10 +3672,10 @@ func (e UserCreatedEventIndexed) EncodeTopics() ([]common.Hash, error) {
 // DecodeTopics decodes indexed fields of UserCreated event from topics, ignore hash topics
 func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
 	if len(topics) != 2 {
-		return fmt.Errorf("invalid number of topics for UserCreated event: expected 2, got %d", len(topics))
+		return abi.ErrInvalidNumberOfTopics
 	}
 	if topics[0] != UserCreatedEventTopic {
-		return fmt.Errorf("invalid event topic for UserCreated event")
+		return abi.ErrInvalidEventTopic
 	}
 	var err error
 	e.Creator, _, err = abi.DecodeAddress(topics[1][:])
@@ -3426,6 +3686,8 @@ func (e *UserCreatedEventIndexed) DecodeTopics(topics []common.Hash) error {
 }
 
 const UserCreatedEventDataStaticSize = 32
+
+var _ abi.Tuple = (*UserCreatedEventData)(nil)
 
 // UserCreatedEventData represents an ABI tuple
 type UserCreatedEventData struct {
@@ -3484,7 +3746,7 @@ func (t *UserCreatedEventData) Decode(data []byte) (int, error) {
 	{
 		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
 		if offset != dynamicOffset {
-			return 0, errors.New("invalid offset for dynamic field User")
+			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		n, err = t.User.Decode(data[dynamicOffset:])
 		if err != nil {
