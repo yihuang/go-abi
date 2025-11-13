@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"math/bits"
 	"strings"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
@@ -16,6 +17,31 @@ import (
 
 func Pad32(n int) int {
 	return (n + 31) / 32 * 32
+}
+
+func DecodeSize(data []byte) (int, error) {
+	switch bits.UintSize {
+	case 64:
+		v, _, err := DecodeInt64(data)
+		if err != nil {
+			return 0, err
+		}
+		if v < 0 {
+			return 0, ErrNegativeSize
+		}
+		return int(v), err
+	case 32:
+		v, _, err := DecodeInt32(data)
+		if err != nil {
+			return 0, err
+		}
+		if v < 0 {
+			return 0, ErrNegativeSize
+		}
+		return int(v), err
+	default:
+		panic("unsupported int size")
+	}
 }
 
 func EncodeBigInt(n *big.Int, buf []byte, signed bool) error {

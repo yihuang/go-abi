@@ -685,13 +685,17 @@ func (t *NameReturn) Decode(data []byte) (int, error) {
 		return 0, io.ErrUnexpectedEOF
 	}
 	var (
-		err error
-		n   int
+		err    error
+		n      int
+		offset int
 	)
 	dynamicOffset := 32
 	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		offset, err = abi.DecodeSize(data[0:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, abi.ErrInvalidOffsetForDynamicField
 		}
@@ -794,13 +798,17 @@ func (t *SymbolReturn) Decode(data []byte) (int, error) {
 		return 0, io.ErrUnexpectedEOF
 	}
 	var (
-		err error
-		n   int
+		err    error
+		n      int
+		offset int
 	)
 	dynamicOffset := 32
 	// Decode dynamic field Field1
 	{
-		offset := int(binary.BigEndian.Uint64(data[0+24 : 0+32]))
+		offset, err = abi.DecodeSize(data[0:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, abi.ErrInvalidOffsetForDynamicField
 		}

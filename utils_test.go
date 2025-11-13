@@ -42,12 +42,12 @@ func TestEncodeBigInt(t *testing.T) {
 
 func TestDecodeBigInt(t *testing.T) {
 	tests := []struct {
-		name        string
-		data        string
-		signed      bool
-		expected    *big.Int
-		expectError bool
-		error       error
+		name     string
+		data     string
+		signed   bool
+		expected *big.Int
+		expErr   bool
+		err      error
 	}{
 		{
 			name:     "signed positive",
@@ -110,11 +110,11 @@ func TestDecodeBigInt(t *testing.T) {
 			}(),
 		},
 		{
-			name:        "insufficient data",
-			data:        "80000000000000000000000000000000000000000000000000000000000000",
-			signed:      true,
-			expectError: true,
-			error:       io.ErrUnexpectedEOF,
+			name:   "insufficient data",
+			data:   "80000000000000000000000000000000000000000000000000000000000000",
+			signed: true,
+			expErr: true,
+			err:    io.ErrUnexpectedEOF,
 		},
 	}
 
@@ -128,9 +128,9 @@ func TestDecodeBigInt(t *testing.T) {
 
 			result, err := DecodeBigInt(data, tt.signed)
 
-			if tt.expectError {
+			if tt.expErr {
 				require.Error(t, err)
-				require.Equal(t, tt.error, err)
+				require.Equal(t, tt.err, err)
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, tt.expected, result)

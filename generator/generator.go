@@ -471,6 +471,7 @@ func (g *Generator) genStructDecode(s Struct) {
 	g.L("\t\terr error")
 	if IsDynamicType(s.T) {
 		g.L("\t\tn int")
+		g.L("\t\toffset int")
 	}
 	g.L("\t)")
 	g.L("\t\tdynamicOffset := %d", staticSize)
@@ -495,7 +496,10 @@ func (g *Generator) genStructDecode(s Struct) {
 			g.L("\t// Decode dynamic field %s", f.Name)
 			g.L("\t{")
 
-			g.L("\t\toffset := int(binary.BigEndian.Uint64(data[%d+24:%d+32]))", offset, offset)
+			g.L("\t\toffset, err = %sDecodeSize(data[%d:])", g.StdPrefix, offset)
+			g.L("\t\tif err != nil {")
+			g.L("\t\t\treturn 0, err")
+			g.L("\t\t}")
 			g.L("\t\tif offset != dynamicOffset {")
 			g.L("\t\t\treturn 0, %sErrInvalidOffsetForDynamicField", g.StdPrefix)
 			g.L("\t\t}")

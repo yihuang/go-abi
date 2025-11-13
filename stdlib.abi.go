@@ -823,6 +823,11 @@ func SizeUint8Slice(value []uint8) int {
 // DecodeAddress decodes address from ABI bytes
 func DecodeAddress(data []byte) (common.Address, int, error) {
 	var result common.Address
+	for i := 0; i < 12; i++ {
+		if data[i] != 0x00 {
+			return result, 0, ErrDirtyPadding
+		}
+	}
 	copy(result[:], data[12:32])
 	return result, 32, nil
 }
@@ -830,17 +835,19 @@ func DecodeAddress(data []byte) (common.Address, int, error) {
 // DecodeAddressSlice decodes address[] from ABI bytes
 func DecodeAddressSlice(data []byte) ([]common.Address, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -857,24 +864,38 @@ func DecodeAddressSlice(data []byte) ([]common.Address, int, error) {
 
 // DecodeBool decodes bool from ABI bytes
 func DecodeBool(data []byte) (bool, int, error) {
-	result := data[31] != 0
-	return result, 32, nil
+	// Validate boolean encoding - only 0 or 1 are valid
+	for i := 0; i < 31; i++ {
+		if data[i] != 0x00 {
+			return false, 0, ErrDirtyPadding
+		}
+	}
+	switch data[31] {
+	case 0x01:
+		return true, 32, nil
+	case 0x00:
+		return false, 32, nil
+	default:
+		return false, 0, ErrDirtyPadding
+	}
 }
 
 // DecodeBoolSlice decodes bool[] from ABI bytes
 func DecodeBoolSlice(data []byte) ([]bool, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -892,14 +913,28 @@ func DecodeBoolSlice(data []byte) ([]bool, int, error) {
 // DecodeBytes decodes bytes from ABI bytes
 func DecodeBytes(data []byte) ([]byte, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32+Pad32(length) {
+	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
+	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
+	data = data[32:]
+	paddedLength := Pad32(length)
+	if len(data) < paddedLength {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	// check padding bytes
+	for i := length; i < paddedLength; i++ {
+		if data[i] != 0x00 {
+			return nil, 0, ErrDirtyPadding
+		}
 	}
 
 	// Decode data
 	result := make([]byte, length)
-	copy(result, data[32:32+length])
+	copy(result, data[:length])
 	return result, 32 + Pad32(length), nil
 }
 
@@ -913,17 +948,19 @@ func DecodeBytes32(data []byte) ([32]byte, int, error) {
 // DecodeBytes32Slice decodes bytes32[] from ABI bytes
 func DecodeBytes32Slice(data []byte) ([][32]byte, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -941,25 +978,31 @@ func DecodeBytes32Slice(data []byte) ([][32]byte, int, error) {
 // DecodeBytesSlice decodes bytes[] from ABI bytes
 func DecodeBytesSlice(data []byte) ([][]byte, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with dynamic types
 	result := make([][]byte, length)
 	dynamicOffset := length * 32
 	for i := 0; i < length; i++ {
+		tmp, err := DecodeSize(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
 		offset += 32
-		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+
 		if dynamicOffset != tmp {
 			return nil, 0, ErrInvalidOffsetForSliceElement
 		}
@@ -974,28 +1017,42 @@ func DecodeBytesSlice(data []byte) ([][]byte, int, error) {
 
 // DecodeInt16 decodes int16 from ABI bytes
 func DecodeInt16(data []byte) (int16, int, error) {
-	var result int16
-	result = int16(binary.BigEndian.Uint16(data[30:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fff // Sign extend
+	// Validate sign extension for int16 (padding bytes: 30)
+	if data[30]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 30; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 30; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	result := int16(binary.BigEndian.Uint16(data[30:32]))
 	return result, 32, nil
 }
 
 // DecodeInt16Slice decodes int16[] from ABI bytes
 func DecodeInt16Slice(data []byte) ([]int16, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1012,28 +1069,43 @@ func DecodeInt16Slice(data []byte) ([]int16, int, error) {
 
 // DecodeInt24 decodes int24 from ABI bytes
 func DecodeInt24(data []byte) (int32, int, error) {
-	var result int32
-	result = int32(binary.BigEndian.Uint32(data[28:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffff // Sign extend
+	// Validate sign extension for int24 (padding bytes: 29)
+	if data[29]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 29; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 29; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	// Decode int24 using int32
+	result := int32(binary.BigEndian.Uint32(data[28:32]))
 	return result, 32, nil
 }
 
 // DecodeInt24Slice decodes int24[] from ABI bytes
 func DecodeInt24Slice(data []byte) ([]int32, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1060,17 +1132,19 @@ func DecodeInt256(data []byte) (*big.Int, int, error) {
 // DecodeInt256Slice decodes int72[] from ABI bytes
 func DecodeInt256Slice(data []byte) ([]*big.Int, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1087,28 +1161,43 @@ func DecodeInt256Slice(data []byte) ([]*big.Int, int, error) {
 
 // DecodeInt32 decodes int32 from ABI bytes
 func DecodeInt32(data []byte) (int32, int, error) {
-	var result int32
-	result = int32(binary.BigEndian.Uint32(data[28:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffff // Sign extend
+	// Validate sign extension for int32 (padding bytes: 28)
+	if data[28]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 28; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 28; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	// Decode int32 using int32
+	result := int32(binary.BigEndian.Uint32(data[28:32]))
 	return result, 32, nil
 }
 
 // DecodeInt32Slice decodes int32[] from ABI bytes
 func DecodeInt32Slice(data []byte) ([]int32, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1125,28 +1214,43 @@ func DecodeInt32Slice(data []byte) ([]int32, int, error) {
 
 // DecodeInt40 decodes int40 from ABI bytes
 func DecodeInt40(data []byte) (int64, int, error) {
-	var result int64
-	result = int64(binary.BigEndian.Uint64(data[24:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffffffffffff // Sign extend
+	// Validate sign extension for int40 (padding bytes: 27)
+	if data[27]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 27; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 27; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	// Decode int40 using int64
+	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
 // DecodeInt40Slice decodes int40[] from ABI bytes
 func DecodeInt40Slice(data []byte) ([]int64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1163,28 +1267,43 @@ func DecodeInt40Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt48 decodes int48 from ABI bytes
 func DecodeInt48(data []byte) (int64, int, error) {
-	var result int64
-	result = int64(binary.BigEndian.Uint64(data[24:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffffffffffff // Sign extend
+	// Validate sign extension for int48 (padding bytes: 26)
+	if data[26]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 26; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 26; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	// Decode int48 using int64
+	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
 // DecodeInt48Slice decodes int48[] from ABI bytes
 func DecodeInt48Slice(data []byte) ([]int64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1201,28 +1320,43 @@ func DecodeInt48Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt56 decodes int56 from ABI bytes
 func DecodeInt56(data []byte) (int64, int, error) {
-	var result int64
-	result = int64(binary.BigEndian.Uint64(data[24:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffffffffffff // Sign extend
+	// Validate sign extension for int56 (padding bytes: 25)
+	if data[25]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 25; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 25; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	// Decode int56 using int64
+	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
 // DecodeInt56Slice decodes int56[] from ABI bytes
 func DecodeInt56Slice(data []byte) ([]int64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1239,28 +1373,43 @@ func DecodeInt56Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt64 decodes int64 from ABI bytes
 func DecodeInt64(data []byte) (int64, int, error) {
-	var result int64
-	result = int64(binary.BigEndian.Uint64(data[24:32]))
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7fffffffffffffff // Sign extend
+	// Validate sign extension for int64 (padding bytes: 24)
+	if data[24]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 24; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 24; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	// Decode int64 using int64
+	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
 // DecodeInt64Slice decodes int64[] from ABI bytes
 func DecodeInt64Slice(data []byte) ([]int64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1277,28 +1426,42 @@ func DecodeInt64Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt8 decodes int8 from ABI bytes
 func DecodeInt8(data []byte) (int8, int, error) {
-	var result int8
-	result = int8(data[31])
-	if data[0]&0x80 != 0 { // Check sign bit
-		result = result | ^0x7f // Sign extend
+	// Validate sign extension for int8 (padding bytes: 31)
+	if data[31]&0x80 != 0 {
+		// Negative value, check all padding bytes are 0xFF
+		for i := 0; i < 31; i++ {
+			if data[i] != 0xFF {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
+	} else {
+		// Non-negative value, check all padding bytes are zero
+		for i := 0; i < 31; i++ {
+			if data[i] != 0x00 {
+				return 0, 0, ErrDirtyPadding
+			}
+		}
 	}
+	result := int8(data[31])
 	return result, 32, nil
 }
 
 // DecodeInt8Slice decodes int8[] from ABI bytes
 func DecodeInt8Slice(data []byte) ([]int8, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1316,38 +1479,58 @@ func DecodeInt8Slice(data []byte) ([]int8, int, error) {
 // DecodeString decodes string from ABI bytes
 func DecodeString(data []byte) (string, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
-	if len(data) < 32+Pad32(length) {
+	if len(data) < 32 {
 		return "", 0, io.ErrUnexpectedEOF
+	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return "", 0, err
+	}
+	data = data[32:]
+	paddedLength := Pad32(length)
+	if len(data) < paddedLength {
+		return "", 0, io.ErrUnexpectedEOF
+	}
+	// check padding bytes
+	for i := length; i < paddedLength; i++ {
+		if data[i] != 0x00 {
+			return "", 0, ErrDirtyPadding
+		}
 	}
 
 	// Decode data
-	result := string(data[32 : 32+length])
+	result := string(data[:length])
 	return result, 32 + Pad32(length), nil
 }
 
 // DecodeStringSlice decodes string[] from ABI bytes
 func DecodeStringSlice(data []byte) ([]string, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with dynamic types
 	result := make([]string, length)
 	dynamicOffset := length * 32
 	for i := 0; i < length; i++ {
+		tmp, err := DecodeSize(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
 		offset += 32
-		tmp := int(binary.BigEndian.Uint64(data[offset-8 : offset]))
+
 		if dynamicOffset != tmp {
 			return nil, 0, ErrInvalidOffsetForSliceElement
 		}
@@ -1362,25 +1545,32 @@ func DecodeStringSlice(data []byte) ([]string, int, error) {
 
 // DecodeUint16 decodes uint16 from ABI bytes
 func DecodeUint16(data []byte) (uint16, int, error) {
-	var result uint16
-	result = binary.BigEndian.Uint16(data[30:32])
+	// Validate no extra bits are set for uint16 (padding bytes: 30)
+	for i := 0; i < 30; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := binary.BigEndian.Uint16(data[30:32])
 	return result, 32, nil
 }
 
 // DecodeUint16Slice decodes uint16[] from ABI bytes
 func DecodeUint16Slice(data []byte) ([]uint16, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1397,25 +1587,32 @@ func DecodeUint16Slice(data []byte) ([]uint16, int, error) {
 
 // DecodeUint24 decodes uint24 from ABI bytes
 func DecodeUint24(data []byte) (uint32, int, error) {
-	var result uint32
-	result = binary.BigEndian.Uint32(data[28:32])
+	// Validate no extra bits are set for uint24 (padding bytes: 29)
+	for i := 0; i < 29; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
 // DecodeUint24Slice decodes uint24[] from ABI bytes
 func DecodeUint24Slice(data []byte) ([]uint32, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1442,17 +1639,19 @@ func DecodeUint256(data []byte) (*big.Int, int, error) {
 // DecodeUint256Slice decodes uint72[] from ABI bytes
 func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1469,25 +1668,32 @@ func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
 
 // DecodeUint32 decodes uint32 from ABI bytes
 func DecodeUint32(data []byte) (uint32, int, error) {
-	var result uint32
-	result = binary.BigEndian.Uint32(data[28:32])
+	// Validate no extra bits are set for uint32 (padding bytes: 28)
+	for i := 0; i < 28; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
 // DecodeUint32Slice decodes uint32[] from ABI bytes
 func DecodeUint32Slice(data []byte) ([]uint32, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1504,25 +1710,32 @@ func DecodeUint32Slice(data []byte) ([]uint32, int, error) {
 
 // DecodeUint40 decodes uint40 from ABI bytes
 func DecodeUint40(data []byte) (uint64, int, error) {
-	var result uint64
-	result = binary.BigEndian.Uint64(data[24:32])
+	// Validate no extra bits are set for uint40 (padding bytes: 27)
+	for i := 0; i < 27; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // DecodeUint40Slice decodes uint40[] from ABI bytes
 func DecodeUint40Slice(data []byte) ([]uint64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1539,25 +1752,32 @@ func DecodeUint40Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint48 decodes uint48 from ABI bytes
 func DecodeUint48(data []byte) (uint64, int, error) {
-	var result uint64
-	result = binary.BigEndian.Uint64(data[24:32])
+	// Validate no extra bits are set for uint48 (padding bytes: 26)
+	for i := 0; i < 26; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // DecodeUint48Slice decodes uint48[] from ABI bytes
 func DecodeUint48Slice(data []byte) ([]uint64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1574,25 +1794,32 @@ func DecodeUint48Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint56 decodes uint56 from ABI bytes
 func DecodeUint56(data []byte) (uint64, int, error) {
-	var result uint64
-	result = binary.BigEndian.Uint64(data[24:32])
+	// Validate no extra bits are set for uint56 (padding bytes: 25)
+	for i := 0; i < 25; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // DecodeUint56Slice decodes uint56[] from ABI bytes
 func DecodeUint56Slice(data []byte) ([]uint64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1609,25 +1836,32 @@ func DecodeUint56Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint64 decodes uint64 from ABI bytes
 func DecodeUint64(data []byte) (uint64, int, error) {
-	var result uint64
-	result = binary.BigEndian.Uint64(data[24:32])
+	// Validate no extra bits are set for uint64 (padding bytes: 24)
+	for i := 0; i < 24; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
 // DecodeUint64Slice decodes uint64[] from ABI bytes
 func DecodeUint64Slice(data []byte) ([]uint64, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -1644,25 +1878,32 @@ func DecodeUint64Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint8 decodes uint8 from ABI bytes
 func DecodeUint8(data []byte) (uint8, int, error) {
-	var result uint8
-	result = uint8(data[31])
+	// Validate no extra bits are set for uint8 (padding bytes: 31)
+	for i := 0; i < 31; i++ {
+		if data[i] != 0x00 {
+			return 0, 0, ErrDirtyPadding
+		}
+	}
+	result := uint8(data[31])
 	return result, 32, nil
 }
 
 // DecodeUint8Slice decodes uint8[] from ABI bytes
 func DecodeUint8Slice(data []byte) ([]uint8, int, error) {
 	// Decode length
-	length := int(binary.BigEndian.Uint64(data[24:32]))
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
+	length, err := DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
 	data = data[32:]
-	if len(data) < 32*length {
+	if length > len(data) || length*32 > len(data) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	var (
 		n      int
-		err    error
 		offset int
 	)
 	// Decode elements with static types
@@ -2398,8 +2639,9 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 		return 0, io.ErrUnexpectedEOF
 	}
 	var (
-		err error
-		n   int
+		err    error
+		n      int
+		offset int
 	)
 	dynamicOffset := 2368
 	// Decode static field Field1: bool
@@ -2419,7 +2661,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field4
 	{
-		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
+		offset, err = DecodeSize(data[96:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2431,7 +2676,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field5
 	{
-		offset := int(binary.BigEndian.Uint64(data[128+24 : 128+32]))
+		offset, err = DecodeSize(data[128:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2603,7 +2851,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field38
 	{
-		offset := int(binary.BigEndian.Uint64(data[1184+24 : 1184+32]))
+		offset, err = DecodeSize(data[1184:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2615,7 +2866,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field39
 	{
-		offset := int(binary.BigEndian.Uint64(data[1216+24 : 1216+32]))
+		offset, err = DecodeSize(data[1216:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2627,7 +2881,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field40
 	{
-		offset := int(binary.BigEndian.Uint64(data[1248+24 : 1248+32]))
+		offset, err = DecodeSize(data[1248:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2639,7 +2896,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field41
 	{
-		offset := int(binary.BigEndian.Uint64(data[1280+24 : 1280+32]))
+		offset, err = DecodeSize(data[1280:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2651,7 +2911,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field42
 	{
-		offset := int(binary.BigEndian.Uint64(data[1312+24 : 1312+32]))
+		offset, err = DecodeSize(data[1312:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2663,7 +2926,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field43
 	{
-		offset := int(binary.BigEndian.Uint64(data[1344+24 : 1344+32]))
+		offset, err = DecodeSize(data[1344:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2675,7 +2941,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field44
 	{
-		offset := int(binary.BigEndian.Uint64(data[1376+24 : 1376+32]))
+		offset, err = DecodeSize(data[1376:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2687,7 +2956,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field45
 	{
-		offset := int(binary.BigEndian.Uint64(data[1408+24 : 1408+32]))
+		offset, err = DecodeSize(data[1408:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2699,7 +2971,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field46
 	{
-		offset := int(binary.BigEndian.Uint64(data[1440+24 : 1440+32]))
+		offset, err = DecodeSize(data[1440:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2711,7 +2986,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field47
 	{
-		offset := int(binary.BigEndian.Uint64(data[1472+24 : 1472+32]))
+		offset, err = DecodeSize(data[1472:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2723,7 +3001,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field48
 	{
-		offset := int(binary.BigEndian.Uint64(data[1504+24 : 1504+32]))
+		offset, err = DecodeSize(data[1504:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2735,7 +3016,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field49
 	{
-		offset := int(binary.BigEndian.Uint64(data[1536+24 : 1536+32]))
+		offset, err = DecodeSize(data[1536:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2747,7 +3031,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field50
 	{
-		offset := int(binary.BigEndian.Uint64(data[1568+24 : 1568+32]))
+		offset, err = DecodeSize(data[1568:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2759,7 +3046,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field51
 	{
-		offset := int(binary.BigEndian.Uint64(data[1600+24 : 1600+32]))
+		offset, err = DecodeSize(data[1600:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2771,7 +3061,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field52
 	{
-		offset := int(binary.BigEndian.Uint64(data[1632+24 : 1632+32]))
+		offset, err = DecodeSize(data[1632:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2783,7 +3076,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field53
 	{
-		offset := int(binary.BigEndian.Uint64(data[1664+24 : 1664+32]))
+		offset, err = DecodeSize(data[1664:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2795,7 +3091,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field54
 	{
-		offset := int(binary.BigEndian.Uint64(data[1696+24 : 1696+32]))
+		offset, err = DecodeSize(data[1696:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2807,7 +3106,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field55
 	{
-		offset := int(binary.BigEndian.Uint64(data[1728+24 : 1728+32]))
+		offset, err = DecodeSize(data[1728:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2819,7 +3121,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field56
 	{
-		offset := int(binary.BigEndian.Uint64(data[1760+24 : 1760+32]))
+		offset, err = DecodeSize(data[1760:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2831,7 +3136,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field57
 	{
-		offset := int(binary.BigEndian.Uint64(data[1792+24 : 1792+32]))
+		offset, err = DecodeSize(data[1792:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2843,7 +3151,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field58
 	{
-		offset := int(binary.BigEndian.Uint64(data[1824+24 : 1824+32]))
+		offset, err = DecodeSize(data[1824:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2855,7 +3166,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field59
 	{
-		offset := int(binary.BigEndian.Uint64(data[1856+24 : 1856+32]))
+		offset, err = DecodeSize(data[1856:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2867,7 +3181,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field60
 	{
-		offset := int(binary.BigEndian.Uint64(data[1888+24 : 1888+32]))
+		offset, err = DecodeSize(data[1888:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2879,7 +3196,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field61
 	{
-		offset := int(binary.BigEndian.Uint64(data[1920+24 : 1920+32]))
+		offset, err = DecodeSize(data[1920:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2891,7 +3211,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field62
 	{
-		offset := int(binary.BigEndian.Uint64(data[1952+24 : 1952+32]))
+		offset, err = DecodeSize(data[1952:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2903,7 +3226,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field63
 	{
-		offset := int(binary.BigEndian.Uint64(data[1984+24 : 1984+32]))
+		offset, err = DecodeSize(data[1984:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2915,7 +3241,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field64
 	{
-		offset := int(binary.BigEndian.Uint64(data[2016+24 : 2016+32]))
+		offset, err = DecodeSize(data[2016:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2927,7 +3256,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field65
 	{
-		offset := int(binary.BigEndian.Uint64(data[2048+24 : 2048+32]))
+		offset, err = DecodeSize(data[2048:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2939,7 +3271,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field66
 	{
-		offset := int(binary.BigEndian.Uint64(data[2080+24 : 2080+32]))
+		offset, err = DecodeSize(data[2080:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2951,7 +3286,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field67
 	{
-		offset := int(binary.BigEndian.Uint64(data[2112+24 : 2112+32]))
+		offset, err = DecodeSize(data[2112:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2963,7 +3301,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field68
 	{
-		offset := int(binary.BigEndian.Uint64(data[2144+24 : 2144+32]))
+		offset, err = DecodeSize(data[2144:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2975,7 +3316,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field69
 	{
-		offset := int(binary.BigEndian.Uint64(data[2176+24 : 2176+32]))
+		offset, err = DecodeSize(data[2176:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2987,7 +3331,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field70
 	{
-		offset := int(binary.BigEndian.Uint64(data[2208+24 : 2208+32]))
+		offset, err = DecodeSize(data[2208:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -2999,7 +3346,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field71
 	{
-		offset := int(binary.BigEndian.Uint64(data[2240+24 : 2240+32]))
+		offset, err = DecodeSize(data[2240:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -3011,7 +3361,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field72
 	{
-		offset := int(binary.BigEndian.Uint64(data[2272+24 : 2272+32]))
+		offset, err = DecodeSize(data[2272:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -3023,7 +3376,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field73
 	{
-		offset := int(binary.BigEndian.Uint64(data[2304+24 : 2304+32]))
+		offset, err = DecodeSize(data[2304:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}
@@ -3035,7 +3391,10 @@ func (t *StdlibCall) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Field74
 	{
-		offset := int(binary.BigEndian.Uint64(data[2336+24 : 2336+32]))
+		offset, err = DecodeSize(data[2336:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, ErrInvalidOffsetForDynamicField
 		}

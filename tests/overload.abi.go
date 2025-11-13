@@ -434,8 +434,9 @@ func (t *Overloaded11Call) Decode(data []byte) (int, error) {
 		return 0, io.ErrUnexpectedEOF
 	}
 	var (
-		err error
-		n   int
+		err    error
+		n      int
+		offset int
 	)
 	dynamicOffset := 128
 	// Decode static field From: address
@@ -455,7 +456,10 @@ func (t *Overloaded11Call) Decode(data []byte) (int, error) {
 	}
 	// Decode dynamic field Data
 	{
-		offset := int(binary.BigEndian.Uint64(data[96+24 : 96+32]))
+		offset, err = abi.DecodeSize(data[96:])
+		if err != nil {
+			return 0, err
+		}
 		if offset != dynamicOffset {
 			return 0, abi.ErrInvalidOffsetForDynamicField
 		}

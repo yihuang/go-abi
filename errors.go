@@ -22,4 +22,10 @@ var (
 
 	// ErrInvalidOffsetForArrayElement is returned when the offset for an array element is invalid
 	ErrInvalidOffsetForArrayElement = errors.New("invalid offset for array element")
+
+	// ErrNegativeSize is returned when an offset or length is negative
+	ErrNegativeSize = errors.New("negative size")
+
+	// ErrDirtyPadding is returned when padding bytes are not expected
+	ErrDirtyPadding = errors.New("dirty padding")
 )
