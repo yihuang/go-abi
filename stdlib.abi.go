@@ -933,9 +933,7 @@ func DecodeBytes(data []byte) ([]byte, int, error) {
 	}
 
 	// Decode data
-	result := make([]byte, length)
-	copy(result, data[:length])
-	return result, 32 + Pad32(length), nil
+	return data[:length], 32 + Pad32(length), nil
 }
 
 // DecodeBytes32 decodes bytes32 from ABI bytes
@@ -1499,8 +1497,7 @@ func DecodeString(data []byte) (string, int, error) {
 	}
 
 	// Decode data
-	result := string(data[:length])
-	return result, 32 + Pad32(length), nil
+	return string(data[:length]), 32 + Pad32(length), nil
 }
 
 // DecodeStringSlice decodes string[] from ABI bytes

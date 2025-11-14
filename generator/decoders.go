@@ -184,8 +184,7 @@ func (g *Generator) genStringDecoding() {
 
 	g.L("")
 	g.L("\t// Decode data")
-	g.L("\tresult := string(data[:length])")
-	g.L("\treturn result, 32 + %sPad32(length), nil", g.StdPrefix)
+	g.L("\treturn string(data[:length]), 32 + %sPad32(length), nil", g.StdPrefix)
 }
 
 // genBytesDecoding generates decoding for bytes types
@@ -216,9 +215,7 @@ func (g *Generator) genBytesDecoding() {
 
 	g.L("")
 	g.L("\t// Decode data")
-	g.L("\tresult := make([]byte, length)")
-	g.L("\tcopy(result, data[:length])")
-	g.L("\treturn result, 32 + %sPad32(length), nil", g.StdPrefix)
+	g.L("\treturn data[:length], 32 + %sPad32(length), nil", g.StdPrefix)
 }
 
 // genFixedBytesDecoding generates decoding for fixed bytes types
