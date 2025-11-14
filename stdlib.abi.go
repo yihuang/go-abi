@@ -865,8 +865,8 @@ func DecodeAddressSlice(data []byte) ([]common.Address, int, error) {
 // DecodeBool decodes bool from ABI bytes
 func DecodeBool(data []byte) (bool, int, error) {
 	// Validate boolean encoding - only 0 or 1 are valid
-	for i := 0; i < 31; i++ {
-		if data[i] != 0x00 {
+	for _, i := range data[:31] {
+		if i != 0 {
 			return false, 0, ErrDirtyPadding
 		}
 	}

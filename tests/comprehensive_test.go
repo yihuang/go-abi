@@ -2,7 +2,6 @@ package tests
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -162,38 +161,35 @@ func TestComprehensiveFixedArrays(t *testing.T) {
 }
 
 func TestComprehensiveNestedDynamicArrays(t *testing.T) {
-	matrix := [][]*big.Int{
-		{big.NewInt(1), big.NewInt(2), big.NewInt(3)},
-		{big.NewInt(4), big.NewInt(5)},
-		{big.NewInt(6)},
-	}
-	addressMatrix := [][3][]common.Address{{
-		{
-			common.HexToAddress("0x1111111111111111111111111111111111111111"),
-			common.HexToAddress("0x2222222222222222222222222222222222222222"),
-		},
-		{
-			common.HexToAddress("0x3333333333333333333333333333333333333333"),
-			common.HexToAddress("0x4444444444444444444444444444444444444444"),
-			common.HexToAddress("0x5555555555555555555555555555555555555555"),
-		},
-		{
-			common.HexToAddress("0x1111111111111111111111111111111111111111"),
-			common.HexToAddress("0x2222222222222222222222222222222222222222"),
-		},
-	}}
-
 	args := &TestNestedDynamicArraysCall{
-		Matrix:        matrix,
-		AddressMatrix: addressMatrix,
-		DymMatrix:     [][]string{}, // make equality check happy
+		Matrix: [][]*big.Int{
+			{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)},
+			{big.NewInt(6), big.NewInt(7), big.NewInt(8)},
+			{big.NewInt(9), big.NewInt(10)},
+			{big.NewInt(11)},
+		},
+		AddressMatrix: [][3][]common.Address{{
+			{
+				common.HexToAddress("0x1111111111111111111111111111111111111111"),
+				common.HexToAddress("0x2222222222222222222222222222222222222222"),
+			},
+			{
+				common.HexToAddress("0x3333333333333333333333333333333333333333"),
+				common.HexToAddress("0x4444444444444444444444444444444444444444"),
+				common.HexToAddress("0x5555555555555555555555555555555555555555"),
+			},
+			{
+				common.HexToAddress("0x1111111111111111111111111111111111111111"),
+				common.HexToAddress("0x2222222222222222222222222222222222222222"),
+			},
+		}},
+		DymMatrix: [][]string{}, // make equality check happy
 	}
 
 	// Get go-ethereum encoding
 	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testNestedDynamicArrays",
 		args.Matrix, args.AddressMatrix, args.DymMatrix)
 	require.NoError(t, err)
-	fmt.Println("eth length", len(goEthEncoded))
 
 	// Test encoding with selector
 	encoded, err := args.EncodeWithSelector()

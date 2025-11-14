@@ -141,8 +141,8 @@ func (g *Generator) genAddressDecoding() {
 // genBoolDecoding generates decoding for boolean types
 func (g *Generator) genBoolDecoding() {
 	g.L("\t// Validate boolean encoding - only 0 or 1 are valid")
-	g.L("\tfor i := 0; i < 31; i++ {")
-	g.L("\t\tif data[i] != 0x00 {")
+	g.L("\tfor _, i := range data[:31] {")
+	g.L("\t\tif i != 0 {")
 	g.L("\t\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
 	g.L("\t\t}")
 	g.L("\t}")

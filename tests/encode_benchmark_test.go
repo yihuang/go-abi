@@ -71,6 +71,7 @@ func createNestedDynamicArraysData() TestNestedDynamicArraysCall {
 				common.HexToAddress("0x2222222222222222222222222222222222222222"),
 			},
 		}},
+		DymMatrix: [][]string{}, // make equality check happy
 	}
 }
 
