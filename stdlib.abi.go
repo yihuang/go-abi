@@ -865,8 +865,8 @@ func DecodeAddressSlice(data []byte) ([]common.Address, int, error) {
 // DecodeBool decodes bool from ABI bytes
 func DecodeBool(data []byte) (bool, int, error) {
 	// Validate boolean encoding - only 0 or 1 are valid
-	for i := 0; i < 31; i++ {
-		if data[i] != 0x00 {
+	for _, i := range data[:31] {
+		if i != 0 {
 			return false, 0, ErrDirtyPadding
 		}
 	}
@@ -933,9 +933,7 @@ func DecodeBytes(data []byte) ([]byte, int, error) {
 	}
 
 	// Decode data
-	result := make([]byte, length)
-	copy(result, data[:length])
-	return result, 32 + Pad32(length), nil
+	return data[:length], 32 + Pad32(length), nil
 }
 
 // DecodeBytes32 decodes bytes32 from ABI bytes
@@ -1499,8 +1497,7 @@ func DecodeString(data []byte) (string, int, error) {
 	}
 
 	// Decode data
-	result := string(data[:length])
-	return result, 32 + Pad32(length), nil
+	return string(data[:length]), 32 + Pad32(length), nil
 }
 
 // DecodeStringSlice decodes string[] from ABI bytes

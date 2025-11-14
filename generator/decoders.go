@@ -141,8 +141,8 @@ func (g *Generator) genAddressDecoding() {
 // genBoolDecoding generates decoding for boolean types
 func (g *Generator) genBoolDecoding() {
 	g.L("\t// Validate boolean encoding - only 0 or 1 are valid")
-	g.L("\tfor i := 0; i < 31; i++ {")
-	g.L("\t\tif data[i] != 0x00 {")
+	g.L("\tfor _, i := range data[:31] {")
+	g.L("\t\tif i != 0 {")
 	g.L("\t\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
 	g.L("\t\t}")
 	g.L("\t}")
@@ -184,8 +184,7 @@ func (g *Generator) genStringDecoding() {
 
 	g.L("")
 	g.L("\t// Decode data")
-	g.L("\tresult := string(data[:length])")
-	g.L("\treturn result, 32 + %sPad32(length), nil", g.StdPrefix)
+	g.L("\treturn string(data[:length]), 32 + %sPad32(length), nil", g.StdPrefix)
 }
 
 // genBytesDecoding generates decoding for bytes types
@@ -216,9 +215,7 @@ func (g *Generator) genBytesDecoding() {
 
 	g.L("")
 	g.L("\t// Decode data")
-	g.L("\tresult := make([]byte, length)")
-	g.L("\tcopy(result, data[:length])")
-	g.L("\treturn result, 32 + %sPad32(length), nil", g.StdPrefix)
+	g.L("\treturn data[:length], 32 + %sPad32(length), nil", g.StdPrefix)
 }
 
 // genFixedBytesDecoding generates decoding for fixed bytes types
