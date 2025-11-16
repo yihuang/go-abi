@@ -220,6 +220,13 @@ func (g *Generator) genBytesDecoding() {
 
 // genFixedBytesDecoding generates decoding for fixed bytes types
 func (g *Generator) genFixedBytesDecoding(t abi.Type) {
+	// Validate padding bytes
+	g.L("\t// Validate padding bytes for fixed bytes[%d]", t.Size)
+	g.L("\tfor i := %d; i < 32; i++ {", t.Size)
+	g.L("\t\tif data[i] != 0x00 {")
+	g.L("\t\t\treturn [%d]byte{}, 0, %sErrDirtyPadding", t.Size, g.StdPrefix)
+	g.L("\t\t}")
+	g.L("\t}")
 	g.L("\tvar result [%d]byte", t.Size)
 	g.L("\tcopy(result[:], data[:%d])", t.Size)
 	g.L("\treturn result, %d, nil", t.Size)

@@ -21,6 +21,8 @@ var (
 	TestExternalTupleSelector = [4]byte{0x96, 0x39, 0x8b, 0x38}
 	// testFixedArrays(address[5],uint256[3],bytes32[2])
 	TestFixedArraysSelector = [4]byte{0x23, 0xb8, 0x46, 0x5c}
+	// testFixedBytes(bytes3,bytes7,bytes15)
+	TestFixedBytesSelector = [4]byte{0x45, 0x0f, 0xb2, 0xae}
 	// testMixedTypes(bytes32,bytes,bool,uint8,(uint32,bytes,bool)[])
 	TestMixedTypesSelector = [4]byte{0x85, 0x8a, 0xe6, 0x15}
 	// testNestedDynamicArrays(uint256[][],address[][3][],string[][])
@@ -39,6 +41,7 @@ const (
 	TestDeeplyNestedID         = 561375316
 	TestExternalTupleID        = 2520353592
 	TestFixedArraysID          = 599279196
+	TestFixedBytesID           = 1158656686
 	TestMixedTypesID           = 2240472597
 	TestNestedDynamicArraysID  = 450754080
 	TestNestedStructID         = 3896214887
@@ -2211,6 +2214,176 @@ func (t *TestFixedArraysReturn) Decode(data []byte) (int, error) {
 	dynamicOffset := 32
 	// Decode static field Field1: bool
 	t.Field1, _, err = abi.DecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+var _ abi.Method = (*TestFixedBytesCall)(nil)
+
+const TestFixedBytesCallStaticSize = 96
+
+var _ abi.Tuple = (*TestFixedBytesCall)(nil)
+
+// TestFixedBytesCall represents an ABI tuple
+type TestFixedBytesCall struct {
+	Data3  [3]byte
+	Data7  [7]byte
+	Data15 [15]byte
+}
+
+// EncodedSize returns the total encoded size of TestFixedBytesCall
+func (t TestFixedBytesCall) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestFixedBytesCallStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestFixedBytesCall to ABI bytes in the provided buffer
+func (value TestFixedBytesCall) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := TestFixedBytesCallStaticSize // Start dynamic data after static section
+	// Field Data3: bytes3
+	if _, err := abi.EncodeBytes3(value.Data3, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	// Field Data7: bytes7
+	if _, err := abi.EncodeBytes7(value.Data7, buf[32:]); err != nil {
+		return 0, err
+	}
+
+	// Field Data15: bytes15
+	if _, err := abi.EncodeBytes15(value.Data15, buf[64:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestFixedBytesCall to ABI bytes
+func (value TestFixedBytesCall) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestFixedBytesCall from ABI bytes in the provided buffer
+func (t *TestFixedBytesCall) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 96
+	// Decode static field Data3: bytes3
+	t.Data3, _, err = abi.DecodeBytes3(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Data7: bytes7
+	t.Data7, _, err = abi.DecodeBytes7(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Data15: bytes15
+	t.Data15, _, err = abi.DecodeBytes15(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// GetMethodName returns the function name
+func (t TestFixedBytesCall) GetMethodName() string {
+	return "testFixedBytes"
+}
+
+// GetMethodID returns the function id
+func (t TestFixedBytesCall) GetMethodID() uint32 {
+	return TestFixedBytesID
+}
+
+// GetMethodSelector returns the function selector
+func (t TestFixedBytesCall) GetMethodSelector() [4]byte {
+	return TestFixedBytesSelector
+}
+
+// EncodeWithSelector encodes testFixedBytes arguments to ABI bytes including function selector
+func (t TestFixedBytesCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], TestFixedBytesSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewTestFixedBytesCall constructs a new TestFixedBytesCall
+func NewTestFixedBytesCall(
+	data3 [3]byte,
+	data7 [7]byte,
+	data15 [15]byte,
+) *TestFixedBytesCall {
+	return &TestFixedBytesCall{
+		Data3:  data3,
+		Data7:  data7,
+		Data15: data15,
+	}
+}
+
+const TestFixedBytesReturnStaticSize = 32
+
+var _ abi.Tuple = (*TestFixedBytesReturn)(nil)
+
+// TestFixedBytesReturn represents an ABI tuple
+type TestFixedBytesReturn struct {
+	Field1 [32]byte
+}
+
+// EncodedSize returns the total encoded size of TestFixedBytesReturn
+func (t TestFixedBytesReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return TestFixedBytesReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes TestFixedBytesReturn to ABI bytes in the provided buffer
+func (value TestFixedBytesReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := TestFixedBytesReturnStaticSize // Start dynamic data after static section
+	// Field Field1: bytes32
+	if _, err := abi.EncodeBytes32(value.Field1, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes TestFixedBytesReturn to ABI bytes
+func (value TestFixedBytesReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes TestFixedBytesReturn from ABI bytes in the provided buffer
+func (t *TestFixedBytesReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 32
+	// Decode static field Field1: bytes32
+	t.Field1, _, err = abi.DecodeBytes32(data[0:])
 	if err != nil {
 		return 0, err
 	}

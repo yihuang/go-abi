@@ -20,6 +20,7 @@ var ComprehensiveTestABI = []string{
 	"function testSmallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
 	"function testNonStandardIntegers(uint24 u24, uint36 u36, uint48 u48, uint72 u72, uint96 u96, uint120 u120, int24 i24, int36 i36, int48 i48, int72 i72, int96 i96, int120 i120) returns (bool)",
 	"function testFixedArrays(address[5] addresses, uint256[3] uints, bytes32[2] bytes32s) returns (bool)",
+	"function testFixedBytes(bytes3 data3, bytes7 data7, bytes15 data15) returns (bytes32)",
 	"function testNestedDynamicArrays(uint256[][] matrix, address[][3][] addressMatrix, string[][] dymMatrix) returns (bool)",
 	"struct UserMetadata2 { uint256 createdAt; string[] tags }",
 	"struct UserProfile { string name; string[] emails; UserMetadata2 metadata }",
@@ -154,6 +155,27 @@ func TestComprehensiveFixedArrays(t *testing.T) {
 	// Get go-ethereum encoding
 	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testFixedArrays",
 		args.Addresses, args.Uints, args.Bytes32s)
+	require.NoError(t, err)
+
+	require.Equal(t, encoded, goEthEncoded)
+
+	DecodeRoundTrip(t, args)
+}
+
+func TestComprehensiveFixedBytes(t *testing.T) {
+	args := &TestFixedBytesCall{
+		Data3:  [3]byte{0x01, 0x02, 0x03},
+		Data7:  [7]byte{0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a},
+		Data15: [15]byte{0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19},
+	}
+
+	// Test encoding with selector
+	encoded, err := args.EncodeWithSelector()
+	require.NoError(t, err)
+
+	// Get go-ethereum encoding
+	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testFixedBytes",
+		args.Data3, args.Data7, args.Data15)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)
