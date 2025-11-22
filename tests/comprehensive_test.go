@@ -18,7 +18,7 @@ import (
 // ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
 var ComprehensiveTestABI = []string{
 	"function testSmallIntegers(uint8 u8, uint16 u16, uint24 u24, uint32 u32, uint64 u64, int8 i8, int16 i16, int24 i24, int32 i32, int64 i64) returns (bool)",
-	"function testNonStandardIntegers(uint24 u24, uint36 u36, uint48 u48, uint72 u72, uint96 u96, uint120 u120, int24 i24, int36 i36, int48 i48, int72 i72, int96 i96, int120 i120) returns (bool)",
+	"function testNonStandardIntegers(uint24 u24, uint48 u48, uint72 u72, uint96 u96, uint120 u120, int24 i24, int48 i48, int72 i72, int96 i96, int120 i120) returns (bool)",
 	"function testFixedArrays(address[5] addresses, uint256[3] uints, bytes32[2] bytes32s) returns (bool)",
 	"function testFixedBytes(bytes3 data3, bytes7 data7, bytes15 data15) returns (bytes32)",
 	"function testNestedDynamicArrays(uint256[][] matrix, address[][3][] addressMatrix, string[][] dymMatrix) returns (bool)",
@@ -93,13 +93,11 @@ func TestComprehensiveSmallIntegers(t *testing.T) {
 func TestComprehensiveNonStandardIntegers(t *testing.T) {
 	args := &TestNonStandardIntegersCall{
 		U24:  1000,              // uint32 - fits in 32 bits
-		U36:  2000,              // uint64 - fits in 64 bits
 		U48:  3000,              // uint64 - fits in 64 bits
 		U72:  big.NewInt(4000),  // uint72 - exceeds 64 bits, uses big.Int
 		U96:  big.NewInt(5000),  // uint96 - exceeds 64 bits, uses big.Int
 		U120: big.NewInt(6000),  // uint120 - exceeds 64 bits, uses big.Int
 		I24:  -1000,             // int32 - fits in 32 bits
-		I36:  -2000,             // int64 - fits in 64 bits
 		I48:  -3000,             // int64 - fits in 64 bits
 		I72:  big.NewInt(-4000), // int72 - exceeds 64 bits, uses big.Int
 		I96:  big.NewInt(-5000), // int96 - exceeds 64 bits, uses big.Int
@@ -113,12 +111,12 @@ func TestComprehensiveNonStandardIntegers(t *testing.T) {
 	// Test encoding
 	encoded, err := args.EncodeWithSelector()
 	require.NoError(t, err)
-	require.Equal(t, 4+384, len(encoded)) // 4 bytes selector + 384 bytes data
+	require.Equal(t, 4+320, len(encoded)) // 4 bytes selector + 384 bytes data
 
 	// Get go-ethereum encoding
 	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testNonStandardIntegers",
-		big.NewInt(int64(args.U24)), big.NewInt(int64(args.U36)), big.NewInt(int64(args.U48)), args.U72, args.U96, args.U120,
-		big.NewInt(int64(args.I24)), big.NewInt(int64(args.I36)), big.NewInt(int64(args.I48)), args.I72, args.I96, args.I120)
+		big.NewInt(int64(args.U24)), big.NewInt(int64(args.U48)), args.U72, args.U96, args.U120,
+		big.NewInt(int64(args.I24)), big.NewInt(int64(args.I48)), args.I72, args.I96, args.I120)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)

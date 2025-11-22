@@ -159,3 +159,17 @@ func ParseImport(imp string) ImportSpec {
 	}
 	return spec
 }
+
+// nativeSize returns the closest native size for a given int size s
+func nativeSize(s int) int {
+	switch {
+	case s <= 8:
+		return 8
+	case s <= 16:
+		return 16
+	case s <= 32:
+		return 32
+	default:
+		return 64
+	}
+}

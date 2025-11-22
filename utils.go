@@ -1,65 +1,131 @@
 package abi
 
 import (
+	"bytes"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
+	"math"
 	"math/big"
-	"math/bits"
 	"strings"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/holiman/uint256"
+)
+
+const (
+	// max values for all unsigned small integers of all bytes
+	MaxUint8  = math.MaxUint8
+	MaxUint16 = math.MaxUint16
+	MaxUint24 = 1<<24 - 1
+	MaxUint32 = math.MaxUint32
+	MaxUint40 = 1<<40 - 1
+	MaxUint48 = 1<<48 - 1
+	MaxUint56 = 1<<56 - 1
+	MaxUint64 = math.MaxUint64
+
+	// min values for all signed small integers of all bytes
+	MinInt8  = math.MinInt8
+	MinInt16 = math.MinInt16
+	MinInt24 = -1 << 23
+	MinInt32 = math.MinInt32
+	MinInt40 = -1 << 39
+	MinInt48 = -1 << 47
+	MinInt56 = -1 << 55
+	MinInt64 = math.MinInt64
+
+	// max values for all signed small integers of all bytes
+	MaxInt8  = math.MaxInt8
+	MaxInt16 = math.MaxInt16
+	MaxInt24 = 1<<23 - 1
+	MaxInt32 = math.MaxInt32
+	MaxInt40 = 1<<39 - 1
+	MaxInt48 = 1<<47 - 1
+	MaxInt56 = 1<<55 - 1
+	MaxInt64 = math.MaxInt64
+)
+
+var (
+	// sign extension padding bytes
+	PaddingBytes8  = bytes.Repeat([]byte{0xff}, 31)
+	PaddingBytes16 = bytes.Repeat([]byte{0xff}, 30)
+	PaddingBytes32 = bytes.Repeat([]byte{0xff}, 28)
+	PaddingBytes64 = bytes.Repeat([]byte{0xff}, 24)
+)
+
+var (
+	tt256      = new(big.Int).Lsh(common.Big1, 256)
+	MaxUint256 = new(big.Int).Sub(tt256, common.Big1)
 )
 
 func Pad32(n int) int {
 	return (n + 31) / 32 * 32
 }
 
-func DecodeSize(data []byte) (int, error) {
-	switch bits.UintSize {
-	case 64:
-		v, _, err := DecodeInt64(data)
-		if err != nil {
-			return 0, err
-		}
-		if v < 0 {
-			return 0, ErrNegativeSize
-		}
-		return int(v), err
-	case 32:
-		v, _, err := DecodeInt32(data)
-		if err != nil {
-			return 0, err
-		}
-		if v < 0 {
-			return 0, ErrNegativeSize
-		}
-		return int(v), err
-	default:
-		panic("unsupported int size")
+// DecodeUint is common utility to decode a small unsigned integer value from 32 bytes
+// the caller must pass correct maxValue for the target type T
+func DecodeUint[T int | uint8 | uint16 | uint32 | uint64](data []byte, maxValue uint64) (T, error) {
+	var n uint256.Int
+	n.SetBytes32(data)
+
+	result, overflow := n.Uint64WithOverflow()
+	if overflow || result > maxValue {
+		return 0, ErrDirtyPadding
 	}
+
+	return T(result), nil
+}
+
+func DecodeInt[T int8 | int16 | int32 | int64](data []byte, minValue, maxValue int64) (T, error) {
+	var n uint256.Int
+	n.SetBytes32(data)
+
+	i64 := int64(n.Uint64())
+
+	// check sign extension in higher bytes
+	if i64 < 0 {
+		// should be all 1s
+		if n[1]&n[2]&n[3] != ^uint64(0) {
+			return 0, ErrDirtyPadding
+		}
+	} else {
+		// should be all 0s
+		if n[1]|n[2]|n[3] != 0 {
+			return 0, ErrDirtyPadding
+		}
+	}
+
+	if i64 < minValue || i64 > maxValue {
+		return 0, ErrDirtyPadding
+	}
+
+	return T(i64), nil
+}
+
+func DecodeSize(data []byte) (int, error) {
+	v, err := DecodeUint[int](data, math.MaxInt)
+	if err != nil {
+		return 0, err
+	}
+
+	return v, nil
 }
 
 func EncodeBigInt(n *big.Int, buf []byte, signed bool) error {
 	if n.Sign() < 0 {
 		if !signed {
-			return errors.New("negative integer for unsigned type")
+			return ErrNegativeValue
 		}
 
-		// slow path for negative value
-		// Use a copy of n to avoid modification from math.U256Bytes
-		tmp := new(big.Int).Set(n)
-		copy(buf, math.U256Bytes(tmp))
-		return nil
+		// convert to 256 bit two's complement
+		n = new(big.Int).And(n, MaxUint256)
 	}
 
 	l := (n.BitLen() + 7) / 8
 	if l > 32 {
-		return errors.New("integer too large")
+		return ErrIntegerTooLarge
 	}
 	n.FillBytes(buf[32-l : 32])
 	return nil
@@ -70,20 +136,12 @@ func DecodeBigInt(data []byte, signed bool) (*big.Int, error) {
 		return nil, io.ErrUnexpectedEOF
 	}
 
+	ret := new(big.Int).SetBytes(data[:32])
 	if signed && data[0]&0x80 != 0 {
-		// negative number
-		tmp := make([]byte, 32)
-		for i := 0; i < 32; i++ {
-			tmp[i] = ^data[i]
-		}
-		bigN := new(big.Int).SetBytes(tmp)
-		bigN.Add(bigN, big.NewInt(1))
-		bigN.Neg(bigN)
-		return bigN, nil
+		ret.Sub(ret, tt256)
 	}
 
-	bigN := new(big.Int).SetBytes(data[:32])
-	return bigN, nil
+	return ret, nil
 }
 
 func EncodeEvent(event Event) ([]common.Hash, []byte, error) {

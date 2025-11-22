@@ -23,9 +23,15 @@ var (
 	// ErrInvalidOffsetForArrayElement is returned when the offset for an array element is invalid
 	ErrInvalidOffsetForArrayElement = errors.New("invalid offset for array element")
 
-	// ErrNegativeSize is returned when an offset or length is negative
-	ErrNegativeSize = errors.New("negative size")
+	// ErrSizeOverflow is returned when an offset or length is negative
+	ErrSizeOverflow = errors.New("size overflow")
 
 	// ErrDirtyPadding is returned when padding bytes are not expected
 	ErrDirtyPadding = errors.New("dirty padding")
+
+	// ErrNegativeValue is returned when a negative value is provided for an unsigned type
+	ErrNegativeValue = errors.New("negative value for unsigned type")
+
+	// ErrIntegerTooLarge is returned when an integer value exceeds 256 bits
+	ErrIntegerTooLarge = errors.New("integer too large")
 )

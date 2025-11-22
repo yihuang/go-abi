@@ -19,66 +19,36 @@ func (g *Generator) genIntEncoding(t ethabi.Type) {
 
 // genSmallIntEncoding generates optimized encoding for small integer types
 func (g *Generator) genSmallIntEncoding(t ethabi.Type) {
-	// For small integers, we can use direct binary encoding without big.Int
-	// Use the closest native integer type that fits
-	var nativeType string
+	if t.Size%8 != 0 {
+		panic(fmt.Sprintf("unsupported size %d for small integer decoding", t.Size))
+	}
 
+	// For small integers, we can use direct binary decoding without big.Int
+	// Use the closest native integer type that fits
+	size := nativeSize(t.Size)
+	var nativeType string
 	if t.T == ethabi.IntTy {
-		// Signed integers: use next larger signed type
-		if t.Size <= 8 {
-			nativeType = "int8"
-		} else if t.Size <= 16 {
-			nativeType = "int16"
-		} else if t.Size <= 32 {
-			nativeType = "int32"
-		} else if t.Size <= 64 {
-			nativeType = "int64"
-		} else {
-			// > 64 bits: use big.Int
-			g.genBigIntEncoding(t)
-			return
-		}
+		nativeType = fmt.Sprintf("int%d", size)
 	} else {
-		// Unsigned integers: use next larger unsigned type
-		if t.Size <= 8 {
-			nativeType = "uint8"
-		} else if t.Size <= 16 {
-			nativeType = "uint16"
-		} else if t.Size <= 32 {
-			nativeType = "uint32"
-		} else if t.Size <= 64 {
-			nativeType = "uint64"
-		} else {
-			// > 64 bits: use big.Int
-			g.genBigIntEncoding(t)
-			return
-		}
+		nativeType = fmt.Sprintf("uint%d", size)
 	}
 
 	if t.T == ethabi.IntTy {
 		// Signed: use the appropriate integer size and sign extend
 		switch nativeType {
 		case "int8":
-			g.L("\tif value < 0 {")
-			g.L("\t\tfor i := 0; i < 31; i++ { buf[i] = 0xff }")
-			g.L("\t}")
 			g.L("\tbuf[31] = byte(value)")
 		case "int16":
-			g.L("\tif value < 0 {")
-			g.L("\t\tfor i := 0; i < 30; i++ { buf[i] = 0xff }")
-			g.L("\t}")
 			g.L("\tbinary.BigEndian.PutUint16(buf[30:32], uint16(value))")
 		case "int32":
-			g.L("\tif value < 0 {")
-			g.L("\t\tfor i := 0; i < 28; i++ { buf[i] = 0xff }")
-			g.L("\t}")
 			g.L("\tbinary.BigEndian.PutUint32(buf[28:32], uint32(value))")
 		case "int64":
-			g.L("\tif value < 0 {")
-			g.L("\t\tfor i := 0; i < 24; i++ { buf[i] = 0xff }")
-			g.L("\t}")
 			g.L("\tbinary.BigEndian.PutUint64(buf[24:32], uint64(value))")
 		}
+
+		g.L("\tif value < 0 {")
+		g.L("\t\tcopy(buf, %sPaddingBytes%d)", g.StdPrefix, size)
+		g.L("\t}")
 	} else {
 		// Unsigned: use the appropriate integer size
 		switch nativeType {

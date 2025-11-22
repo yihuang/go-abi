@@ -134,6 +134,12 @@ func TestDecodeBigInt(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, tt.expected, result)
+
+				// roundtrip
+				buf := make([]byte, 32)
+				err = EncodeBigInt(result, buf, tt.signed)
+				require.NoError(t, err)
+				require.Equal(t, tt.data, hex.EncodeToString(buf))
 			}
 		})
 	}

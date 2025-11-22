@@ -29,8 +29,8 @@ var (
 	TestNestedDynamicArraysSelector = [4]byte{0x1a, 0xdd, 0xf6, 0x20}
 	// testNestedStruct(((address,string,uint256)[]))
 	TestNestedStructSelector = [4]byte{0xe8, 0x3b, 0x85, 0x67}
-	// testNonStandardIntegers(uint24,uint36,uint48,uint72,uint96,uint120,int24,int36,int48,int72,int96,int120)
-	TestNonStandardIntegersSelector = [4]byte{0x06, 0xb2, 0xc0, 0x02}
+	// testNonStandardIntegers(uint24,uint48,uint72,uint96,uint120,int24,int48,int72,int96,int120)
+	TestNonStandardIntegersSelector = [4]byte{0x70, 0xda, 0xa4, 0x3a}
 	// testSmallIntegers(uint8,uint16,uint24,uint32,uint64,int8,int16,int24,int32,int64)
 	TestSmallIntegersSelector = [4]byte{0xab, 0xa8, 0x9e, 0xc2}
 )
@@ -45,7 +45,7 @@ const (
 	TestMixedTypesID           = 2240472597
 	TestNestedDynamicArraysID  = 450754080
 	TestNestedStructID         = 3896214887
-	TestNonStandardIntegersID  = 112377858
+	TestNonStandardIntegersID  = 1893377082
 	TestSmallIntegersID        = 2879954626
 )
 
@@ -934,17 +934,6 @@ func EncodeBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
 	return 64, nil
 }
 
-// EncodeInt36 encodes int36 to ABI bytes
-func EncodeInt36(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
-}
-
 // EncodeItemSlice encodes (uint32,bytes,bool)[] to ABI bytes
 func EncodeItemSlice(value []Item, buf []byte) (int, error) {
 	// Encode length
@@ -1034,12 +1023,6 @@ func EncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
 	}
 
 	return dynamicOffset + 32, nil
-}
-
-// EncodeUint36 encodes uint36 to ABI bytes
-func EncodeUint36(value uint64, buf []byte) (int, error) {
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
 }
 
 // EncodeUser2Slice encodes (uint256,(string,string[],(uint256,string[])))[] to ABI bytes
@@ -1289,29 +1272,6 @@ func DecodeBytes32Array2(data []byte) ([2][32]byte, int, error) {
 	return result, 64, nil
 }
 
-// DecodeInt36 decodes int36 from ABI bytes
-func DecodeInt36(data []byte) (int64, int, error) {
-	// Validate sign extension for int36 (padding bytes: 28)
-	if data[28]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 28; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, abi.ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 28; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, abi.ErrDirtyPadding
-			}
-		}
-	}
-	// Decode int36 using int64
-	result := int64(binary.BigEndian.Uint64(data[24:32]))
-	return result, 32, nil
-}
-
 // DecodeItemSlice decodes (uint32,bytes,bool)[] from ABI bytes
 func DecodeItemSlice(data []byte) ([]Item, int, error) {
 	// Decode length
@@ -1458,18 +1418,6 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 		dynamicOffset += n
 	}
 	return result, dynamicOffset + 32, nil
-}
-
-// DecodeUint36 decodes uint36 from ABI bytes
-func DecodeUint36(data []byte) (uint64, int, error) {
-	// Validate no extra bits are set for uint36 (padding bytes: 28)
-	for i := 0; i < 28; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, abi.ErrDirtyPadding
-		}
-	}
-	result := binary.BigEndian.Uint64(data[24:32])
-	return result, 32, nil
 }
 
 // DecodeUser2Slice decodes (uint256,(string,string[],(uint256,string[])))[] from ABI bytes
@@ -3016,20 +2964,18 @@ func (t *TestNestedStructReturn) Decode(data []byte) (int, error) {
 
 var _ abi.Method = (*TestNonStandardIntegersCall)(nil)
 
-const TestNonStandardIntegersCallStaticSize = 384
+const TestNonStandardIntegersCallStaticSize = 320
 
 var _ abi.Tuple = (*TestNonStandardIntegersCall)(nil)
 
 // TestNonStandardIntegersCall represents an ABI tuple
 type TestNonStandardIntegersCall struct {
 	U24  uint32
-	U36  uint64
 	U48  uint64
 	U72  *big.Int
 	U96  *big.Int
 	U120 *big.Int
 	I24  int32
-	I36  int64
 	I48  int64
 	I72  *big.Int
 	I96  *big.Int
@@ -3052,58 +2998,48 @@ func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
 		return 0, err
 	}
 
-	// Field U36: uint36
-	if _, err := EncodeUint36(value.U36, buf[32:]); err != nil {
-		return 0, err
-	}
-
 	// Field U48: uint48
-	if _, err := abi.EncodeUint48(value.U48, buf[64:]); err != nil {
+	if _, err := abi.EncodeUint48(value.U48, buf[32:]); err != nil {
 		return 0, err
 	}
 
 	// Field U72: uint72
-	if _, err := abi.EncodeUint256(value.U72, buf[96:]); err != nil {
+	if _, err := abi.EncodeUint256(value.U72, buf[64:]); err != nil {
 		return 0, err
 	}
 
 	// Field U96: uint96
-	if _, err := abi.EncodeUint256(value.U96, buf[128:]); err != nil {
+	if _, err := abi.EncodeUint256(value.U96, buf[96:]); err != nil {
 		return 0, err
 	}
 
 	// Field U120: uint120
-	if _, err := abi.EncodeUint256(value.U120, buf[160:]); err != nil {
+	if _, err := abi.EncodeUint256(value.U120, buf[128:]); err != nil {
 		return 0, err
 	}
 
 	// Field I24: int24
-	if _, err := abi.EncodeInt24(value.I24, buf[192:]); err != nil {
-		return 0, err
-	}
-
-	// Field I36: int36
-	if _, err := EncodeInt36(value.I36, buf[224:]); err != nil {
+	if _, err := abi.EncodeInt24(value.I24, buf[160:]); err != nil {
 		return 0, err
 	}
 
 	// Field I48: int48
-	if _, err := abi.EncodeInt48(value.I48, buf[256:]); err != nil {
+	if _, err := abi.EncodeInt48(value.I48, buf[192:]); err != nil {
 		return 0, err
 	}
 
 	// Field I72: int72
-	if _, err := abi.EncodeInt256(value.I72, buf[288:]); err != nil {
+	if _, err := abi.EncodeInt256(value.I72, buf[224:]); err != nil {
 		return 0, err
 	}
 
 	// Field I96: int96
-	if _, err := abi.EncodeInt256(value.I96, buf[320:]); err != nil {
+	if _, err := abi.EncodeInt256(value.I96, buf[256:]); err != nil {
 		return 0, err
 	}
 
 	// Field I120: int120
-	if _, err := abi.EncodeInt256(value.I120, buf[352:]); err != nil {
+	if _, err := abi.EncodeInt256(value.I120, buf[288:]); err != nil {
 		return 0, err
 	}
 
@@ -3121,70 +3057,60 @@ func (value TestNonStandardIntegersCall) Encode() ([]byte, error) {
 
 // Decode decodes TestNonStandardIntegersCall from ABI bytes in the provided buffer
 func (t *TestNonStandardIntegersCall) Decode(data []byte) (int, error) {
-	if len(data) < 384 {
+	if len(data) < 320 {
 		return 0, io.ErrUnexpectedEOF
 	}
 	var (
 		err error
 	)
-	dynamicOffset := 384
+	dynamicOffset := 320
 	// Decode static field U24: uint24
 	t.U24, _, err = abi.DecodeUint24(data[0:])
 	if err != nil {
 		return 0, err
 	}
-	// Decode static field U36: uint36
-	t.U36, _, err = DecodeUint36(data[32:])
-	if err != nil {
-		return 0, err
-	}
 	// Decode static field U48: uint48
-	t.U48, _, err = abi.DecodeUint48(data[64:])
+	t.U48, _, err = abi.DecodeUint48(data[32:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U72: uint72
-	t.U72, _, err = abi.DecodeUint256(data[96:])
+	t.U72, _, err = abi.DecodeUint256(data[64:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U96: uint96
-	t.U96, _, err = abi.DecodeUint256(data[128:])
+	t.U96, _, err = abi.DecodeUint256(data[96:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U120: uint120
-	t.U120, _, err = abi.DecodeUint256(data[160:])
+	t.U120, _, err = abi.DecodeUint256(data[128:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I24: int24
-	t.I24, _, err = abi.DecodeInt24(data[192:])
-	if err != nil {
-		return 0, err
-	}
-	// Decode static field I36: int36
-	t.I36, _, err = DecodeInt36(data[224:])
+	t.I24, _, err = abi.DecodeInt24(data[160:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I48: int48
-	t.I48, _, err = abi.DecodeInt48(data[256:])
+	t.I48, _, err = abi.DecodeInt48(data[192:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I72: int72
-	t.I72, _, err = abi.DecodeInt256(data[288:])
+	t.I72, _, err = abi.DecodeInt256(data[224:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I96: int96
-	t.I96, _, err = abi.DecodeInt256(data[320:])
+	t.I96, _, err = abi.DecodeInt256(data[256:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I120: int120
-	t.I120, _, err = abi.DecodeInt256(data[352:])
+	t.I120, _, err = abi.DecodeInt256(data[288:])
 	if err != nil {
 		return 0, err
 	}
@@ -3219,13 +3145,11 @@ func (t TestNonStandardIntegersCall) EncodeWithSelector() ([]byte, error) {
 // NewTestNonStandardIntegersCall constructs a new TestNonStandardIntegersCall
 func NewTestNonStandardIntegersCall(
 	u24 uint32,
-	u36 uint64,
 	u48 uint64,
 	u72 *big.Int,
 	u96 *big.Int,
 	u120 *big.Int,
 	i24 int32,
-	i36 int64,
 	i48 int64,
 	i72 *big.Int,
 	i96 *big.Int,
@@ -3233,13 +3157,11 @@ func NewTestNonStandardIntegersCall(
 ) *TestNonStandardIntegersCall {
 	return &TestNonStandardIntegersCall{
 		U24:  u24,
-		U36:  u36,
 		U48:  u48,
 		U72:  u72,
 		U96:  u96,
 		U120: u120,
 		I24:  i24,
-		I36:  i36,
 		I48:  i48,
 		I72:  i72,
 		I96:  i96,
