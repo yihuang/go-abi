@@ -17,7 +17,7 @@ import (
 
 // ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
 var ComprehensiveTestABI = []string{
-	"function testSmallIntegers(uint8 u8, uint16 u16, uint32 u32, uint64 u64, int8 i8, int16 i16, int32 i32, int64 i64) returns (bool)",
+	"function testSmallIntegers(uint8 u8, uint16 u16, uint24 u24, uint32 u32, uint64 u64, int8 i8, int16 i16, int24 i24, int32 i32, int64 i64) returns (bool)",
 	"function testNonStandardIntegers(uint24 u24, uint36 u36, uint48 u48, uint72 u72, uint96 u96, uint120 u120, int24 i24, int36 i36, int48 i48, int72 i72, int96 i96, int120 i120) returns (bool)",
 	"function testFixedArrays(address[5] addresses, uint256[3] uints, bytes32[2] bytes32s) returns (bool)",
 	"function testFixedBytes(bytes3 data3, bytes7 data7, bytes15 data15) returns (bytes32)",
@@ -65,10 +65,12 @@ func TestComprehensiveSmallIntegers(t *testing.T) {
 	args := &TestSmallIntegersCall{
 		U8:  uint8(255),
 		U16: uint16(65535),
+		U24: uint32(16777215),
 		U32: uint32(4294967295),
 		U64: uint64(18446744073709551615),
 		I8:  int8(-128),
 		I16: int16(-32768),
+		I24: int32(-8388608),
 		I32: int32(-2147483648),
 		I64: int64(-9223372036854775808),
 	}
@@ -79,8 +81,8 @@ func TestComprehensiveSmallIntegers(t *testing.T) {
 
 	// Get go-ethereum encoding
 	goEthEncoded, err := ComprehensiveTestABIDef.Pack("testSmallIntegers",
-		args.U8, args.U16, args.U32, args.U64,
-		args.I8, args.I16, args.I32, args.I64)
+		args.U8, args.U16, big.NewInt(int64(args.U24)), args.U32, args.U64,
+		args.I8, args.I16, big.NewInt(int64(args.I24)), args.I32, args.I64)
 	require.NoError(t, err)
 
 	require.Equal(t, encoded, goEthEncoded)

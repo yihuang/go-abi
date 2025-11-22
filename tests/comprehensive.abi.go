@@ -31,8 +31,8 @@ var (
 	TestNestedStructSelector = [4]byte{0xe8, 0x3b, 0x85, 0x67}
 	// testNonStandardIntegers(uint24,uint36,uint48,uint72,uint96,uint120,int24,int36,int48,int72,int96,int120)
 	TestNonStandardIntegersSelector = [4]byte{0x06, 0xb2, 0xc0, 0x02}
-	// testSmallIntegers(uint8,uint16,uint32,uint64,int8,int16,int32,int64)
-	TestSmallIntegersSelector = [4]byte{0x29, 0x2b, 0xd2, 0x39}
+	// testSmallIntegers(uint8,uint16,uint24,uint32,uint64,int8,int16,int24,int32,int64)
+	TestSmallIntegersSelector = [4]byte{0xab, 0xa8, 0x9e, 0xc2}
 )
 
 // Big endian integer versions of function selectors
@@ -46,7 +46,7 @@ const (
 	TestNestedDynamicArraysID  = 450754080
 	TestNestedStructID         = 3896214887
 	TestNonStandardIntegersID  = 112377858
-	TestSmallIntegersID        = 690737721
+	TestSmallIntegersID        = 2879954626
 )
 
 const GroupStaticSize = 32
@@ -3303,7 +3303,7 @@ func (t *TestNonStandardIntegersReturn) Decode(data []byte) (int, error) {
 
 var _ abi.Method = (*TestSmallIntegersCall)(nil)
 
-const TestSmallIntegersCallStaticSize = 256
+const TestSmallIntegersCallStaticSize = 320
 
 var _ abi.Tuple = (*TestSmallIntegersCall)(nil)
 
@@ -3311,10 +3311,12 @@ var _ abi.Tuple = (*TestSmallIntegersCall)(nil)
 type TestSmallIntegersCall struct {
 	U8  uint8
 	U16 uint16
+	U24 uint32
 	U32 uint32
 	U64 uint64
 	I8  int8
 	I16 int16
+	I24 int32
 	I32 int32
 	I64 int64
 }
@@ -3340,33 +3342,43 @@ func (value TestSmallIntegersCall) EncodeTo(buf []byte) (int, error) {
 		return 0, err
 	}
 
+	// Field U24: uint24
+	if _, err := abi.EncodeUint24(value.U24, buf[64:]); err != nil {
+		return 0, err
+	}
+
 	// Field U32: uint32
-	if _, err := abi.EncodeUint32(value.U32, buf[64:]); err != nil {
+	if _, err := abi.EncodeUint32(value.U32, buf[96:]); err != nil {
 		return 0, err
 	}
 
 	// Field U64: uint64
-	if _, err := abi.EncodeUint64(value.U64, buf[96:]); err != nil {
+	if _, err := abi.EncodeUint64(value.U64, buf[128:]); err != nil {
 		return 0, err
 	}
 
 	// Field I8: int8
-	if _, err := abi.EncodeInt8(value.I8, buf[128:]); err != nil {
+	if _, err := abi.EncodeInt8(value.I8, buf[160:]); err != nil {
 		return 0, err
 	}
 
 	// Field I16: int16
-	if _, err := abi.EncodeInt16(value.I16, buf[160:]); err != nil {
+	if _, err := abi.EncodeInt16(value.I16, buf[192:]); err != nil {
+		return 0, err
+	}
+
+	// Field I24: int24
+	if _, err := abi.EncodeInt24(value.I24, buf[224:]); err != nil {
 		return 0, err
 	}
 
 	// Field I32: int32
-	if _, err := abi.EncodeInt32(value.I32, buf[192:]); err != nil {
+	if _, err := abi.EncodeInt32(value.I32, buf[256:]); err != nil {
 		return 0, err
 	}
 
 	// Field I64: int64
-	if _, err := abi.EncodeInt64(value.I64, buf[224:]); err != nil {
+	if _, err := abi.EncodeInt64(value.I64, buf[288:]); err != nil {
 		return 0, err
 	}
 
@@ -3384,13 +3396,13 @@ func (value TestSmallIntegersCall) Encode() ([]byte, error) {
 
 // Decode decodes TestSmallIntegersCall from ABI bytes in the provided buffer
 func (t *TestSmallIntegersCall) Decode(data []byte) (int, error) {
-	if len(data) < 256 {
+	if len(data) < 320 {
 		return 0, io.ErrUnexpectedEOF
 	}
 	var (
 		err error
 	)
-	dynamicOffset := 256
+	dynamicOffset := 320
 	// Decode static field U8: uint8
 	t.U8, _, err = abi.DecodeUint8(data[0:])
 	if err != nil {
@@ -3401,33 +3413,43 @@ func (t *TestSmallIntegersCall) Decode(data []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	// Decode static field U24: uint24
+	t.U24, _, err = abi.DecodeUint24(data[64:])
+	if err != nil {
+		return 0, err
+	}
 	// Decode static field U32: uint32
-	t.U32, _, err = abi.DecodeUint32(data[64:])
+	t.U32, _, err = abi.DecodeUint32(data[96:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field U64: uint64
-	t.U64, _, err = abi.DecodeUint64(data[96:])
+	t.U64, _, err = abi.DecodeUint64(data[128:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I8: int8
-	t.I8, _, err = abi.DecodeInt8(data[128:])
+	t.I8, _, err = abi.DecodeInt8(data[160:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I16: int16
-	t.I16, _, err = abi.DecodeInt16(data[160:])
+	t.I16, _, err = abi.DecodeInt16(data[192:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field I24: int24
+	t.I24, _, err = abi.DecodeInt24(data[224:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I32: int32
-	t.I32, _, err = abi.DecodeInt32(data[192:])
+	t.I32, _, err = abi.DecodeInt32(data[256:])
 	if err != nil {
 		return 0, err
 	}
 	// Decode static field I64: int64
-	t.I64, _, err = abi.DecodeInt64(data[224:])
+	t.I64, _, err = abi.DecodeInt64(data[288:])
 	if err != nil {
 		return 0, err
 	}
@@ -3463,20 +3485,24 @@ func (t TestSmallIntegersCall) EncodeWithSelector() ([]byte, error) {
 func NewTestSmallIntegersCall(
 	u8 uint8,
 	u16 uint16,
+	u24 uint32,
 	u32 uint32,
 	u64 uint64,
 	i8 int8,
 	i16 int16,
+	i24 int32,
 	i32 int32,
 	i64 int64,
 ) *TestSmallIntegersCall {
 	return &TestSmallIntegersCall{
 		U8:  u8,
 		U16: u16,
+		U24: u24,
 		U32: u32,
 		U64: u64,
 		I8:  i8,
 		I16: i16,
+		I24: i24,
 		I32: i32,
 		I64: i64,
 	}

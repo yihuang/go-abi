@@ -100,6 +100,21 @@ func createMixedTypesData() TestMixedTypesCall {
 	}
 }
 
+func createSmallIntegersData() TestSmallIntegersCall {
+	return TestSmallIntegersCall{
+		U8:  255,
+		U16: 65535,
+		U24: 16777215,
+		U32: 4294967295,
+		U64: 18446744073709551615,
+		I8:  -128,
+		I16: -32768,
+		I24: -8388608,
+		I32: -2147483648,
+		I64: -9223372036854775808,
+	}
+}
+
 // Benchmark functions for go-abi generated code
 func BenchmarkGoABI_ComplexDynamicTuples(b *testing.B) {
 	args := createComplexDynamicTuplesData()
@@ -203,12 +218,9 @@ func BenchmarkGoABI_EncodeTo_ComplexDynamicTuples(b *testing.B) {
 	}
 }
 
-// Memory allocation benchmarks
-func BenchmarkGoABI_MemoryAllocations_ComplexDynamicTuples(b *testing.B) {
-	args := createComplexDynamicTuplesData()
-	b.ReportAllocs()
+func BenchmarkGoABI_Encode_SmallIntegers(b *testing.B) {
+	args := createSmallIntegersData()
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
 		_, err := args.EncodeWithSelector()
 		if err != nil {
@@ -217,13 +229,13 @@ func BenchmarkGoABI_MemoryAllocations_ComplexDynamicTuples(b *testing.B) {
 	}
 }
 
-func BenchmarkGoEthereum_MemoryAllocations_ComplexDynamicTuples(b *testing.B) {
-	args := createComplexDynamicTuplesData()
-	b.ReportAllocs()
+func BenchmarkGoEthereum_Encode_SmallIntegers(b *testing.B) {
+	args := createSmallIntegersData()
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		_, err := ComprehensiveTestABIDef.Pack("testComplexDynamicTuples", args.Users)
+		_, err := ComprehensiveTestABIDef.Pack("testSmallIntegers",
+			args.U8, args.U16, big.NewInt(int64(args.U24)), args.U32, args.U64,
+			args.I8, args.I16, big.NewInt(int64(args.I24)), args.I32, args.I64)
 		if err != nil {
 			b.Fatal(err)
 		}
