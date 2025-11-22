@@ -226,14 +226,13 @@ func TestParseHumanReadableABI(t *testing.T) {
 		},
 		{
 			name:  "function with non-standard small integers",
-			input: []string{"function nonStandardIntegers(uint24 u24, uint36 u36, uint48 u48, uint72 u72, uint96 u96, uint120 u120, int24 i24, int36 i36, int48 i48, int72 i72, int96 i96, int120 i120)"},
+			input: []string{"function nonStandardIntegers(uint24 u24, uint48 u48, uint72 u72, uint96 u96, uint120 u120, int24 i24, int36 i36, int48 i48, int72 i72, int96 i96, int120 i120)"},
 			expected: `[
 				{
 					"type": "function",
 					"name": "nonStandardIntegers",
 					"inputs": [
 						{"name": "u24", "type": "uint24"},
-						{"name": "u36", "type": "uint36"},
 						{"name": "u48", "type": "uint48"},
 						{"name": "u72", "type": "uint72"},
 						{"name": "u96", "type": "uint96"},

@@ -917,12 +917,10 @@ func EncodeBytesSlice(value [][]byte, buf []byte) (int, error) {
 
 // EncodeInt16 encodes int16 to ABI bytes
 func EncodeInt16(value int16, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 30; i++ {
-			buf[i] = 0xff
-		}
-	}
 	binary.BigEndian.PutUint16(buf[30:32], uint16(value))
+	if value < 0 {
+		copy(buf, PaddingBytes16)
+	}
 	return 32, nil
 }
 
@@ -947,12 +945,10 @@ func EncodeInt16Slice(value []int16, buf []byte) (int, error) {
 
 // EncodeInt24 encodes int24 to ABI bytes
 func EncodeInt24(value int32, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 28; i++ {
-			buf[i] = 0xff
-		}
-	}
 	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	if value < 0 {
+		copy(buf, PaddingBytes32)
+	}
 	return 32, nil
 }
 
@@ -1004,12 +1000,10 @@ func EncodeInt256Slice(value []*big.Int, buf []byte) (int, error) {
 
 // EncodeInt32 encodes int32 to ABI bytes
 func EncodeInt32(value int32, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 28; i++ {
-			buf[i] = 0xff
-		}
-	}
 	binary.BigEndian.PutUint32(buf[28:32], uint32(value))
+	if value < 0 {
+		copy(buf, PaddingBytes32)
+	}
 	return 32, nil
 }
 
@@ -1034,12 +1028,10 @@ func EncodeInt32Slice(value []int32, buf []byte) (int, error) {
 
 // EncodeInt40 encodes int40 to ABI bytes
 func EncodeInt40(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	if value < 0 {
+		copy(buf, PaddingBytes64)
+	}
 	return 32, nil
 }
 
@@ -1064,12 +1056,10 @@ func EncodeInt40Slice(value []int64, buf []byte) (int, error) {
 
 // EncodeInt48 encodes int48 to ABI bytes
 func EncodeInt48(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	if value < 0 {
+		copy(buf, PaddingBytes64)
+	}
 	return 32, nil
 }
 
@@ -1094,12 +1084,10 @@ func EncodeInt48Slice(value []int64, buf []byte) (int, error) {
 
 // EncodeInt56 encodes int56 to ABI bytes
 func EncodeInt56(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	if value < 0 {
+		copy(buf, PaddingBytes64)
+	}
 	return 32, nil
 }
 
@@ -1124,12 +1112,10 @@ func EncodeInt56Slice(value []int64, buf []byte) (int, error) {
 
 // EncodeInt64 encodes int64 to ABI bytes
 func EncodeInt64(value int64, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 24; i++ {
-			buf[i] = 0xff
-		}
-	}
 	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
+	if value < 0 {
+		copy(buf, PaddingBytes64)
+	}
 	return 32, nil
 }
 
@@ -1154,12 +1140,10 @@ func EncodeInt64Slice(value []int64, buf []byte) (int, error) {
 
 // EncodeInt8 encodes int8 to ABI bytes
 func EncodeInt8(value int8, buf []byte) (int, error) {
-	if value < 0 {
-		for i := 0; i < 31; i++ {
-			buf[i] = 0xff
-		}
-	}
 	buf[31] = byte(value)
+	if value < 0 {
+		copy(buf, PaddingBytes8)
+	}
 	return 32, nil
 }
 
@@ -3321,23 +3305,10 @@ func DecodeBytesSlice(data []byte) ([][]byte, int, error) {
 
 // DecodeInt16 decodes int16 from ABI bytes
 func DecodeInt16(data []byte) (int16, int, error) {
-	// Validate sign extension for int16 (padding bytes: 30)
-	if data[30]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 30; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 30; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int16](data, MinInt16, MaxInt16)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := int16(binary.BigEndian.Uint16(data[30:32]))
 	return result, 32, nil
 }
 
@@ -3373,24 +3344,10 @@ func DecodeInt16Slice(data []byte) ([]int16, int, error) {
 
 // DecodeInt24 decodes int24 from ABI bytes
 func DecodeInt24(data []byte) (int32, int, error) {
-	// Validate sign extension for int24 (padding bytes: 29)
-	if data[29]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 29; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 29; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int32](data, MinInt24, MaxInt24)
+	if err != nil {
+		return 0, 0, err
 	}
-	// Decode int24 using int32
-	result := int32(binary.BigEndian.Uint32(data[28:32]))
 	return result, 32, nil
 }
 
@@ -3465,24 +3422,10 @@ func DecodeInt256Slice(data []byte) ([]*big.Int, int, error) {
 
 // DecodeInt32 decodes int32 from ABI bytes
 func DecodeInt32(data []byte) (int32, int, error) {
-	// Validate sign extension for int32 (padding bytes: 28)
-	if data[28]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 28; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 28; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int32](data, MinInt32, MaxInt32)
+	if err != nil {
+		return 0, 0, err
 	}
-	// Decode int32 using int32
-	result := int32(binary.BigEndian.Uint32(data[28:32]))
 	return result, 32, nil
 }
 
@@ -3518,24 +3461,10 @@ func DecodeInt32Slice(data []byte) ([]int32, int, error) {
 
 // DecodeInt40 decodes int40 from ABI bytes
 func DecodeInt40(data []byte) (int64, int, error) {
-	// Validate sign extension for int40 (padding bytes: 27)
-	if data[27]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 27; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 27; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int64](data, MinInt40, MaxInt40)
+	if err != nil {
+		return 0, 0, err
 	}
-	// Decode int40 using int64
-	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
@@ -3571,24 +3500,10 @@ func DecodeInt40Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt48 decodes int48 from ABI bytes
 func DecodeInt48(data []byte) (int64, int, error) {
-	// Validate sign extension for int48 (padding bytes: 26)
-	if data[26]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 26; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 26; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int64](data, MinInt48, MaxInt48)
+	if err != nil {
+		return 0, 0, err
 	}
-	// Decode int48 using int64
-	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
@@ -3624,24 +3539,10 @@ func DecodeInt48Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt56 decodes int56 from ABI bytes
 func DecodeInt56(data []byte) (int64, int, error) {
-	// Validate sign extension for int56 (padding bytes: 25)
-	if data[25]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 25; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 25; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int64](data, MinInt56, MaxInt56)
+	if err != nil {
+		return 0, 0, err
 	}
-	// Decode int56 using int64
-	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
@@ -3677,24 +3578,10 @@ func DecodeInt56Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt64 decodes int64 from ABI bytes
 func DecodeInt64(data []byte) (int64, int, error) {
-	// Validate sign extension for int64 (padding bytes: 24)
-	if data[24]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 24; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 24; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int64](data, MinInt64, MaxInt64)
+	if err != nil {
+		return 0, 0, err
 	}
-	// Decode int64 using int64
-	result := int64(binary.BigEndian.Uint64(data[24:32]))
 	return result, 32, nil
 }
 
@@ -3730,23 +3617,10 @@ func DecodeInt64Slice(data []byte) ([]int64, int, error) {
 
 // DecodeInt8 decodes int8 from ABI bytes
 func DecodeInt8(data []byte) (int8, int, error) {
-	// Validate sign extension for int8 (padding bytes: 31)
-	if data[31]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 31; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 31; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, ErrDirtyPadding
-			}
-		}
+	result, err := DecodeInt[int8](data, MinInt8, MaxInt8)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := int8(data[31])
 	return result, 32, nil
 }
 
@@ -3848,13 +3722,10 @@ func DecodeStringSlice(data []byte) ([]string, int, error) {
 
 // DecodeUint16 decodes uint16 from ABI bytes
 func DecodeUint16(data []byte) (uint16, int, error) {
-	// Validate no extra bits are set for uint16 (padding bytes: 30)
-	for i := 0; i < 30; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint16](data, MaxUint16)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := binary.BigEndian.Uint16(data[30:32])
 	return result, 32, nil
 }
 
@@ -3890,13 +3761,10 @@ func DecodeUint16Slice(data []byte) ([]uint16, int, error) {
 
 // DecodeUint24 decodes uint24 from ABI bytes
 func DecodeUint24(data []byte) (uint32, int, error) {
-	// Validate no extra bits are set for uint24 (padding bytes: 29)
-	for i := 0; i < 29; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint32](data, MaxUint24)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
@@ -3971,13 +3839,10 @@ func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
 
 // DecodeUint32 decodes uint32 from ABI bytes
 func DecodeUint32(data []byte) (uint32, int, error) {
-	// Validate no extra bits are set for uint32 (padding bytes: 28)
-	for i := 0; i < 28; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint32](data, MaxUint32)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := binary.BigEndian.Uint32(data[28:32])
 	return result, 32, nil
 }
 
@@ -4013,13 +3878,10 @@ func DecodeUint32Slice(data []byte) ([]uint32, int, error) {
 
 // DecodeUint40 decodes uint40 from ABI bytes
 func DecodeUint40(data []byte) (uint64, int, error) {
-	// Validate no extra bits are set for uint40 (padding bytes: 27)
-	for i := 0; i < 27; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint64](data, MaxUint40)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
@@ -4055,13 +3917,10 @@ func DecodeUint40Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint48 decodes uint48 from ABI bytes
 func DecodeUint48(data []byte) (uint64, int, error) {
-	// Validate no extra bits are set for uint48 (padding bytes: 26)
-	for i := 0; i < 26; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint64](data, MaxUint48)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
@@ -4097,13 +3956,10 @@ func DecodeUint48Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint56 decodes uint56 from ABI bytes
 func DecodeUint56(data []byte) (uint64, int, error) {
-	// Validate no extra bits are set for uint56 (padding bytes: 25)
-	for i := 0; i < 25; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint64](data, MaxUint56)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
@@ -4139,13 +3995,10 @@ func DecodeUint56Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint64 decodes uint64 from ABI bytes
 func DecodeUint64(data []byte) (uint64, int, error) {
-	// Validate no extra bits are set for uint64 (padding bytes: 24)
-	for i := 0; i < 24; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint64](data, MaxUint64)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := binary.BigEndian.Uint64(data[24:32])
 	return result, 32, nil
 }
 
@@ -4181,13 +4034,10 @@ func DecodeUint64Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint8 decodes uint8 from ABI bytes
 func DecodeUint8(data []byte) (uint8, int, error) {
-	// Validate no extra bits are set for uint8 (padding bytes: 31)
-	for i := 0; i < 31; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, ErrDirtyPadding
-		}
+	result, err := DecodeUint[uint8](data, MaxUint8)
+	if err != nil {
+		return 0, 0, err
 	}
-	result := uint8(data[31])
 	return result, 32, nil
 }
 
