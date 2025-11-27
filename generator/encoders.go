@@ -9,11 +9,15 @@ import (
 
 // genIntEncoding generates encoding for integer types
 func (g *Generator) genIntEncoding(t ethabi.Type) {
-	// Optimize small integer types to avoid big.Int overhead
-	if t.Size <= 64 {
-		g.genSmallIntEncoding(t)
+	if g.Options.Packed {
+		g.genPackedIntEncoding(t)
 	} else {
-		g.genBigIntEncoding(t)
+		// Optimize small integer types to avoid big.Int overhead
+		if t.Size <= 64 {
+			g.genSmallIntEncoding(t)
+		} else {
+			g.genBigIntEncoding(t)
+		}
 	}
 }
 
@@ -109,18 +113,77 @@ func (g *Generator) genBigIntEncoding(t ethabi.Type) {
 	g.L("\treturn 32, nil")
 }
 
+// genPackedIntEncoding generates packed encoding for integer types
+func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
+	// For packed format, use natural size without padding
+	byteSize := (t.Size + 7) / 8 // Convert bits to bytes
+
+	if t.T == ethabi.IntTy {
+		// Signed integers need sign extension
+		g.L("\tif value < 0 {")
+		g.L("\t\t// Sign extend for negative values")
+		g.L("\t\tfor i := 0; i < %d; i++ { buf[i] = 0xff }", byteSize)
+		g.L("\t}")
+	}
+
+	// Use appropriate binary encoding based on size
+	switch byteSize {
+	case 1:
+		g.L("\tbuf[0] = byte(value)")
+	case 2:
+		g.L("\tbinary.BigEndian.PutUint16(buf[:2], uint16(value))")
+	case 3:
+		g.L("\t// 3-byte encoding")
+		g.L("\tbuf[0] = byte(value >> 16)")
+		g.L("\tbuf[1] = byte(value >> 8)")
+		g.L("\tbuf[2] = byte(value)")
+	case 4:
+		g.L("\tbinary.BigEndian.PutUint32(buf[:4], uint32(value))")
+	case 5, 6, 7:
+		g.L("\t// %d-byte encoding", byteSize)
+		for i := 0; i < byteSize; i++ {
+			g.L("\tbuf[%d] = byte(value >> %d)", i, 8*(byteSize-1-i))
+		}
+	case 8:
+		g.L("\tbinary.BigEndian.PutUint64(buf[:8], uint64(value))")
+	default:
+		// For larger integers, use big.Int
+		signed := "false"
+		if t.T == ethabi.IntTy {
+			signed = "true"
+		}
+		g.L("\tif err := %sEncodeBigIntPacked(value, buf[:%d], %s); err != nil {", g.StdPrefix, byteSize, signed)
+		g.L("\t\treturn 0, err")
+		g.L("\t}")
+	}
+
+	g.L("\treturn %d, nil", byteSize)
+}
+
 // genAddressEncoding generates encoding for address types
 func (g *Generator) genAddressEncoding() {
-	g.L("\tcopy(buf[12:32], value[:])")
-	g.L("\treturn 32, nil")
+	if g.Options.Packed {
+		g.L("\tcopy(buf[:20], value[:])")
+		g.L("\treturn 20, nil")
+	} else {
+		g.L("\tcopy(buf[12:32], value[:])")
+		g.L("\treturn 32, nil")
+	}
 }
 
 // genBoolEncoding generates encoding for boolean types
 func (g *Generator) genBoolEncoding() {
-	g.L("\tif value {")
-	g.L("\t\tbuf[31] = 1")
-	g.L("\t}")
-	g.L("\treturn 32, nil")
+	if g.Options.Packed {
+		g.L("\tif value {")
+		g.L("\t\tbuf[0] = 1")
+		g.L("\t}")
+		g.L("\treturn 1, nil")
+	} else {
+		g.L("\tif value {")
+		g.L("\t\tbuf[31] = 1")
+		g.L("\t}")
+		g.L("\treturn 32, nil")
+	}
 }
 
 // genStringEncoding generates encoding for string types
@@ -147,8 +210,13 @@ func (g *Generator) genBytesEncoding() {
 
 // genFixedBytesEncoding generates encoding for fixed bytes types
 func (g *Generator) genFixedBytesEncoding(t ethabi.Type) {
-	g.L("\tcopy(buf[:%d], value[:])", t.Size)
-	g.L("\treturn %d, nil", t.Size)
+	if g.Options.Packed {
+		g.L("\tcopy(buf[:%d], value[:])", t.Size)
+		g.L("\treturn %d, nil", t.Size)
+	} else {
+		g.L("\tcopy(buf[:%d], value[:])", t.Size)
+		g.L("\treturn %d, nil", t.Size)
+	}
 }
 
 // genSliceEncoding generates encoding for slice types
@@ -192,93 +260,136 @@ func (g *Generator) genSliceEncoding(t ethabi.Type) {
 
 // genArrayEncoding generates encoding for array types
 func (g *Generator) genArrayEncoding(t ethabi.Type) {
-	if !IsDynamicType(*t.Elem) {
-		g.L("\t// Encode fixed-size array with static elements")
-
-		var offset int
+	if g.Options.Packed {
+		// Packed format: concatenate elements without padding
+		g.L("\t// Encode fixed-size array in packed format")
+		g.L("\tvar offset int")
+		g.L("\tvar err error")
 		for i := 0; i < t.Size; i++ {
 			ref := fmt.Sprintf("value[%d]", i)
-
-			g.L("\t\tif _, err := %s; err != nil {", g.genEncodeCall(*t.Elem, ref, fmt.Sprintf("buf[%d:]", offset)))
+			g.L("\t{")
+			g.L("\t\tn, err := %s", g.genEncodeCall(*t.Elem, ref, "buf[offset:]"))
+			g.L("\t\tif err != nil {")
 			g.L("\t\t\treturn 0, err")
 			g.L("\t\t}")
-
-			offset += GetTypeSize(*t.Elem)
-		}
-		g.L("\t")
-		g.L("\treturn %d, nil", offset)
-	} else {
-		g.L("\t// Encode fixed-size array with dynamic elements")
-
-		var offset int
-
-		g.L("\tvar (")
-		g.L("\t\tn int")
-		g.L("\t\terr error")
-		g.L("\t)")
-
-		g.L("\tdynamicOffset := 32 * %d", t.Size)
-		for i := 0; i < t.Size; i++ {
-			g.L("\tbinary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(dynamicOffset))", offset, offset)
-			offset += 32
-
-			ref := fmt.Sprintf("value[%d]", i)
-			g.L("\tn, err = %s", g.genEncodeCall(*t.Elem, ref, "buf[dynamicOffset:]"))
-			g.L("\tif err != nil {")
-			g.L("\t\treturn 0, err")
+			g.L("\t\toffset += n")
 			g.L("\t}")
-			g.L("\tdynamicOffset += n")
-			g.L("\t")
 		}
-		g.L("\t")
-		g.L("\treturn dynamicOffset, nil")
+		g.L("\treturn offset, nil")
+	} else {
+		if !IsDynamicType(*t.Elem) {
+			g.L("\t// Encode fixed-size array with static elements")
+
+			var offset int
+			for i := 0; i < t.Size; i++ {
+				ref := fmt.Sprintf("value[%d]", i)
+
+				g.L("\t\tif _, err := %s; err != nil {", g.genEncodeCall(*t.Elem, ref, fmt.Sprintf("buf[%d:]", offset)))
+				g.L("\t\t\treturn 0, err")
+				g.L("\t\t}")
+
+				offset += GetTypeSize(*t.Elem)
+			}
+			g.L("\t")
+			g.L("\treturn %d, nil", offset)
+		} else {
+			g.L("\t// Encode fixed-size array with dynamic elements")
+
+			var offset int
+
+			g.L("\tvar (")
+			g.L("\t\tn int")
+			g.L("\t\terr error")
+			g.L("\t)")
+
+			g.L("\tdynamicOffset := 32 * %d", t.Size)
+			for i := 0; i < t.Size; i++ {
+				g.L("\tbinary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(dynamicOffset))", offset, offset)
+				offset += 32
+
+				ref := fmt.Sprintf("value[%d]", i)
+				g.L("\tn, err = %s", g.genEncodeCall(*t.Elem, ref, "buf[dynamicOffset:]"))
+				g.L("\tif err != nil {")
+				g.L("\t\treturn 0, err")
+				g.L("\t}")
+				g.L("\tdynamicOffset += n")
+				g.L("\t")
+			}
+			g.L("\t")
+			g.L("\treturn dynamicOffset, nil")
+		}
 	}
 }
 
 // genTupleEncoding generates encoding for tuple types
 func (g *Generator) genTupleEncoding(t ethabi.Type) {
-	g.L("\t// Encode tuple fields")
-	g.L("\tdynamicOffset := %sStaticSize // Start dynamic data after static section", abi.TupleStructName(t))
+	if g.Options.Packed {
+		// Packed format: concatenate elements without padding
+		g.L("\t// Encode tuple fields in packed format")
+		g.L("\tvar offset int")
+		g.L("\tvar err error")
+		for i, elem := range t.TupleElems {
+			// Generate field access - use meaningful field names if available
+			fieldName := GoFieldName(t.TupleRawNames[i])
+			if fieldName == "" {
+				fieldName = fmt.Sprintf("Field%d", i+1)
+			}
+			g.L("\t// Field %s: %s", fieldName, elem.String())
 
-	// Generate encoding for each tuple element
-	if IsDynamicType(t) {
-		g.L("\tvar (")
-		g.L("\t\terr error")
-		g.L("\t\tn int")
-		g.L("\t)")
-	}
-
-	var offset int
-	for i, elem := range t.TupleElems {
-		// Generate field access - use meaningful field names if available
-		fieldName := GoFieldName(t.TupleRawNames[i])
-		if fieldName == "" {
-			fieldName = fmt.Sprintf("Field%d", i+1)
-		}
-		g.L("\t// Field %s: %s", fieldName, elem.String())
-
-		ref := "value." + fieldName
-		if !IsDynamicType(*elem) {
-			// Static field - encode directly
-			g.L("\tif _, err := %s; err != nil {", g.genEncodeCall(*elem, ref, fmt.Sprintf("buf[%d:]", offset)))
-			g.L("\t\treturn 0, err")
+			ref := "value." + fieldName
+			g.L("\t{")
+			g.L("\t\tn, err := %s", g.genEncodeCall(*elem, ref, "buf[offset:]"))
+			g.L("\t\tif err != nil {")
+			g.L("\t\t\treturn 0, err")
+			g.L("\t\t}")
+			g.L("\t\toffset += n")
 			g.L("\t}")
-			offset += GetTypeSize(*elem)
-		} else {
-			// Dynamic field - encode offset pointer and data in dynamic section
-			g.L("\t// Encode offset pointer")
-			g.L("\tbinary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(dynamicOffset))", offset, offset)
-			offset += 32
-
-			g.L("\t// Encode dynamic data")
-			g.L("\tn, err = %s", g.genEncodeCall(*elem, ref, "buf[dynamicOffset:]"))
-			g.L("\tif err != nil {")
-			g.L("\t\treturn 0, err")
-			g.L("\t}")
-			g.L("\tdynamicOffset += n")
 		}
-		g.L("")
-	}
+		g.L("\treturn offset, nil")
+	} else {
+		g.L("\t// Encode tuple fields")
+		g.L("\tdynamicOffset := %sStaticSize // Start dynamic data after static section", abi.TupleStructName(t))
 
-	g.L("\treturn dynamicOffset, nil")
+		// Generate encoding for each tuple element
+		if IsDynamicType(t) {
+			g.L("\tvar (")
+			g.L("\t\terr error")
+			g.L("\t\tn int")
+			g.L("\t)")
+		}
+
+		var offset int
+		for i, elem := range t.TupleElems {
+			// Generate field access - use meaningful field names if available
+			fieldName := GoFieldName(t.TupleRawNames[i])
+			if fieldName == "" {
+				fieldName = fmt.Sprintf("Field%d", i+1)
+			}
+			g.L("\t// Field %s: %s", fieldName, elem.String())
+
+			ref := "value." + fieldName
+			if !IsDynamicType(*elem) {
+				// Static field - encode directly
+				g.L("\tif _, err := %s; err != nil {", g.genEncodeCall(*elem, ref, fmt.Sprintf("buf[%d:]", offset)))
+				g.L("\t\treturn 0, err")
+				g.L("\t}")
+				offset += GetTypeSize(*elem)
+			} else {
+				// Dynamic field - encode offset pointer and data in dynamic section
+				g.L("\t// Encode offset pointer")
+				g.L("\tbinary.BigEndian.PutUint64(buf[%d+24:%d+32], uint64(dynamicOffset))", offset, offset)
+				offset += 32
+
+				g.L("\t// Encode dynamic data")
+				g.L("\tn, err = %s", g.genEncodeCall(*elem, ref, "buf[dynamicOffset:]"))
+				g.L("\tif err != nil {")
+				g.L("\t\treturn 0, err")
+				g.L("\t}")
+				g.L("\tdynamicOffset += n")
+			}
+			g.L("")
+		}
+
+		g.L("\treturn dynamicOffset, nil")
+	}
 }

@@ -2,6 +2,7 @@ package generator
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 	"strings"
 
@@ -89,6 +90,40 @@ func GetTupleSize(elems []*abi.Type) int {
 	return total
 }
 
+// GetPackedTypeSize returns the packed size of a type (without padding)
+func GetPackedTypeSize(t abi.Type) int {
+	switch t.T {
+	case abi.UintTy, abi.IntTy:
+		// Integer types use their natural size
+		return (t.Size + 7) / 8 // Convert bits to bytes
+	case abi.AddressTy:
+		// Address is 20 bytes
+		return 20
+	case abi.BoolTy:
+		// Boolean is 1 byte
+		return 1
+	case abi.FixedBytesTy:
+		// Fixed bytes use their actual size
+		return t.Size
+	case abi.ArrayTy:
+		// Fixed arrays multiply element size by count
+		return t.Size * GetPackedTypeSize(*t.Elem)
+	case abi.TupleTy:
+		// Tuples sum the sizes of their elements
+		total := 0
+		for _, elem := range t.TupleElems {
+			total += GetPackedTypeSize(*elem)
+		}
+		return total
+	case abi.SliceTy, abi.BytesTy, abi.StringTy:
+		// Dynamic types are not supported in packed format
+		// This should be caught by validation before reaching here
+		panic(fmt.Sprintf("dynamic type %s not supported in packed format", t.String()))
+	default:
+		panic(fmt.Sprintf("unsupported ABI type for packed size calculation: %s", t.String()))
+	}
+}
+
 // RequiresLengthPrefix returns whether the type requires any sort of length
 // prefixing.
 func RequiresLengthPrefix(t abi.Type) bool {
@@ -158,4 +193,29 @@ func ParseImport(imp string) ImportSpec {
 		panic("invalid import format " + imp)
 	}
 	return spec
+}
+
+// IsPackedSupported returns true if the type can be encoded in packed format
+func IsPackedSupported(t abi.Type) bool {
+	switch t.T {
+	case abi.UintTy, abi.IntTy, abi.AddressTy, abi.BoolTy, abi.FixedBytesTy:
+		// Static primitive types are supported
+		return true
+	case abi.ArrayTy:
+		// Fixed arrays are supported if their element type is supported
+		return IsPackedSupported(*t.Elem)
+	case abi.TupleTy:
+		// Tuples are supported if all their elements are supported
+		for _, elem := range t.TupleElems {
+			if !IsPackedSupported(*elem) {
+				return false
+			}
+		}
+		return true
+	case abi.SliceTy, abi.BytesTy, abi.StringTy:
+		// Dynamic types are not supported in packed format
+		return false
+	default:
+		return false
+	}
 }

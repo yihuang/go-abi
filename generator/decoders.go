@@ -8,11 +8,15 @@ import (
 
 // genIntDecoding generates decoding for integer types
 func (g *Generator) genIntDecoding(t abi.Type) {
-	// Optimize small integer types to avoid big.Int overhead
-	if t.Size <= 64 {
-		g.genSmallIntDecoding(t)
+	if g.Options.Packed {
+		g.genPackedIntDecoding(t)
 	} else {
-		g.genBigIntDecoding(t)
+		// Optimize small integer types to avoid big.Int overhead
+		if t.Size <= 64 {
+			g.genSmallIntDecoding(t)
+		} else {
+			g.genBigIntDecoding(t)
+		}
 	}
 }
 
@@ -126,34 +130,137 @@ func (g *Generator) genBigIntDecoding(t abi.Type) {
 	g.L("\treturn result, 32, nil")
 }
 
+// genPackedIntDecoding generates packed decoding for integer types
+func (g *Generator) genPackedIntDecoding(t abi.Type) {
+	// For packed format, use natural size without padding
+	byteSize := (t.Size + 7) / 8 // Convert bits to bytes
+
+	g.L("\tif len(data) < %d {", byteSize)
+	g.L("\t\treturn 0, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
+
+	// Use appropriate binary decoding based on size
+	switch byteSize {
+	case 1:
+		if t.T == abi.IntTy {
+			g.L("\tresult := int8(data[0])")
+		} else {
+			g.L("\tresult := uint8(data[0])")
+		}
+	case 2:
+		if t.T == abi.IntTy {
+			g.L("\tresult := int16(binary.BigEndian.Uint16(data[:2]))")
+		} else {
+			g.L("\tresult := binary.BigEndian.Uint16(data[:2])")
+		}
+	case 3:
+		g.L("\t// 3-byte decoding")
+		if t.T == abi.IntTy {
+			g.L("\tresult := int32(data[0])<<16 | int32(data[1])<<8 | int32(data[2])")
+			g.L("\t// Sign extend if needed")
+			g.L("\tif result&0x800000 != 0 {")
+			g.L("\t\tresult |= ^0xffffff")
+			g.L("\t}")
+		} else {
+			g.L("\tresult := uint32(data[0])<<16 | uint32(data[1])<<8 | uint32(data[2])")
+		}
+	case 4:
+		if t.T == abi.IntTy {
+			g.L("\tresult := int32(binary.BigEndian.Uint32(data[:4]))")
+		} else {
+			g.L("\tresult := binary.BigEndian.Uint32(data[:4])")
+		}
+	case 5, 6, 7:
+		g.L("\t// %d-byte decoding", byteSize)
+		if t.T == abi.IntTy {
+			g.L("\tvar result int64")
+			for i := 0; i < byteSize; i++ {
+				g.L("\tresult = result<<8 | int64(data[%d])", i)
+			}
+			g.L("\t// Sign extend if needed")
+			g.L("\tif result&(1<<(%d*8-1)) != 0 {", byteSize)
+			g.L("\t\tresult |= ^((1 << (%d * 8)) - 1)", byteSize)
+			g.L("\t}")
+		} else {
+			g.L("\tvar result uint64")
+			for i := 0; i < byteSize; i++ {
+				g.L("\tresult = result<<8 | uint64(data[%d])", i)
+			}
+		}
+	case 8:
+		if t.T == abi.IntTy {
+			g.L("\tresult := int64(binary.BigEndian.Uint64(data[:8]))")
+		} else {
+			g.L("\tresult := binary.BigEndian.Uint64(data[:8])")
+		}
+	default:
+		// For larger integers, use big.Int
+		signed := "false"
+		if t.T == abi.IntTy {
+			signed = "true"
+		}
+		g.L("\tresult, err := %sDecodeBigIntPacked(data[:%d], %s)", g.StdPrefix, byteSize, signed)
+		g.L("\tif err != nil {")
+		g.L("\t\treturn nil, 0, err")
+		g.L("\t}")
+		g.L("\treturn result, %d, nil", byteSize)
+		return
+	}
+
+	g.L("\treturn result, %d, nil", byteSize)
+}
+
 // genAddressDecoding generates decoding for address types
 func (g *Generator) genAddressDecoding() {
-	g.L("\tvar result common.Address")
-	g.L("\tfor i := 0; i < 12; i++ {")
-	g.L("\t\tif data[i] != 0x00 {")
-	g.L("\t\t\treturn result, 0, %sErrDirtyPadding", g.StdPrefix)
-	g.L("\t\t}")
-	g.L("\t}")
-	g.L("\tcopy(result[:], data[12:32])")
-	g.L("\treturn result, 32, nil")
+	if g.Options.Packed {
+		g.L("\tif len(data) < 20 {")
+		g.L("\t\treturn common.Address{}, 0, io.ErrUnexpectedEOF")
+		g.L("\t}")
+		g.L("\tvar result common.Address")
+		g.L("\tcopy(result[:], data[:20])")
+		g.L("\treturn result, 20, nil")
+	} else {
+		g.L("\tvar result common.Address")
+		g.L("\tfor i := 0; i < 12; i++ {")
+		g.L("\t\tif data[i] != 0x00 {")
+		g.L("\t\t\treturn result, 0, %sErrDirtyPadding", g.StdPrefix)
+		g.L("\t\t}")
+		g.L("\t}")
+		g.L("\tcopy(result[:], data[12:32])")
+		g.L("\treturn result, 32, nil")
+	}
 }
 
 // genBoolDecoding generates decoding for boolean types
 func (g *Generator) genBoolDecoding() {
-	g.L("\t// Validate boolean encoding - only 0 or 1 are valid")
-	g.L("\tfor i := 0; i < 31; i++ {")
-	g.L("\t\tif data[i] != 0x00 {")
-	g.L("\t\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
-	g.L("\t\t}")
-	g.L("\t}")
-	g.L("\tswitch data[31] {")
-	g.L("\tcase 0x01:")
-	g.L("\t\treturn true, 32, nil")
-	g.L("\tcase 0x00:")
-	g.L("\t\treturn false, 32, nil")
-	g.L("\tdefault:")
-	g.L("\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
-	g.L("\t}")
+	if g.Options.Packed {
+		g.L("\tif len(data) < 1 {")
+		g.L("\t\treturn false, 0, io.ErrUnexpectedEOF")
+		g.L("\t}")
+		g.L("\tswitch data[0] {")
+		g.L("\tcase 0x01:")
+		g.L("\t\treturn true, 1, nil")
+		g.L("\tcase 0x00:")
+		g.L("\t\treturn false, 1, nil")
+		g.L("\tdefault:")
+		g.L("\t\treturn false, 0, %sErrInvalidBoolean", g.StdPrefix)
+		g.L("\t}")
+	} else {
+		g.L("\t// Validate boolean encoding - only 0 or 1 are valid")
+		g.L("\tfor i := 0; i < 31; i++ {")
+		g.L("\t\tif data[i] != 0x00 {")
+		g.L("\t\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
+		g.L("\t\t}")
+		g.L("\t}")
+		g.L("\tswitch data[31] {")
+		g.L("\tcase 0x01:")
+		g.L("\t\treturn true, 32, nil")
+		g.L("\tcase 0x00:")
+		g.L("\t\treturn false, 32, nil")
+		g.L("\tdefault:")
+		g.L("\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
+		g.L("\t}")
+	}
 }
 
 // genStringDecoding generates decoding for string types
@@ -223,9 +330,18 @@ func (g *Generator) genBytesDecoding() {
 
 // genFixedBytesDecoding generates decoding for fixed bytes types
 func (g *Generator) genFixedBytesDecoding(t abi.Type) {
-	g.L("\tvar result [%d]byte", t.Size)
-	g.L("\tcopy(result[:], data[:%d])", t.Size)
-	g.L("\treturn result, %d, nil", t.Size)
+	if g.Options.Packed {
+		g.L("\tif len(data) < %d {", t.Size)
+		g.L("\t\treturn [%d]byte{}, 0, io.ErrUnexpectedEOF", t.Size)
+		g.L("\t}")
+		g.L("\tvar result [%d]byte", t.Size)
+		g.L("\tcopy(result[:], data[:%d])", t.Size)
+		g.L("\treturn result, %d, nil", t.Size)
+	} else {
+		g.L("\tvar result [%d]byte", t.Size)
+		g.L("\tcopy(result[:], data[:%d])", t.Size)
+		g.L("\treturn result, %d, nil", t.Size)
+	}
 }
 
 // genSliceDecoding generates decoding for slice types
@@ -301,64 +417,84 @@ func (g *Generator) genSliceDecoding(t abi.Type) {
 
 // genArrayDecoding generates decoding for array types
 func (g *Generator) genArrayDecoding(t abi.Type) {
-	goType := g.abiTypeToGoType(*t.Elem)
-	typeSize := GetTypeSize(*t.Elem)
-
-	if !IsDynamicType(*t.Elem) {
-		g.L("\t// Decode fixed-size array with static elements")
-		g.L("\tvar (")
-		g.L("\t\tresult [%d]%s", t.Size, goType)
-		g.L("\t\terr error")
-		g.L("\t)")
-		g.L("\tif len(data) < %d {", t.Size*typeSize)
-		g.L("\t\treturn result, 0, io.ErrUnexpectedEOF")
-		g.L("\t}")
-
-		var offset int
-		for i := 0; i < t.Size; i++ {
-			g.L("\t// Element %d", i)
-			g.L("\tresult[%d], _, err = %s", i, g.genDecodeCall(*t.Elem, fmt.Sprintf("data[%d:]", offset)))
-			g.L("\tif err != nil {")
-			g.L("\t\treturn result, 0, err")
-			g.L("\t}")
-			offset += typeSize
-		}
-		g.L("\treturn result, %d, nil", offset)
-	} else {
-		g.L("\t// Decode fixed-size array with dynamic elements")
-		g.L("\tvar result [%d]%s", t.Size, goType)
-
-		g.L("\tif len(data) < %d {", t.Size*32)
-		g.L("\t\treturn result, 0, io.ErrUnexpectedEOF")
-		g.L("\t}")
-
+	if g.Options.Packed {
+		// Packed format: concatenate elements without padding
+		g.L("\t// Decode fixed-size array in packed format")
+		g.L("\tvar result [%d]%s", t.Size, g.abiTypeToGoType(*t.Elem))
 		g.L("\tvar (")
 		g.L("\t\tn int")
 		g.L("\t\terr error")
-		g.L("\t\ttmp int")
 		g.L("\t)")
-		g.L("\toffset := 0")
-		g.L("\tdynamicOffset := %d", t.Size*32)
-		g.L("\tfor i := 0; i < %d; i++ {", t.Size)
-		g.L("\t\ttmp, err = %sDecodeSize(data[offset:])", g.StdPrefix)
-		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn result, 0, err")
-		g.L("\t\t}")
-		g.L("\t\toffset += 32")
-		g.L("")
-		g.L("\t\tif dynamicOffset != tmp {")
-		g.L("\t\t\treturn result, 0, %sErrInvalidOffsetForArrayElement", g.StdPrefix)
-		g.L("\t\t}")
-		if t.Elem.T == abi.TupleTy {
-			g.L("\t\tn, err = result[i].Decode(data[dynamicOffset:])")
-		} else {
-			g.L("\t\tresult[i], n, err = %s", g.genDecodeCall(*t.Elem, "data[dynamicOffset:]"))
+		g.L("\tvar offset int")
+		for i := 0; i < t.Size; i++ {
+			g.L("\t// Element %d", i)
+			g.L("\tresult[%d], n, err = %s", i, g.genDecodeCall(*t.Elem, "data[offset:]"))
+			g.L("\tif err != nil {")
+			g.L("\t\treturn result, 0, err")
+			g.L("\t}")
+			g.L("\toffset += n")
 		}
-		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn result, 0, err")
-		g.L("\t\t}")
-		g.L("\t\tdynamicOffset += n")
-		g.L("\t}")
-		g.L("\treturn result, dynamicOffset, nil")
+		g.L("\treturn result, offset, nil")
+	} else {
+		goType := g.abiTypeToGoType(*t.Elem)
+		typeSize := GetTypeSize(*t.Elem)
+
+		if !IsDynamicType(*t.Elem) {
+			g.L("\t// Decode fixed-size array with static elements")
+			g.L("\tvar (")
+			g.L("\t\tresult [%d]%s", t.Size, goType)
+			g.L("\t\terr error")
+			g.L("\t)")
+			g.L("\tif len(data) < %d {", t.Size*typeSize)
+			g.L("\t\treturn result, 0, io.ErrUnexpectedEOF")
+			g.L("\t}")
+
+			var offset int
+			for i := 0; i < t.Size; i++ {
+				g.L("\t// Element %d", i)
+				g.L("\tresult[%d], _, err = %s", i, g.genDecodeCall(*t.Elem, fmt.Sprintf("data[%d:]", offset)))
+				g.L("\tif err != nil {")
+				g.L("\t\treturn result, 0, err")
+				g.L("\t}")
+				offset += typeSize
+			}
+			g.L("\treturn result, %d, nil", offset)
+		} else {
+			g.L("\t// Decode fixed-size array with dynamic elements")
+			g.L("\tvar result [%d]%s", t.Size, goType)
+
+			g.L("\tif len(data) < %d {", t.Size*32)
+			g.L("\t\treturn result, 0, io.ErrUnexpectedEOF")
+			g.L("\t}")
+
+			g.L("\tvar (")
+			g.L("\t\tn int")
+			g.L("\t\terr error")
+			g.L("\t\ttmp int")
+			g.L("\t)")
+			g.L("\toffset := 0")
+			g.L("\tdynamicOffset := %d", t.Size*32)
+			g.L("\tfor i := 0; i < %d; i++ {", t.Size)
+			g.L("\t\ttmp, err = %sDecodeSize(data[offset:])", g.StdPrefix)
+			g.L("\t\tif err != nil {")
+			g.L("\t\t\treturn result, 0, err")
+			g.L("\t\t}")
+			g.L("\t\toffset += 32")
+			g.L("")
+			g.L("\t\tif dynamicOffset != tmp {")
+			g.L("\t\t\treturn result, 0, %sErrInvalidOffsetForArrayElement", g.StdPrefix)
+			g.L("\t\t}")
+			if t.Elem.T == abi.TupleTy {
+				g.L("\t\tn, err = result[i].Decode(data[dynamicOffset:])")
+			} else {
+				g.L("\t\tresult[i], n, err = %s", g.genDecodeCall(*t.Elem, "data[dynamicOffset:]"))
+			}
+			g.L("\t\tif err != nil {")
+			g.L("\t\t\treturn result, 0, err")
+			g.L("\t\t}")
+			g.L("\t\tdynamicOffset += n")
+			g.L("\t}")
+			g.L("\treturn result, dynamicOffset, nil")
+		}
 	}
 }

@@ -9,6 +9,7 @@ type Options struct {
 	ExternalTuples map[string]string
 	Prefix         string
 	Stdlib         bool
+	Packed         bool
 }
 
 func NewOptions(opts ...Option) *Options {
@@ -52,5 +53,11 @@ func ExtraImports(imports []ImportSpec) Option {
 func ExternalTuples(m map[string]string) Option {
 	return func(o *Options) {
 		o.ExternalTuples = m
+	}
+}
+
+func Packed(p bool) Option {
+	return func(o *Options) {
+		o.Packed = p
 	}
 }

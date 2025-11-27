@@ -19,6 +19,7 @@ func main() {
 		imports       = flag.String("imports", "", "Additional import paths, comma-separated")
 		stdlib        = flag.Bool("stdlib", false, "Generate stdlib itself")
 		artifactInput = flag.Bool("artifact-input", false, "Input file is a solc artifact JSON, will extract the abi field from it")
+		packed        = flag.Bool("packed", false, "Generate packed encoding format (no padding, no dynamic types)")
 	)
 	flag.Parse()
 
@@ -26,6 +27,7 @@ func main() {
 		generator.PackageName(*packageName),
 		generator.Prefix(*prefix),
 		generator.Stdlib(*stdlib),
+		generator.Packed(*packed),
 	}
 
 	if *imports != "" {
