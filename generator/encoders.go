@@ -171,6 +171,12 @@ func (g *Generator) genAddressEncoding() {
 	}
 }
 
+// genPackedAddressEncoding generates packed encoding for address types
+func (g *Generator) genPackedAddressEncoding() {
+	g.L("\tcopy(buf[:20], value[:])")
+	g.L("\treturn 20, nil")
+}
+
 // genBoolEncoding generates encoding for boolean types
 func (g *Generator) genBoolEncoding() {
 	if g.Options.Packed {
@@ -184,6 +190,14 @@ func (g *Generator) genBoolEncoding() {
 		g.L("\t}")
 		g.L("\treturn 32, nil")
 	}
+}
+
+// genPackedBoolEncoding generates packed encoding for boolean types
+func (g *Generator) genPackedBoolEncoding() {
+	g.L("\tif value {")
+	g.L("\t\tbuf[0] = 1")
+	g.L("\t}")
+	g.L("\treturn 1, nil")
 }
 
 // genStringEncoding generates encoding for string types
@@ -217,6 +231,12 @@ func (g *Generator) genFixedBytesEncoding(t ethabi.Type) {
 		g.L("\tcopy(buf[:%d], value[:])", t.Size)
 		g.L("\treturn %d, nil", t.Size)
 	}
+}
+
+// genPackedFixedBytesEncoding generates packed encoding for fixed bytes types
+func (g *Generator) genPackedFixedBytesEncoding(t ethabi.Type) {
+	g.L("\tcopy(buf[:%d], value[:])", t.Size)
+	g.L("\treturn %d, nil", t.Size)
 }
 
 // genSliceEncoding generates encoding for slice types
@@ -261,21 +281,7 @@ func (g *Generator) genSliceEncoding(t ethabi.Type) {
 // genArrayEncoding generates encoding for array types
 func (g *Generator) genArrayEncoding(t ethabi.Type) {
 	if g.Options.Packed {
-		// Packed format: concatenate elements without padding
-		g.L("\t// Encode fixed-size array in packed format")
-		g.L("\tvar offset int")
-		g.L("\tvar err error")
-		for i := 0; i < t.Size; i++ {
-			ref := fmt.Sprintf("value[%d]", i)
-			g.L("\t{")
-			g.L("\t\tn, err := %s", g.genEncodeCall(*t.Elem, ref, "buf[offset:]"))
-			g.L("\t\tif err != nil {")
-			g.L("\t\t\treturn 0, err")
-			g.L("\t\t}")
-			g.L("\t\toffset += n")
-			g.L("\t}")
-		}
-		g.L("\treturn offset, nil")
+		g.genPackedArrayEncoding(t)
 	} else {
 		if !IsDynamicType(*t.Elem) {
 			g.L("\t// Encode fixed-size array with static elements")
@@ -321,6 +327,25 @@ func (g *Generator) genArrayEncoding(t ethabi.Type) {
 	}
 }
 
+// genPackedArrayEncoding generates packed encoding for array types
+func (g *Generator) genPackedArrayEncoding(t ethabi.Type) {
+	// Packed format: concatenate elements without padding
+	g.L("\t// Encode fixed-size array in packed format")
+	g.L("\tvar offset int")
+	g.L("\tvar err error")
+	for i := 0; i < t.Size; i++ {
+		ref := fmt.Sprintf("value[%d]", i)
+		g.L("\t{")
+		g.L("\t\tn, err := %s", g.genPackedEncodeCall(*t.Elem, ref, "buf[offset:]"))
+		g.L("\t\tif err != nil {")
+		g.L("\t\t\treturn 0, err")
+		g.L("\t\t}")
+		g.L("\t\toffset += n")
+		g.L("\t}")
+	}
+	g.L("\treturn offset, nil")
+}
+
 // genTupleEncoding generates encoding for tuple types
 func (g *Generator) genTupleEncoding(t ethabi.Type) {
 	if g.Options.Packed {
@@ -338,7 +363,7 @@ func (g *Generator) genTupleEncoding(t ethabi.Type) {
 
 			ref := "value." + fieldName
 			g.L("\t{")
-			g.L("\t\tn, err := %s", g.genEncodeCall(*elem, ref, "buf[offset:]"))
+			g.L("\t\tn, err := %s", g.genPackedEncodeCall(*elem, ref, "buf[offset:]"))
 			g.L("\t\tif err != nil {")
 			g.L("\t\t\treturn 0, err")
 			g.L("\t\t}")

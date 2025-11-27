@@ -231,6 +231,16 @@ func (g *Generator) genAddressDecoding() {
 	}
 }
 
+// genPackedAddressDecoding generates packed decoding for address types
+func (g *Generator) genPackedAddressDecoding() {
+	g.L("\tif len(data) < 20 {")
+	g.L("\t\treturn common.Address{}, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
+	g.L("\tvar result common.Address")
+	g.L("\tcopy(result[:], data[:20])")
+	g.L("\treturn result, 20, nil")
+}
+
 // genBoolDecoding generates decoding for boolean types
 func (g *Generator) genBoolDecoding() {
 	if g.Options.Packed {
@@ -261,6 +271,21 @@ func (g *Generator) genBoolDecoding() {
 		g.L("\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
 		g.L("\t}")
 	}
+}
+
+// genPackedBoolDecoding generates packed decoding for boolean types
+func (g *Generator) genPackedBoolDecoding() {
+	g.L("\tif len(data) < 1 {")
+	g.L("\t\treturn false, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
+	g.L("\tswitch data[0] {")
+	g.L("\tcase 0x01:")
+	g.L("\t\treturn true, 1, nil")
+	g.L("\tcase 0x00:")
+	g.L("\t\treturn false, 1, nil")
+	g.L("\tdefault:")
+	g.L("\t\treturn false, 0, %sErrInvalidBoolean", g.StdPrefix)
+	g.L("\t}")
 }
 
 // genStringDecoding generates decoding for string types
@@ -344,6 +369,16 @@ func (g *Generator) genFixedBytesDecoding(t abi.Type) {
 	}
 }
 
+// genPackedFixedBytesDecoding generates packed decoding for fixed bytes types
+func (g *Generator) genPackedFixedBytesDecoding(t abi.Type) {
+	g.L("\tif len(data) < %d {", t.Size)
+	g.L("\t\treturn [%d]byte{}, 0, io.ErrUnexpectedEOF", t.Size)
+	g.L("\t}")
+	g.L("\tvar result [%d]byte", t.Size)
+	g.L("\tcopy(result[:], data[:%d])", t.Size)
+	g.L("\treturn result, %d, nil", t.Size)
+}
+
 // genSliceDecoding generates decoding for slice types
 func (g *Generator) genSliceDecoding(t abi.Type) {
 	g.L("\t// Decode length")
@@ -418,23 +453,7 @@ func (g *Generator) genSliceDecoding(t abi.Type) {
 // genArrayDecoding generates decoding for array types
 func (g *Generator) genArrayDecoding(t abi.Type) {
 	if g.Options.Packed {
-		// Packed format: concatenate elements without padding
-		g.L("\t// Decode fixed-size array in packed format")
-		g.L("\tvar result [%d]%s", t.Size, g.abiTypeToGoType(*t.Elem))
-		g.L("\tvar (")
-		g.L("\t\tn int")
-		g.L("\t\terr error")
-		g.L("\t)")
-		g.L("\tvar offset int")
-		for i := 0; i < t.Size; i++ {
-			g.L("\t// Element %d", i)
-			g.L("\tresult[%d], n, err = %s", i, g.genDecodeCall(*t.Elem, "data[offset:]"))
-			g.L("\tif err != nil {")
-			g.L("\t\treturn result, 0, err")
-			g.L("\t}")
-			g.L("\toffset += n")
-		}
-		g.L("\treturn result, offset, nil")
+		g.genPackedArrayDecoding(t)
 	} else {
 		goType := g.abiTypeToGoType(*t.Elem)
 		typeSize := GetTypeSize(*t.Elem)
@@ -497,4 +516,25 @@ func (g *Generator) genArrayDecoding(t abi.Type) {
 			g.L("\treturn result, dynamicOffset, nil")
 		}
 	}
+}
+
+// genPackedArrayDecoding generates packed decoding for array types
+func (g *Generator) genPackedArrayDecoding(t abi.Type) {
+	// Packed format: concatenate elements without padding
+	g.L("\t// Decode fixed-size array in packed format")
+	g.L("\tvar result [%d]%s", t.Size, g.abiTypeToGoType(*t.Elem))
+	g.L("\tvar (")
+	g.L("\t\tn int")
+	g.L("\t\terr error")
+	g.L("\t)")
+	g.L("\tvar offset int")
+	for i := 0; i < t.Size; i++ {
+		g.L("\t// Element %d", i)
+		g.L("\tresult[%d], n, err = %s", i, g.genPackedDecodeCall(*t.Elem, "data[offset:]"))
+		g.L("\tif err != nil {")
+		g.L("\t\treturn result, 0, err")
+		g.L("\t}")
+		g.L("\toffset += n")
+	}
+	g.L("\treturn result, offset, nil")
 }
