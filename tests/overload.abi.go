@@ -3,7 +3,6 @@
 package tests
 
 import (
-	"encoding/binary"
 	"io"
 	"math/big"
 
@@ -53,27 +52,75 @@ func (t Overloaded1Call) EncodedSize() int {
 	return Overloaded1CallStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded1Call (no padding)
+func (t Overloaded1Call) EncodedSizePacked() int {
+	size := 0
+	size += 20
+	size += 32
+	return size
+}
+
 // EncodeTo encodes Overloaded1Call to ABI bytes in the provided buffer
 func (value Overloaded1Call) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded1CallStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field To: address
-	if _, err := abi.EncodeAddress(value.To, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value.To, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Amount: uint256
-	if _, err := abi.EncodeUint256(value.Amount, buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Amount, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded1Call to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded1Call) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field To: address
+	{
+		n, err := abi.EncodePackedAddress(value.To, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field Amount: uint256
+	{
+		n, err := abi.EncodePackedUint256(value.Amount, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded1Call to ABI bytes
 func (value Overloaded1Call) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded1Call to packed ABI bytes (no padding)
+func (value Overloaded1Call) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -153,22 +200,58 @@ func (t Overloaded1Return) EncodedSize() int {
 	return Overloaded1ReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded1Return (no padding)
+func (t Overloaded1Return) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes Overloaded1Return to ABI bytes in the provided buffer
 func (value Overloaded1Return) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded1ReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded1Return to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded1Return) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded1Return to ABI bytes
 func (value Overloaded1Return) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded1Return to packed ABI bytes (no padding)
+func (value Overloaded1Return) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -211,32 +294,92 @@ func (t Overloaded10Call) EncodedSize() int {
 	return Overloaded10CallStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded10Call (no padding)
+func (t Overloaded10Call) EncodedSizePacked() int {
+	size := 0
+	size += 20
+	size += 20
+	size += 32
+	return size
+}
+
 // EncodeTo encodes Overloaded10Call to ABI bytes in the provided buffer
 func (value Overloaded10Call) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded10CallStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field From: address
-	if _, err := abi.EncodeAddress(value.From, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value.From, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field To: address
-	if _, err := abi.EncodeAddress(value.To, buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value.To, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Amount: uint256
-	if _, err := abi.EncodeUint256(value.Amount, buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Amount, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded10Call to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded10Call) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field From: address
+	{
+		n, err := abi.EncodePackedAddress(value.From, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field To: address
+	{
+		n, err := abi.EncodePackedAddress(value.To, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field Amount: uint256
+	{
+		n, err := abi.EncodePackedUint256(value.Amount, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded10Call to ABI bytes
 func (value Overloaded10Call) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded10Call to packed ABI bytes (no padding)
+func (value Overloaded10Call) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -323,22 +466,58 @@ func (t Overloaded10Return) EncodedSize() int {
 	return Overloaded10ReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded10Return (no padding)
+func (t Overloaded10Return) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes Overloaded10Return to ABI bytes in the provided buffer
 func (value Overloaded10Return) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded10ReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded10Return to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded10Return) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded10Return to ABI bytes
 func (value Overloaded10Return) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded10Return to packed ABI bytes (no padding)
+func (value Overloaded10Return) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -385,38 +564,42 @@ func (t Overloaded11Call) EncodedSize() int {
 
 // EncodeTo encodes Overloaded11Call to ABI bytes in the provided buffer
 func (value Overloaded11Call) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded11CallStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field From: address
-	if _, err := abi.EncodeAddress(value.From, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value.From, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field To: address
-	if _, err := abi.EncodeAddress(value.To, buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value.To, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Amount: uint256
-	if _, err := abi.EncodeUint256(value.Amount, buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Amount, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Data: bytes
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[96+24:96+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeBytes(value.Data, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBytes(value.Data, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes Overloaded11Call to ABI bytes
@@ -528,22 +711,58 @@ func (t Overloaded11Return) EncodedSize() int {
 	return Overloaded11ReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded11Return (no padding)
+func (t Overloaded11Return) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes Overloaded11Return to ABI bytes in the provided buffer
 func (value Overloaded11Return) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded11ReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded11Return to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded11Return) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded11Return to ABI bytes
 func (value Overloaded11Return) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded11Return to packed ABI bytes (no padding)
+func (value Overloaded11Return) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -584,22 +803,58 @@ func (t Overloaded2Call) EncodedSize() int {
 	return Overloaded2CallStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded2Call (no padding)
+func (t Overloaded2Call) EncodedSizePacked() int {
+	size := 0
+	size += 20
+	return size
+}
+
 // EncodeTo encodes Overloaded2Call to ABI bytes in the provided buffer
 func (value Overloaded2Call) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded2CallStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Account: address
-	if _, err := abi.EncodeAddress(value.Account, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value.Account, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded2Call to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded2Call) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Account: address
+	{
+		n, err := abi.EncodePackedAddress(value.Account, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded2Call to ABI bytes
 func (value Overloaded2Call) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded2Call to packed ABI bytes (no padding)
+func (value Overloaded2Call) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -672,22 +927,58 @@ func (t Overloaded2Return) EncodedSize() int {
 	return Overloaded2ReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded2Return (no padding)
+func (t Overloaded2Return) EncodedSizePacked() int {
+	size := 0
+	size += 32
+	return size
+}
+
 // EncodeTo encodes Overloaded2Return to ABI bytes in the provided buffer
 func (value Overloaded2Return) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded2ReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: uint256
-	if _, err := abi.EncodeUint256(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded2Return to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded2Return) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: uint256
+	{
+		n, err := abi.EncodePackedUint256(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded2Return to ABI bytes
 func (value Overloaded2Return) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded2Return to packed ABI bytes (no padding)
+func (value Overloaded2Return) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -763,22 +1054,58 @@ func (t Overloaded20Return) EncodedSize() int {
 	return Overloaded20ReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of Overloaded20Return (no padding)
+func (t Overloaded20Return) EncodedSizePacked() int {
+	size := 0
+	size += 32
+	return size
+}
+
 // EncodeTo encodes Overloaded20Return to ABI bytes in the provided buffer
 func (value Overloaded20Return) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Overloaded20ReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: uint256
-	if _, err := abi.EncodeUint256(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes Overloaded20Return to packed ABI bytes in the provided buffer (no padding)
+func (value Overloaded20Return) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: uint256
+	{
+		n, err := abi.EncodePackedUint256(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes Overloaded20Return to ABI bytes
 func (value Overloaded20Return) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes Overloaded20Return to packed ABI bytes (no padding)
+func (value Overloaded20Return) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil

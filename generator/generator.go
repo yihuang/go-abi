@@ -105,13 +105,6 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 	// Generate all selector constants at the beginning
 	g.genAllSelectors(methods)
 
-	// Validate packed format constraints
-	if g.Options.Packed {
-		if err := g.validatePackedFormat(methods); err != nil {
-			return "", err
-		}
-	}
-
 	// Generate all tuple structs needed for this function FIRST
 	// This ensures tuple types are available for encoding function generation
 	g.genTuples(methods)
@@ -223,9 +216,9 @@ func (g *Generator) genPackedFuncName(t ethabi.Type, fn string) string {
 	typeID := abi.GenTypeIdentifier(t)
 	if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
 		// Use standard library prefix for stdlib types
-		return fmt.Sprintf("%s%sPacked%s", g.StdPrefix, fn, typeID)
+		return fmt.Sprintf("%s%s%sPacked", g.StdPrefix, fn, typeID)
 	}
-	return fmt.Sprintf("%s%sPacked%s", ToCamel(g.Options.Prefix), fn, typeID)
+	return fmt.Sprintf("%s%s%sPacked", ToCamel(g.Options.Prefix), fn, typeID)
 }
 
 // genEncodingFunction generates a standalone encoding function for a specific ABI type
@@ -1132,47 +1125,3 @@ func (g *Generator) genEncodeToHash(t ethabi.Type, ref string) {
 	}
 }
 
-// validatePackedFormat validates that all types in the ABI are supported in packed format
-func (g *Generator) validatePackedFormat(methods []ethabi.Method) error {
-	var validateType func(t ethabi.Type) error
-	validateType = func(t ethabi.Type) error {
-		if !IsPackedSupported(t) {
-			return fmt.Errorf("type %s is not supported in packed format", t.String())
-		}
-
-		// Recursively validate nested types
-		switch t.T {
-		case ethabi.SliceTy, ethabi.ArrayTy:
-			if t.Elem != nil {
-				if err := validateType(*t.Elem); err != nil {
-					return err
-				}
-			}
-		case ethabi.TupleTy:
-			for _, elem := range t.TupleElems {
-				if err := validateType(*elem); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	}
-
-	// Validate types from all methods
-	for _, method := range methods {
-		// Validate inputs
-		for _, input := range method.Inputs {
-			if err := validateType(input.Type); err != nil {
-				return fmt.Errorf("method %s input %s: %w", method.Name, input.Name, err)
-			}
-		}
-		// Validate outputs
-		for _, output := range method.Outputs {
-			if err := validateType(output.Type); err != nil {
-				return fmt.Errorf("method %s output %s: %w", method.Name, output.Name, err)
-			}
-		}
-	}
-
-	return nil
-}

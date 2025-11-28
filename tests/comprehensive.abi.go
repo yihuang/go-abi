@@ -65,23 +65,18 @@ func (t Group) EncodedSize() int {
 
 // EncodeTo encodes Group to ABI bytes in the provided buffer
 func (value Group) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := GroupStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Users: (address,string,uint256)[]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = EncodeUserSlice(value.Users, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedUserSlice(value.Users, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes Group to ABI bytes
@@ -143,33 +138,34 @@ func (t Item) EncodedSize() int {
 
 // EncodeTo encodes Item to ABI bytes in the provided buffer
 func (value Item) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := ItemStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Id: uint32
-	if _, err := abi.EncodeUint32(value.Id, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint32(value.Id, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Data: bytes
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeBytes(value.Data, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBytes(value.Data, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
 	// Field Active: bool
-	if _, err := abi.EncodeBool(value.Active, buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Active, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes Item to ABI bytes
@@ -239,23 +235,18 @@ func (t Level1) EncodedSize() int {
 
 // EncodeTo encodes Level1 to ABI bytes in the provided buffer
 func (value Level1) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Level1StaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Level1: (((uint256,string)))
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.Level1.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.Level1.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes Level1 to ABI bytes
@@ -315,23 +306,18 @@ func (t Level2) EncodedSize() int {
 
 // EncodeTo encodes Level2 to ABI bytes in the provided buffer
 func (value Level2) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Level2StaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Level2: ((uint256,string))
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.Level2.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.Level2.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes Level2 to ABI bytes
@@ -391,23 +377,18 @@ func (t Level3) EncodedSize() int {
 
 // EncodeTo encodes Level3 to ABI bytes in the provided buffer
 func (value Level3) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Level3StaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Level3: (uint256,string)
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.Level3.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.Level3.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes Level3 to ABI bytes
@@ -468,28 +449,26 @@ func (t Level4) EncodedSize() int {
 
 // EncodeTo encodes Level4 to ABI bytes in the provided buffer
 func (value Level4) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := Level4StaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Value: uint256
-	if _, err := abi.EncodeUint256(value.Value, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Value, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Description: string
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeString(value.Description, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedString(value.Description, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes Level4 to ABI bytes
@@ -555,28 +534,26 @@ func (t User2) EncodedSize() int {
 
 // EncodeTo encodes User2 to ABI bytes in the provided buffer
 func (value User2) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := User2StaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Id: uint256
-	if _, err := abi.EncodeUint256(value.Id, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Id, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Profile: (string,string[],(uint256,string[]))
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.Profile.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.Profile.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes User2 to ABI bytes
@@ -642,28 +619,26 @@ func (t UserMetadata2) EncodedSize() int {
 
 // EncodeTo encodes UserMetadata2 to ABI bytes in the provided buffer
 func (value UserMetadata2) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := UserMetadata2StaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field CreatedAt: uint256
-	if _, err := abi.EncodeUint256(value.CreatedAt, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.CreatedAt, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Tags: string[]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeStringSlice(value.Tags, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedStringSlice(value.Tags, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes UserMetadata2 to ABI bytes
@@ -732,43 +707,34 @@ func (t UserProfile) EncodedSize() int {
 
 // EncodeTo encodes UserProfile to ABI bytes in the provided buffer
 func (value UserProfile) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := UserProfileStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Name: string
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeString(value.Name, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedString(value.Name, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
 	// Field Emails: string[]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeStringSlice(value.Emails, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedStringSlice(value.Emails, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
 	// Field Metadata: (uint256,string[])
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.Metadata.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.Metadata.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes UserProfile to ABI bytes
@@ -841,56 +807,117 @@ func (t *UserProfile) Decode(data []byte) (int, error) {
 
 // EncodeAddressArray5 encodes address[5] to ABI bytes
 func EncodeAddressArray5(value [5]common.Address, buf []byte) (int, error) {
-	// Encode fixed-size array with static elements
-	if _, err := abi.EncodeAddress(value[0], buf[0:]); err != nil {
-		return 0, err
+	// Encode fixed-size array in packed format
+	var offset int
+	var err error
+	{
+		n, err := abi.EncodePackedAddress(value[0], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	if _, err := abi.EncodeAddress(value[1], buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value[1], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	if _, err := abi.EncodeAddress(value[2], buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value[2], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	if _, err := abi.EncodeAddress(value[3], buf[96:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value[3], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	if _, err := abi.EncodeAddress(value[4], buf[128:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddress(value[4], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return 160, nil
+// EncodePackedAddressArray5 encodes address[5] to packed ABI bytes (no padding)
+func EncodePackedAddressArray5(value [5]common.Address, buf []byte) (int, error) {
+	// Encode fixed-size array in packed format
+	var offset int
+	var err error
+	{
+		n, err := abi.EncodePackedAddress(value[0], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	{
+		n, err := abi.EncodePackedAddress(value[1], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	{
+		n, err := abi.EncodePackedAddress(value[2], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	{
+		n, err := abi.EncodePackedAddress(value[3], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	{
+		n, err := abi.EncodePackedAddress(value[4], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // EncodeAddressSliceArray3 encodes address[][3] to ABI bytes
 func EncodeAddressSliceArray3(value [3][]common.Address, buf []byte) (int, error) {
-	// Encode fixed-size array with dynamic elements
-	var (
-		n   int
-		err error
-	)
-	dynamicOffset := 32 * 3
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	n, err = abi.EncodeAddressSlice(value[0], buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	// Encode fixed-size array in packed format
+	var offset int
+	var err error
+	{
+		n, err := abi.EncodePackedAddressSlice(value[0], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	n, err = abi.EncodeAddressSlice(value[1], buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddressSlice(value[1], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
-	n, err = abi.EncodeAddressSlice(value[2], buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedAddressSlice(value[2], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // EncodeAddressSliceArray3Slice encodes address[][3][] to ABI bytes
@@ -920,26 +947,80 @@ func EncodeAddressSliceArray3Slice(value [][3][]common.Address, buf []byte) (int
 
 // EncodeBytes32Array2 encodes bytes32[2] to ABI bytes
 func EncodeBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
-	// Encode fixed-size array with static elements
-	if _, err := abi.EncodeBytes32(value[0], buf[0:]); err != nil {
-		return 0, err
+	// Encode fixed-size array in packed format
+	var offset int
+	var err error
+	{
+		n, err := abi.EncodePackedBytes32(value[0], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	if _, err := abi.EncodeBytes32(value[1], buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBytes32(value[1], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return 64, nil
+// EncodePackedBytes32Array2 encodes bytes32[2] to packed ABI bytes (no padding)
+func EncodePackedBytes32Array2(value [2][32]byte, buf []byte) (int, error) {
+	// Encode fixed-size array in packed format
+	var offset int
+	var err error
+	{
+		n, err := abi.EncodePackedBytes32(value[0], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	{
+		n, err := abi.EncodePackedBytes32(value[1], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // EncodeInt36 encodes int36 to ABI bytes
 func EncodeInt36(value int64, buf []byte) (int, error) {
 	if value < 0 {
-		for i := 0; i < 24; i++ {
+		// Sign extend for negative values
+		for i := 0; i < 5; i++ {
 			buf[i] = 0xff
 		}
 	}
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
+	// 5-byte encoding
+	buf[0] = byte(value >> 32)
+	buf[1] = byte(value >> 24)
+	buf[2] = byte(value >> 16)
+	buf[3] = byte(value >> 8)
+	buf[4] = byte(value >> 0)
+	return 5, nil
+}
+
+// EncodePackedInt36 encodes int36 to packed ABI bytes (no padding)
+func EncodePackedInt36(value int64, buf []byte) (int, error) {
+	if value < 0 {
+		// Sign extend for negative values
+		for i := 0; i < 5; i++ {
+			buf[i] = 0xff
+		}
+	}
+	// 5-byte encoding
+	buf[0] = byte(value >> 32)
+	buf[1] = byte(value >> 24)
+	buf[2] = byte(value >> 16)
+	buf[3] = byte(value >> 8)
+	buf[4] = byte(value >> 0)
+	return 5, nil
 }
 
 // EncodeItemSlice encodes (uint32,bytes,bool)[] to ABI bytes
@@ -994,18 +1075,60 @@ func EncodeStringSliceSlice(value [][]string, buf []byte) (int, error) {
 
 // EncodeUint256Array3 encodes uint256[3] to ABI bytes
 func EncodeUint256Array3(value [3]*big.Int, buf []byte) (int, error) {
-	// Encode fixed-size array with static elements
-	if _, err := abi.EncodeUint256(value[0], buf[0:]); err != nil {
-		return 0, err
+	// Encode fixed-size array in packed format
+	var offset int
+	var err error
+	{
+		n, err := abi.EncodePackedUint256(value[0], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	if _, err := abi.EncodeUint256(value[1], buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value[1], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	if _, err := abi.EncodeUint256(value[2], buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value[2], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return 96, nil
+// EncodePackedUint256Array3 encodes uint256[3] to packed ABI bytes (no padding)
+func EncodePackedUint256Array3(value [3]*big.Int, buf []byte) (int, error) {
+	// Encode fixed-size array in packed format
+	var offset int
+	var err error
+	{
+		n, err := abi.EncodePackedUint256(value[0], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	{
+		n, err := abi.EncodePackedUint256(value[1], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	{
+		n, err := abi.EncodePackedUint256(value[2], buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // EncodeUint256SliceSlice encodes uint256[][] to ABI bytes
@@ -1035,8 +1158,24 @@ func EncodeUint256SliceSlice(value [][]*big.Int, buf []byte) (int, error) {
 
 // EncodeUint36 encodes uint36 to ABI bytes
 func EncodeUint36(value uint64, buf []byte) (int, error) {
-	binary.BigEndian.PutUint64(buf[24:32], uint64(value))
-	return 32, nil
+	// 5-byte encoding
+	buf[0] = byte(value >> 32)
+	buf[1] = byte(value >> 24)
+	buf[2] = byte(value >> 16)
+	buf[3] = byte(value >> 8)
+	buf[4] = byte(value >> 0)
+	return 5, nil
+}
+
+// EncodePackedUint36 encodes uint36 to packed ABI bytes (no padding)
+func EncodePackedUint36(value uint64, buf []byte) (int, error) {
+	// 5-byte encoding
+	buf[0] = byte(value >> 32)
+	buf[1] = byte(value >> 24)
+	buf[2] = byte(value >> 16)
+	buf[3] = byte(value >> 8)
+	buf[4] = byte(value >> 0)
+	return 5, nil
 }
 
 // EncodeUser2Slice encodes (uint256,(string,string[],(uint256,string[])))[] to ABI bytes
@@ -1154,73 +1293,116 @@ func SizeUserSlice(value []User) int {
 
 // DecodeAddressArray5 decodes address[5] from ABI bytes
 func DecodeAddressArray5(data []byte) ([5]common.Address, int, error) {
-	// Decode fixed-size array with static elements
+	// Decode fixed-size array in packed format
+	var result [5]common.Address
 	var (
-		result [5]common.Address
-		err    error
+		n   int
+		err error
 	)
-	if len(data) < 160 {
-		return result, 0, io.ErrUnexpectedEOF
-	}
+	var offset int
 	// Element 0
-	result[0], _, err = abi.DecodeAddress(data[0:])
+	result[0], n, err = abi.DecodePackedAddress(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
+	offset += n
 	// Element 1
-	result[1], _, err = abi.DecodeAddress(data[32:])
+	result[1], n, err = abi.DecodePackedAddress(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
+	offset += n
 	// Element 2
-	result[2], _, err = abi.DecodeAddress(data[64:])
+	result[2], n, err = abi.DecodePackedAddress(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
+	offset += n
 	// Element 3
-	result[3], _, err = abi.DecodeAddress(data[96:])
+	result[3], n, err = abi.DecodePackedAddress(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
+	offset += n
 	// Element 4
-	result[4], _, err = abi.DecodeAddress(data[128:])
+	result[4], n, err = abi.DecodePackedAddress(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
-	return result, 160, nil
+	offset += n
+	return result, offset, nil
+}
+
+// DecodePackedAddressArray5 decodes address[5] from packed ABI bytes (no padding)
+func DecodePackedAddressArray5(data []byte) ([5]common.Address, int, error) {
+	// Decode fixed-size array in packed format
+	var result [5]common.Address
+	var (
+		n   int
+		err error
+	)
+	var offset int
+	// Element 0
+	result[0], n, err = abi.DecodePackedAddress(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 1
+	result[1], n, err = abi.DecodePackedAddress(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 2
+	result[2], n, err = abi.DecodePackedAddress(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 3
+	result[3], n, err = abi.DecodePackedAddress(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 4
+	result[4], n, err = abi.DecodePackedAddress(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	return result, offset, nil
 }
 
 // DecodeAddressSliceArray3 decodes address[][3] from ABI bytes
 func DecodeAddressSliceArray3(data []byte) ([3][]common.Address, int, error) {
-	// Decode fixed-size array with dynamic elements
+	// Decode fixed-size array in packed format
 	var result [3][]common.Address
-	if len(data) < 96 {
-		return result, 0, io.ErrUnexpectedEOF
-	}
 	var (
 		n   int
 		err error
-		tmp int
 	)
-	offset := 0
-	dynamicOffset := 96
-	for i := 0; i < 3; i++ {
-		tmp, err = abi.DecodeSize(data[offset:])
-		if err != nil {
-			return result, 0, err
-		}
-		offset += 32
-
-		if dynamicOffset != tmp {
-			return result, 0, abi.ErrInvalidOffsetForArrayElement
-		}
-		result[i], n, err = abi.DecodeAddressSlice(data[dynamicOffset:])
-		if err != nil {
-			return result, 0, err
-		}
-		dynamicOffset += n
+	var offset int
+	// Element 0
+	result[0], n, err = abi.DecodePackedAddressSlice(data[offset:])
+	if err != nil {
+		return result, 0, err
 	}
-	return result, dynamicOffset, nil
+	offset += n
+	// Element 1
+	result[1], n, err = abi.DecodePackedAddressSlice(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 2
+	result[2], n, err = abi.DecodePackedAddressSlice(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	return result, offset, nil
 }
 
 // DecodeAddressSliceArray3Slice decodes address[][3][] from ABI bytes
@@ -1265,48 +1447,88 @@ func DecodeAddressSliceArray3Slice(data []byte) ([][3][]common.Address, int, err
 
 // DecodeBytes32Array2 decodes bytes32[2] from ABI bytes
 func DecodeBytes32Array2(data []byte) ([2][32]byte, int, error) {
-	// Decode fixed-size array with static elements
+	// Decode fixed-size array in packed format
+	var result [2][32]byte
 	var (
-		result [2][32]byte
-		err    error
+		n   int
+		err error
 	)
-	if len(data) < 64 {
-		return result, 0, io.ErrUnexpectedEOF
-	}
+	var offset int
 	// Element 0
-	result[0], _, err = abi.DecodeBytes32(data[0:])
+	result[0], n, err = abi.DecodePackedBytes32(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
+	offset += n
 	// Element 1
-	result[1], _, err = abi.DecodeBytes32(data[32:])
+	result[1], n, err = abi.DecodePackedBytes32(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
-	return result, 64, nil
+	offset += n
+	return result, offset, nil
+}
+
+// DecodePackedBytes32Array2 decodes bytes32[2] from packed ABI bytes (no padding)
+func DecodePackedBytes32Array2(data []byte) ([2][32]byte, int, error) {
+	// Decode fixed-size array in packed format
+	var result [2][32]byte
+	var (
+		n   int
+		err error
+	)
+	var offset int
+	// Element 0
+	result[0], n, err = abi.DecodePackedBytes32(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 1
+	result[1], n, err = abi.DecodePackedBytes32(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	return result, offset, nil
 }
 
 // DecodeInt36 decodes int36 from ABI bytes
 func DecodeInt36(data []byte) (int64, int, error) {
-	// Validate sign extension for int36 (padding bytes: 28)
-	if data[28]&0x80 != 0 {
-		// Negative value, check all padding bytes are 0xFF
-		for i := 0; i < 28; i++ {
-			if data[i] != 0xFF {
-				return 0, 0, abi.ErrDirtyPadding
-			}
-		}
-	} else {
-		// Non-negative value, check all padding bytes are zero
-		for i := 0; i < 28; i++ {
-			if data[i] != 0x00 {
-				return 0, 0, abi.ErrDirtyPadding
-			}
-		}
+	if len(data) < 5 {
+		return 0, 0, io.ErrUnexpectedEOF
 	}
-	// Decode int36 using int64
-	result := int64(binary.BigEndian.Uint64(data[24:32]))
-	return result, 32, nil
+	// 5-byte decoding
+	var result int64
+	result = result<<8 | int64(data[0])
+	result = result<<8 | int64(data[1])
+	result = result<<8 | int64(data[2])
+	result = result<<8 | int64(data[3])
+	result = result<<8 | int64(data[4])
+	// Sign extend if needed
+	if result&(1<<(5*8-1)) != 0 {
+		result |= ^((1 << (5 * 8)) - 1)
+	}
+	return result, 5, nil
+}
+
+// DecodePackedInt36 decodes int36 from packed ABI bytes (no padding)
+func DecodePackedInt36(data []byte) (int64, int, error) {
+	if len(data) < 5 {
+		return 0, 0, io.ErrUnexpectedEOF
+	}
+	// 5-byte decoding
+	var result int64
+	result = result<<8 | int64(data[0])
+	result = result<<8 | int64(data[1])
+	result = result<<8 | int64(data[2])
+	result = result<<8 | int64(data[3])
+	result = result<<8 | int64(data[4])
+	// Sign extend if needed
+	if result&(1<<(5*8-1)) != 0 {
+		result |= ^((1 << (5 * 8)) - 1)
+	}
+	return result, 5, nil
 }
 
 // DecodeItemSlice decodes (uint32,bytes,bool)[] from ABI bytes
@@ -1391,30 +1613,62 @@ func DecodeStringSliceSlice(data []byte) ([][]string, int, error) {
 
 // DecodeUint256Array3 decodes uint256[3] from ABI bytes
 func DecodeUint256Array3(data []byte) ([3]*big.Int, int, error) {
-	// Decode fixed-size array with static elements
+	// Decode fixed-size array in packed format
+	var result [3]*big.Int
 	var (
-		result [3]*big.Int
-		err    error
+		n   int
+		err error
 	)
-	if len(data) < 96 {
-		return result, 0, io.ErrUnexpectedEOF
-	}
+	var offset int
 	// Element 0
-	result[0], _, err = abi.DecodeUint256(data[0:])
+	result[0], n, err = abi.DecodePackedUint256(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
+	offset += n
 	// Element 1
-	result[1], _, err = abi.DecodeUint256(data[32:])
+	result[1], n, err = abi.DecodePackedUint256(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
+	offset += n
 	// Element 2
-	result[2], _, err = abi.DecodeUint256(data[64:])
+	result[2], n, err = abi.DecodePackedUint256(data[offset:])
 	if err != nil {
 		return result, 0, err
 	}
-	return result, 96, nil
+	offset += n
+	return result, offset, nil
+}
+
+// DecodePackedUint256Array3 decodes uint256[3] from packed ABI bytes (no padding)
+func DecodePackedUint256Array3(data []byte) ([3]*big.Int, int, error) {
+	// Decode fixed-size array in packed format
+	var result [3]*big.Int
+	var (
+		n   int
+		err error
+	)
+	var offset int
+	// Element 0
+	result[0], n, err = abi.DecodePackedUint256(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 1
+	result[1], n, err = abi.DecodePackedUint256(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	// Element 2
+	result[2], n, err = abi.DecodePackedUint256(data[offset:])
+	if err != nil {
+		return result, 0, err
+	}
+	offset += n
+	return result, offset, nil
 }
 
 // DecodeUint256SliceSlice decodes uint256[][] from ABI bytes
@@ -1459,14 +1713,32 @@ func DecodeUint256SliceSlice(data []byte) ([][]*big.Int, int, error) {
 
 // DecodeUint36 decodes uint36 from ABI bytes
 func DecodeUint36(data []byte) (uint64, int, error) {
-	// Validate no extra bits are set for uint36 (padding bytes: 28)
-	for i := 0; i < 28; i++ {
-		if data[i] != 0x00 {
-			return 0, 0, abi.ErrDirtyPadding
-		}
+	if len(data) < 5 {
+		return 0, 0, io.ErrUnexpectedEOF
 	}
-	result := binary.BigEndian.Uint64(data[24:32])
-	return result, 32, nil
+	// 5-byte decoding
+	var result uint64
+	result = result<<8 | uint64(data[0])
+	result = result<<8 | uint64(data[1])
+	result = result<<8 | uint64(data[2])
+	result = result<<8 | uint64(data[3])
+	result = result<<8 | uint64(data[4])
+	return result, 5, nil
+}
+
+// DecodePackedUint36 decodes uint36 from packed ABI bytes (no padding)
+func DecodePackedUint36(data []byte) (uint64, int, error) {
+	if len(data) < 5 {
+		return 0, 0, io.ErrUnexpectedEOF
+	}
+	// 5-byte decoding
+	var result uint64
+	result = result<<8 | uint64(data[0])
+	result = result<<8 | uint64(data[1])
+	result = result<<8 | uint64(data[2])
+	result = result<<8 | uint64(data[3])
+	result = result<<8 | uint64(data[4])
+	return result, 5, nil
 }
 
 // DecodeUser2Slice decodes (uint256,(string,string[],(uint256,string[])))[] from ABI bytes
@@ -1570,23 +1842,18 @@ func (t TestComplexDynamicTuplesCall) EncodedSize() int {
 
 // EncodeTo encodes TestComplexDynamicTuplesCall to ABI bytes in the provided buffer
 func (value TestComplexDynamicTuplesCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestComplexDynamicTuplesCallStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Users: (uint256,(string,string[],(uint256,string[])))[]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = EncodeUser2Slice(value.Users, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedUser2Slice(value.Users, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes TestComplexDynamicTuplesCall to ABI bytes
@@ -1677,22 +1944,58 @@ func (t TestComplexDynamicTuplesReturn) EncodedSize() int {
 	return TestComplexDynamicTuplesReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestComplexDynamicTuplesReturn (no padding)
+func (t TestComplexDynamicTuplesReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestComplexDynamicTuplesReturn to ABI bytes in the provided buffer
 func (value TestComplexDynamicTuplesReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestComplexDynamicTuplesReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestComplexDynamicTuplesReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestComplexDynamicTuplesReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestComplexDynamicTuplesReturn to ABI bytes
 func (value TestComplexDynamicTuplesReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestComplexDynamicTuplesReturn to packed ABI bytes (no padding)
+func (value TestComplexDynamicTuplesReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -1736,23 +2039,18 @@ func (t TestDeeplyNestedCall) EncodedSize() int {
 
 // EncodeTo encodes TestDeeplyNestedCall to ABI bytes in the provided buffer
 func (value TestDeeplyNestedCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestDeeplyNestedCallStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Data: ((((uint256,string))))
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.Data.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.Data.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes TestDeeplyNestedCall to ABI bytes
@@ -1843,22 +2141,58 @@ func (t TestDeeplyNestedReturn) EncodedSize() int {
 	return TestDeeplyNestedReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestDeeplyNestedReturn (no padding)
+func (t TestDeeplyNestedReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestDeeplyNestedReturn to ABI bytes in the provided buffer
 func (value TestDeeplyNestedReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestDeeplyNestedReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestDeeplyNestedReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestDeeplyNestedReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestDeeplyNestedReturn to ABI bytes
 func (value TestDeeplyNestedReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestDeeplyNestedReturn to packed ABI bytes (no padding)
+func (value TestDeeplyNestedReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -1902,23 +2236,18 @@ func (t TestExternalTupleCall) EncodedSize() int {
 
 // EncodeTo encodes TestExternalTupleCall to ABI bytes in the provided buffer
 func (value TestExternalTupleCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestExternalTupleCallStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field User: (address,string,uint256)
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.User.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.User.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes TestExternalTupleCall to ABI bytes
@@ -2009,22 +2338,58 @@ func (t TestExternalTupleReturn) EncodedSize() int {
 	return TestExternalTupleReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestExternalTupleReturn (no padding)
+func (t TestExternalTupleReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestExternalTupleReturn to ABI bytes in the provided buffer
 func (value TestExternalTupleReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestExternalTupleReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestExternalTupleReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestExternalTupleReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestExternalTupleReturn to ABI bytes
 func (value TestExternalTupleReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestExternalTupleReturn to packed ABI bytes (no padding)
+func (value TestExternalTupleReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -2067,32 +2432,92 @@ func (t TestFixedArraysCall) EncodedSize() int {
 	return TestFixedArraysCallStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestFixedArraysCall (no padding)
+func (t TestFixedArraysCall) EncodedSizePacked() int {
+	size := 0
+	size += 100
+	size += 96
+	size += 64
+	return size
+}
+
 // EncodeTo encodes TestFixedArraysCall to ABI bytes in the provided buffer
 func (value TestFixedArraysCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestFixedArraysCallStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Addresses: address[5]
-	if _, err := EncodeAddressArray5(value.Addresses, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedAddressArray5(value.Addresses, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Uints: uint256[3]
-	if _, err := EncodeUint256Array3(value.Uints, buf[160:]); err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedUint256Array3(value.Uints, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Bytes32s: bytes32[2]
-	if _, err := EncodeBytes32Array2(value.Bytes32s, buf[256:]); err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedBytes32Array2(value.Bytes32s, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestFixedArraysCall to packed ABI bytes in the provided buffer (no padding)
+func (value TestFixedArraysCall) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Addresses: address[5]
+	{
+		n, err := EncodePackedAddressArray5(value.Addresses, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field Uints: uint256[3]
+	{
+		n, err := EncodePackedUint256Array3(value.Uints, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field Bytes32s: bytes32[2]
+	{
+		n, err := EncodePackedBytes32Array2(value.Bytes32s, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestFixedArraysCall to ABI bytes
 func (value TestFixedArraysCall) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestFixedArraysCall to packed ABI bytes (no padding)
+func (value TestFixedArraysCall) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -2179,22 +2604,58 @@ func (t TestFixedArraysReturn) EncodedSize() int {
 	return TestFixedArraysReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestFixedArraysReturn (no padding)
+func (t TestFixedArraysReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestFixedArraysReturn to ABI bytes in the provided buffer
 func (value TestFixedArraysReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestFixedArraysReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestFixedArraysReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestFixedArraysReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestFixedArraysReturn to ABI bytes
 func (value TestFixedArraysReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestFixedArraysReturn to packed ABI bytes (no padding)
+func (value TestFixedArraysReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -2243,48 +2704,50 @@ func (t TestMixedTypesCall) EncodedSize() int {
 
 // EncodeTo encodes TestMixedTypesCall to ABI bytes in the provided buffer
 func (value TestMixedTypesCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestMixedTypesCallStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field FixedData: bytes32
-	if _, err := abi.EncodeBytes32(value.FixedData, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBytes32(value.FixedData, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field DynamicData: bytes
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeBytes(value.DynamicData, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBytes(value.DynamicData, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
 	// Field Flag: bool
-	if _, err := abi.EncodeBool(value.Flag, buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Flag, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Count: uint8
-	if _, err := abi.EncodeUint8(value.Count, buf[96:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint8(value.Count, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field Items: (uint32,bytes,bool)[]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[128+24:128+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = EncodeItemSlice(value.Items, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedItemSlice(value.Items, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes TestMixedTypesCall to ABI bytes
@@ -2413,22 +2876,58 @@ func (t TestMixedTypesReturn) EncodedSize() int {
 	return TestMixedTypesReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestMixedTypesReturn (no padding)
+func (t TestMixedTypesReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestMixedTypesReturn to ABI bytes in the provided buffer
 func (value TestMixedTypesReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestMixedTypesReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestMixedTypesReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestMixedTypesReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestMixedTypesReturn to ABI bytes
 func (value TestMixedTypesReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestMixedTypesReturn to packed ABI bytes (no padding)
+func (value TestMixedTypesReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -2476,43 +2975,34 @@ func (t TestNestedDynamicArraysCall) EncodedSize() int {
 
 // EncodeTo encodes TestNestedDynamicArraysCall to ABI bytes in the provided buffer
 func (value TestNestedDynamicArraysCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestNestedDynamicArraysCallStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Matrix: uint256[][]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = EncodeUint256SliceSlice(value.Matrix, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedUint256SliceSlice(value.Matrix, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
 	// Field AddressMatrix: address[][3][]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = EncodeAddressSliceArray3Slice(value.AddressMatrix, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedAddressSliceArray3Slice(value.AddressMatrix, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
 	// Field DymMatrix: string[][]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[64+24:64+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = EncodeStringSliceSlice(value.DymMatrix, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedStringSliceSlice(value.DymMatrix, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes TestNestedDynamicArraysCall to ABI bytes
@@ -2637,22 +3127,58 @@ func (t TestNestedDynamicArraysReturn) EncodedSize() int {
 	return TestNestedDynamicArraysReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestNestedDynamicArraysReturn (no padding)
+func (t TestNestedDynamicArraysReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestNestedDynamicArraysReturn to ABI bytes in the provided buffer
 func (value TestNestedDynamicArraysReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestNestedDynamicArraysReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestNestedDynamicArraysReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestNestedDynamicArraysReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestNestedDynamicArraysReturn to ABI bytes
 func (value TestNestedDynamicArraysReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestNestedDynamicArraysReturn to packed ABI bytes (no padding)
+func (value TestNestedDynamicArraysReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -2696,23 +3222,18 @@ func (t TestNestedStructCall) EncodedSize() int {
 
 // EncodeTo encodes TestNestedStructCall to ABI bytes in the provided buffer
 func (value TestNestedStructCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestNestedStructCallStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Group: ((address,string,uint256)[])
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.Group.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.Group.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes TestNestedStructCall to ABI bytes
@@ -2803,22 +3324,58 @@ func (t TestNestedStructReturn) EncodedSize() int {
 	return TestNestedStructReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestNestedStructReturn (no padding)
+func (t TestNestedStructReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestNestedStructReturn to ABI bytes in the provided buffer
 func (value TestNestedStructReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestNestedStructReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestNestedStructReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestNestedStructReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestNestedStructReturn to ABI bytes
 func (value TestNestedStructReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestNestedStructReturn to packed ABI bytes (no padding)
+func (value TestNestedStructReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -2870,77 +3427,245 @@ func (t TestNonStandardIntegersCall) EncodedSize() int {
 	return TestNonStandardIntegersCallStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestNonStandardIntegersCall (no padding)
+func (t TestNonStandardIntegersCall) EncodedSizePacked() int {
+	size := 0
+	size += 3
+	size += 5
+	size += 6
+	size += 9
+	size += 12
+	size += 15
+	size += 3
+	size += 5
+	size += 6
+	size += 9
+	size += 12
+	size += 15
+	return size
+}
+
 // EncodeTo encodes TestNonStandardIntegersCall to ABI bytes in the provided buffer
 func (value TestNonStandardIntegersCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestNonStandardIntegersCallStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field U24: uint24
-	if _, err := abi.EncodeUint24(value.U24, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint24(value.U24, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U36: uint36
-	if _, err := EncodeUint36(value.U36, buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedUint36(value.U36, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U48: uint48
-	if _, err := abi.EncodeUint48(value.U48, buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint48(value.U48, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U72: uint72
-	if _, err := abi.EncodeUint256(value.U72, buf[96:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.U72, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U96: uint96
-	if _, err := abi.EncodeUint256(value.U96, buf[128:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.U96, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U120: uint120
-	if _, err := abi.EncodeUint256(value.U120, buf[160:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.U120, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I24: int24
-	if _, err := abi.EncodeInt24(value.I24, buf[192:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt24(value.I24, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I36: int36
-	if _, err := EncodeInt36(value.I36, buf[224:]); err != nil {
-		return 0, err
+	{
+		n, err := EncodePackedInt36(value.I36, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I48: int48
-	if _, err := abi.EncodeInt48(value.I48, buf[256:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt48(value.I48, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I72: int72
-	if _, err := abi.EncodeInt256(value.I72, buf[288:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt256(value.I72, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I96: int96
-	if _, err := abi.EncodeInt256(value.I96, buf[320:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt256(value.I96, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I120: int120
-	if _, err := abi.EncodeInt256(value.I120, buf[352:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt256(value.I120, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestNonStandardIntegersCall to packed ABI bytes in the provided buffer (no padding)
+func (value TestNonStandardIntegersCall) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field U24: uint24
+	{
+		n, err := abi.EncodePackedUint24(value.U24, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U36: uint36
+	{
+		n, err := EncodePackedUint36(value.U36, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U48: uint48
+	{
+		n, err := abi.EncodePackedUint48(value.U48, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U72: uint72
+	{
+		n, err := abi.EncodePackedUint256(value.U72, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U96: uint96
+	{
+		n, err := abi.EncodePackedUint256(value.U96, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U120: uint120
+	{
+		n, err := abi.EncodePackedUint256(value.U120, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I24: int24
+	{
+		n, err := abi.EncodePackedInt24(value.I24, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I36: int36
+	{
+		n, err := EncodePackedInt36(value.I36, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I48: int48
+	{
+		n, err := abi.EncodePackedInt48(value.I48, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I72: int72
+	{
+		n, err := abi.EncodePackedInt256(value.I72, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I96: int96
+	{
+		n, err := abi.EncodePackedInt256(value.I96, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I120: int120
+	{
+		n, err := abi.EncodePackedInt256(value.I120, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestNonStandardIntegersCall to ABI bytes
 func (value TestNonStandardIntegersCall) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestNonStandardIntegersCall to packed ABI bytes (no padding)
+func (value TestNonStandardIntegersCall) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -3090,22 +3815,58 @@ func (t TestNonStandardIntegersReturn) EncodedSize() int {
 	return TestNonStandardIntegersReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestNonStandardIntegersReturn (no padding)
+func (t TestNonStandardIntegersReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestNonStandardIntegersReturn to ABI bytes in the provided buffer
 func (value TestNonStandardIntegersReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestNonStandardIntegersReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestNonStandardIntegersReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestNonStandardIntegersReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestNonStandardIntegersReturn to ABI bytes
 func (value TestNonStandardIntegersReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestNonStandardIntegersReturn to packed ABI bytes (no padding)
+func (value TestNonStandardIntegersReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -3153,57 +3914,177 @@ func (t TestSmallIntegersCall) EncodedSize() int {
 	return TestSmallIntegersCallStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestSmallIntegersCall (no padding)
+func (t TestSmallIntegersCall) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	size += 2
+	size += 4
+	size += 8
+	size += 1
+	size += 2
+	size += 4
+	size += 8
+	return size
+}
+
 // EncodeTo encodes TestSmallIntegersCall to ABI bytes in the provided buffer
 func (value TestSmallIntegersCall) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestSmallIntegersCallStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field U8: uint8
-	if _, err := abi.EncodeUint8(value.U8, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint8(value.U8, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U16: uint16
-	if _, err := abi.EncodeUint16(value.U16, buf[32:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint16(value.U16, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U32: uint32
-	if _, err := abi.EncodeUint32(value.U32, buf[64:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint32(value.U32, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field U64: uint64
-	if _, err := abi.EncodeUint64(value.U64, buf[96:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint64(value.U64, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I8: int8
-	if _, err := abi.EncodeInt8(value.I8, buf[128:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt8(value.I8, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I16: int16
-	if _, err := abi.EncodeInt16(value.I16, buf[160:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt16(value.I16, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I32: int32
-	if _, err := abi.EncodeInt32(value.I32, buf[192:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt32(value.I32, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-
 	// Field I64: int64
-	if _, err := abi.EncodeInt64(value.I64, buf[224:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedInt64(value.I64, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestSmallIntegersCall to packed ABI bytes in the provided buffer (no padding)
+func (value TestSmallIntegersCall) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field U8: uint8
+	{
+		n, err := abi.EncodePackedUint8(value.U8, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U16: uint16
+	{
+		n, err := abi.EncodePackedUint16(value.U16, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U32: uint32
+	{
+		n, err := abi.EncodePackedUint32(value.U32, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field U64: uint64
+	{
+		n, err := abi.EncodePackedUint64(value.U64, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I8: int8
+	{
+		n, err := abi.EncodePackedInt8(value.I8, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I16: int16
+	{
+		n, err := abi.EncodePackedInt16(value.I16, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I32: int32
+	{
+		n, err := abi.EncodePackedInt32(value.I32, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	// Field I64: int64
+	{
+		n, err := abi.EncodePackedInt64(value.I64, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestSmallIntegersCall to ABI bytes
 func (value TestSmallIntegersCall) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestSmallIntegersCall to packed ABI bytes (no padding)
+func (value TestSmallIntegersCall) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -3325,22 +4206,58 @@ func (t TestSmallIntegersReturn) EncodedSize() int {
 	return TestSmallIntegersReturnStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TestSmallIntegersReturn (no padding)
+func (t TestSmallIntegersReturn) EncodedSizePacked() int {
+	size := 0
+	size += 1
+	return size
+}
+
 // EncodeTo encodes TestSmallIntegersReturn to ABI bytes in the provided buffer
 func (value TestSmallIntegersReturn) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TestSmallIntegersReturnStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Field1: bool
-	if _, err := abi.EncodeBool(value.Field1, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TestSmallIntegersReturn to packed ABI bytes in the provided buffer (no padding)
+func (value TestSmallIntegersReturn) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Field1: bool
+	{
+		n, err := abi.EncodePackedBool(value.Field1, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TestSmallIntegersReturn to ABI bytes
 func (value TestSmallIntegersReturn) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TestSmallIntegersReturn to packed ABI bytes (no padding)
+func (value TestSmallIntegersReturn) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -3467,33 +4384,26 @@ func (t ComplexEventData) EncodedSize() int {
 
 // EncodeTo encodes ComplexEventData to ABI bytes in the provided buffer
 func (value ComplexEventData) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := ComplexEventDataStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Message: string
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeString(value.Message, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedString(value.Message, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
 	// Field Numbers: uint256[]
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[32+24:32+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = abi.EncodeUint256Slice(value.Numbers, buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256Slice(value.Numbers, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes ComplexEventData to ABI bytes
@@ -3719,22 +4629,58 @@ func (t TransferEventData) EncodedSize() int {
 	return TransferEventDataStaticSize + dynamicSize
 }
 
+// EncodedSizePacked returns the packed encoded size of TransferEventData (no padding)
+func (t TransferEventData) EncodedSizePacked() int {
+	size := 0
+	size += 32
+	return size
+}
+
 // EncodeTo encodes TransferEventData to ABI bytes in the provided buffer
 func (value TransferEventData) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := TransferEventDataStaticSize // Start dynamic data after static section
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field Value: uint256
-	if _, err := abi.EncodeUint256(value.Value, buf[0:]); err != nil {
-		return 0, err
+	{
+		n, err := abi.EncodePackedUint256(value.Value, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
+	return offset, nil
+}
 
-	return dynamicOffset, nil
+// EncodeToPacked encodes TransferEventData to packed ABI bytes in the provided buffer (no padding)
+func (value TransferEventData) EncodeToPacked(buf []byte) (int, error) {
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
+	// Field Value: uint256
+	{
+		n, err := abi.EncodePackedUint256(value.Value, buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return offset, nil
 }
 
 // Encode encodes TransferEventData to ABI bytes
 func (value TransferEventData) Encode() ([]byte, error) {
 	buf := make([]byte, value.EncodedSize())
 	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// EncodePacked encodes TransferEventData to packed ABI bytes (no padding)
+func (value TransferEventData) EncodePacked() ([]byte, error) {
+	buf := make([]byte, value.EncodedSizePacked())
+	if _, err := value.EncodeToPacked(buf); err != nil {
 		return nil, err
 	}
 	return buf, nil
@@ -3845,23 +4791,18 @@ func (t UserCreatedEventData) EncodedSize() int {
 
 // EncodeTo encodes UserCreatedEventData to ABI bytes in the provided buffer
 func (value UserCreatedEventData) EncodeTo(buf []byte) (int, error) {
-	// Encode tuple fields
-	dynamicOffset := UserCreatedEventDataStaticSize // Start dynamic data after static section
-	var (
-		err error
-		n   int
-	)
+	// Encode tuple fields in packed format
+	var offset int
+	var err error
 	// Field User: (address,string,uint256)
-	// Encode offset pointer
-	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
-	// Encode dynamic data
-	n, err = value.User.EncodeTo(buf[dynamicOffset:])
-	if err != nil {
-		return 0, err
+	{
+		n, err := value.User.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
 	}
-	dynamicOffset += n
-
-	return dynamicOffset, nil
+	return offset, nil
 }
 
 // Encode encodes UserCreatedEventData to ABI bytes
