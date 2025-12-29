@@ -252,3 +252,152 @@ func (g *Generator) genTupleEncoding(t ethabi.Type) {
 
 	g.L("\treturn dynamicOffset, nil")
 }
+
+// =============================================================================
+// Packed Encoding Generators
+// =============================================================================
+
+// genPackedIntEncoding generates packed encoding for integer types (no padding)
+func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
+	byteSize := t.Size / 8
+
+	// Buffer length validation
+	g.L("\tif len(buf) < %d {", byteSize)
+	g.L("\t\treturn 0, io.ErrShortBuffer")
+	g.L("\t}")
+
+	if byteSize <= 8 {
+		// For sizes <= 8 bytes, use native integer types
+		switch byteSize {
+		case 1:
+			g.L("\tbuf[0] = byte(value)")
+		case 2:
+			g.L("\tbinary.BigEndian.PutUint16(buf[:2], uint16(value))")
+		case 3:
+			// 3 bytes: write as big-endian from uint32
+			g.L("\tbuf[0] = byte(value >> 16)")
+			g.L("\tbuf[1] = byte(value >> 8)")
+			g.L("\tbuf[2] = byte(value)")
+		case 4:
+			g.L("\tbinary.BigEndian.PutUint32(buf[:4], uint32(value))")
+		case 5:
+			// 5 bytes: write as big-endian from uint64
+			g.L("\tbuf[0] = byte(value >> 32)")
+			g.L("\tbuf[1] = byte(value >> 24)")
+			g.L("\tbuf[2] = byte(value >> 16)")
+			g.L("\tbuf[3] = byte(value >> 8)")
+			g.L("\tbuf[4] = byte(value)")
+		case 6:
+			// 6 bytes: write as big-endian from uint64
+			g.L("\tbuf[0] = byte(value >> 40)")
+			g.L("\tbuf[1] = byte(value >> 32)")
+			g.L("\tbuf[2] = byte(value >> 24)")
+			g.L("\tbuf[3] = byte(value >> 16)")
+			g.L("\tbuf[4] = byte(value >> 8)")
+			g.L("\tbuf[5] = byte(value)")
+		case 7:
+			// 7 bytes: write as big-endian from uint64
+			g.L("\tbuf[0] = byte(value >> 48)")
+			g.L("\tbuf[1] = byte(value >> 40)")
+			g.L("\tbuf[2] = byte(value >> 32)")
+			g.L("\tbuf[3] = byte(value >> 24)")
+			g.L("\tbuf[4] = byte(value >> 16)")
+			g.L("\tbuf[5] = byte(value >> 8)")
+			g.L("\tbuf[6] = byte(value)")
+		case 8:
+			g.L("\tbinary.BigEndian.PutUint64(buf[:8], uint64(value))")
+		}
+	} else {
+		// For sizes > 8 bytes (big.Int), use EncodeBigInt
+		if t.T == ethabi.IntTy {
+			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], true); err != nil {", g.StdPrefix, byteSize)
+		} else {
+			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], false); err != nil {", g.StdPrefix, byteSize)
+		}
+		g.L("\t\treturn 0, err")
+		g.L("\t}")
+	}
+
+	g.L("\treturn %d, nil", byteSize)
+}
+
+// genPackedAddressEncoding generates packed encoding for address (20 bytes, no padding)
+func (g *Generator) genPackedAddressEncoding() {
+	g.L("\tif len(buf) < 20 {")
+	g.L("\t\treturn 0, io.ErrShortBuffer")
+	g.L("\t}")
+	g.L("\tcopy(buf[:20], value[:])")
+	g.L("\treturn 20, nil")
+}
+
+// genPackedBoolEncoding generates packed encoding for bool (1 byte)
+func (g *Generator) genPackedBoolEncoding() {
+	g.L("\tif len(buf) < 1 {")
+	g.L("\t\treturn 0, io.ErrShortBuffer")
+	g.L("\t}")
+	g.L("\tif value {")
+	g.L("\t\tbuf[0] = 1")
+	g.L("\t} else {")
+	g.L("\t\tbuf[0] = 0")
+	g.L("\t}")
+	g.L("\treturn 1, nil")
+}
+
+// genPackedFixedBytesEncoding generates packed encoding for fixed bytes (no padding)
+func (g *Generator) genPackedFixedBytesEncoding(t ethabi.Type) {
+	g.L("\tif len(buf) < %d {", t.Size)
+	g.L("\t\treturn 0, io.ErrShortBuffer")
+	g.L("\t}")
+	g.L("\tcopy(buf[:%d], value[:])", t.Size)
+	g.L("\treturn %d, nil", t.Size)
+}
+
+// genPackedArrayEncoding generates packed encoding for fixed-size arrays
+func (g *Generator) genPackedArrayEncoding(t ethabi.Type) {
+	elemSize := GetPackedTypeSize(*t.Elem)
+	totalSize := t.Size * elemSize
+
+	g.L("\tif len(buf) < %d {", totalSize)
+	g.L("\t\treturn 0, io.ErrShortBuffer")
+	g.L("\t}")
+	g.L("\t// Encode fixed-size array elements sequentially (no padding)")
+	g.L("\tvar offset int")
+	g.L("\tfor i := 0; i < %d; i++ {", t.Size)
+	g.L("\t\tn, err := %s", g.genPackedEncodeCall(*t.Elem, "value[i]", "buf[offset:]"))
+	g.L("\t\tif err != nil {")
+	g.L("\t\t\treturn 0, err")
+	g.L("\t\t}")
+	g.L("\t\toffset += n")
+	g.L("\t}")
+	g.L("\treturn %d, nil", t.Size*elemSize)
+}
+
+// genPackedTupleEncoding generates packed encoding for tuple types
+func (g *Generator) genPackedTupleEncoding(t ethabi.Type) {
+	g.L("\t// Encode tuple fields sequentially (packed, no dynamic section)")
+	if len(t.TupleElems) > 0 {
+		g.L("\tvar (")
+		g.L("\t\toffset int")
+		g.L("\t\tn int")
+		g.L("\t\terr error")
+		g.L("\t)")
+	}
+
+	for i, elem := range t.TupleElems {
+		fieldName := GoFieldName(t.TupleRawNames[i])
+		if fieldName == "" {
+			fieldName = fmt.Sprintf("Field%d", i+1)
+		}
+
+		ref := "value." + fieldName
+		g.L("\t// Field %s: %s", fieldName, elem.String())
+		g.L("\tn, err = %s", g.genPackedEncodeCall(*elem, ref, "buf[offset:]"))
+		g.L("\tif err != nil {")
+		g.L("\t\treturn 0, err")
+		g.L("\t}")
+		g.L("\toffset += n")
+		g.L("")
+	}
+
+	g.L("\treturn offset, nil")
+}

@@ -173,3 +173,71 @@ func nativeSize(s int) int {
 		return 64
 	}
 }
+
+// CanPackType returns true if the type can be packed (no dynamic types).
+// Packed encoding only supports static types without string, bytes, or slices.
+func CanPackType(t abi.Type) bool {
+	switch t.T {
+	case abi.StringTy, abi.BytesTy, abi.SliceTy:
+		return false
+	case abi.TupleTy:
+		for _, elem := range t.TupleElems {
+			if !CanPackType(*elem) {
+				return false
+			}
+		}
+		return true
+	case abi.ArrayTy:
+		return CanPackType(*t.Elem)
+	case abi.UintTy, abi.IntTy, abi.AddressTy, abi.BoolTy, abi.FixedBytesTy:
+		return true
+	default:
+		return false
+	}
+}
+
+// GetPackedTypeSize returns the packed (natural) size of a type in bytes.
+// Returns -1 if the type cannot be packed.
+func GetPackedTypeSize(t abi.Type) int {
+	switch t.T {
+	case abi.BoolTy:
+		return 1
+	case abi.AddressTy:
+		return 20
+	case abi.UintTy, abi.IntTy:
+		return t.Size / 8 // e.g., uint256 -> 32 bytes, uint8 -> 1 byte
+	case abi.FixedBytesTy:
+		return t.Size
+	case abi.ArrayTy:
+		elemSize := GetPackedTypeSize(*t.Elem)
+		if elemSize < 0 {
+			return -1
+		}
+		return t.Size * elemSize
+	case abi.TupleTy:
+		total := 0
+		for _, elem := range t.TupleElems {
+			sz := GetPackedTypeSize(*elem)
+			if sz < 0 {
+				return -1
+			}
+			total += sz
+		}
+		return total
+	default:
+		return -1 // Unsupported for packing (string, bytes, slice)
+	}
+}
+
+// GetPackedTupleSize returns the packed size of a tuple given its element types.
+func GetPackedTupleSize(elems []*abi.Type) int {
+	total := 0
+	for _, elem := range elems {
+		sz := GetPackedTypeSize(*elem)
+		if sz < 0 {
+			return -1
+		}
+		total += sz
+	}
+	return total
+}

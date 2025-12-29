@@ -297,3 +297,159 @@ func (g *Generator) genArrayDecoding(t ethabi.Type) {
 		g.L("\treturn result, dynamicOffset, nil")
 	}
 }
+
+// =============================================================================
+// Packed Decoding Generators
+// =============================================================================
+
+// genPackedIntDecoding generates packed decoding for integer types
+func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
+	byteSize := t.Size / 8
+
+	// Use appropriate zero value for error returns
+	zeroValue := "0"
+	if byteSize > 8 {
+		zeroValue = "nil"
+	}
+
+	g.L("\tif len(data) < %d {", byteSize)
+	g.L("\t\treturn %s, 0, io.ErrUnexpectedEOF", zeroValue)
+	g.L("\t}")
+
+	if byteSize <= 8 {
+		// For sizes <= 8 bytes, use native integer types
+		switch byteSize {
+		case 1:
+			if t.T == ethabi.IntTy {
+				g.L("\treturn int8(data[0]), 1, nil")
+			} else {
+				g.L("\treturn data[0], 1, nil")
+			}
+		case 2:
+			if t.T == ethabi.IntTy {
+				g.L("\treturn int16(binary.BigEndian.Uint16(data[:2])), 2, nil")
+			} else {
+				g.L("\treturn binary.BigEndian.Uint16(data[:2]), 2, nil")
+			}
+		case 3:
+			// 3 bytes: read as big-endian into uint32/int32
+			if t.T == ethabi.IntTy {
+				g.L("\tv := int32(data[0])<<16 | int32(data[1])<<8 | int32(data[2])")
+				g.L("\tif data[0]&0x80 != 0 { v = v | (^int32(0) << 24) }") // sign extend upper 8 bits
+				g.L("\treturn v, 3, nil")
+			} else {
+				g.L("\treturn uint32(data[0])<<16 | uint32(data[1])<<8 | uint32(data[2]), 3, nil")
+			}
+		case 4:
+			if t.T == ethabi.IntTy {
+				g.L("\treturn int32(binary.BigEndian.Uint32(data[:4])), 4, nil")
+			} else {
+				g.L("\treturn binary.BigEndian.Uint32(data[:4]), 4, nil")
+			}
+		case 5:
+			// 5 bytes: read as big-endian into uint64/int64
+			if t.T == ethabi.IntTy {
+				g.L("\tv := int64(data[0])<<32 | int64(data[1])<<24 | int64(data[2])<<16 | int64(data[3])<<8 | int64(data[4])")
+				g.L("\tif data[0]&0x80 != 0 { v = v | (^int64(0) << 40) }") // sign extend upper 24 bits
+				g.L("\treturn v, 5, nil")
+			} else {
+				g.L("\treturn uint64(data[0])<<32 | uint64(data[1])<<24 | uint64(data[2])<<16 | uint64(data[3])<<8 | uint64(data[4]), 5, nil")
+			}
+		case 6:
+			// 6 bytes: read as big-endian into uint64/int64
+			if t.T == ethabi.IntTy {
+				g.L("\tv := int64(data[0])<<40 | int64(data[1])<<32 | int64(data[2])<<24 | int64(data[3])<<16 | int64(data[4])<<8 | int64(data[5])")
+				g.L("\tif data[0]&0x80 != 0 { v = v | (^int64(0) << 48) }") // sign extend upper 16 bits
+				g.L("\treturn v, 6, nil")
+			} else {
+				g.L("\treturn uint64(data[0])<<40 | uint64(data[1])<<32 | uint64(data[2])<<24 | uint64(data[3])<<16 | uint64(data[4])<<8 | uint64(data[5]), 6, nil")
+			}
+		case 7:
+			// 7 bytes: read as big-endian into uint64/int64
+			if t.T == ethabi.IntTy {
+				g.L("\tv := int64(data[0])<<48 | int64(data[1])<<40 | int64(data[2])<<32 | int64(data[3])<<24 | int64(data[4])<<16 | int64(data[5])<<8 | int64(data[6])")
+				g.L("\tif data[0]&0x80 != 0 { v = v | (^int64(0) << 56) }") // sign extend upper 8 bits
+				g.L("\treturn v, 7, nil")
+			} else {
+				g.L("\treturn uint64(data[0])<<48 | uint64(data[1])<<40 | uint64(data[2])<<32 | uint64(data[3])<<24 | uint64(data[4])<<16 | uint64(data[5])<<8 | uint64(data[6]), 7, nil")
+			}
+		case 8:
+			if t.T == ethabi.IntTy {
+				g.L("\treturn int64(binary.BigEndian.Uint64(data[:8])), 8, nil")
+			} else {
+				g.L("\treturn binary.BigEndian.Uint64(data[:8]), 8, nil")
+			}
+		}
+	} else {
+		// For sizes > 8 bytes (big.Int)
+		if t.T == ethabi.IntTy {
+			g.L("\tresult, err := %sDecodeBigInt(data[:%d], true)", g.StdPrefix, byteSize)
+			g.L("\tif err != nil {")
+			g.L("\t\treturn nil, 0, err")
+			g.L("\t}")
+			g.L("\treturn result, %d, nil", byteSize)
+		} else {
+			g.L("\tresult := new(big.Int).SetBytes(data[:%d])", byteSize)
+			g.L("\treturn result, %d, nil", byteSize)
+		}
+	}
+}
+
+// genPackedAddressDecoding generates packed decoding for address (20 bytes)
+func (g *Generator) genPackedAddressDecoding() {
+	g.L("\tif len(data) < 20 {")
+	g.L("\t\treturn common.Address{}, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
+	g.L("\tvar result common.Address")
+	g.L("\tcopy(result[:], data[:20])")
+	g.L("\treturn result, 20, nil")
+}
+
+// genPackedBoolDecoding generates packed decoding for bool (1 byte)
+func (g *Generator) genPackedBoolDecoding() {
+	g.L("\tif len(data) < 1 {")
+	g.L("\t\treturn false, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
+	g.L("\treturn data[0] != 0, 1, nil")
+}
+
+// genPackedFixedBytesDecoding generates packed decoding for fixed bytes
+func (g *Generator) genPackedFixedBytesDecoding(t ethabi.Type) {
+	g.L("\tif len(data) < %d {", t.Size)
+	g.L("\t\treturn [%d]byte{}, 0, io.ErrUnexpectedEOF", t.Size)
+	g.L("\t}")
+	g.L("\tvar result [%d]byte", t.Size)
+	g.L("\tcopy(result[:], data[:%d])", t.Size)
+	g.L("\treturn result, %d, nil", t.Size)
+}
+
+// genPackedArrayDecoding generates packed decoding for fixed-size arrays
+func (g *Generator) genPackedArrayDecoding(t ethabi.Type) {
+	goType := g.abiTypeToGoType(*t.Elem)
+	elemSize := GetPackedTypeSize(*t.Elem)
+	totalSize := t.Size * elemSize
+
+	g.L("\tif len(data) < %d {", totalSize)
+	g.L("\t\treturn [%d]%s{}, 0, io.ErrUnexpectedEOF", t.Size, goType)
+	g.L("\t}")
+
+	g.L("\tvar (")
+	g.L("\t\tresult [%d]%s", t.Size, goType)
+	g.L("\t\toffset int")
+	g.L("\t\tn int")
+	g.L("\t\terr error")
+	g.L("\t)")
+
+	g.L("\tfor i := 0; i < %d; i++ {", t.Size)
+	if t.Elem.T == ethabi.TupleTy {
+		g.L("\t\tn, err = result[i].PackedDecode(data[offset:])")
+	} else {
+		g.L("\t\tresult[i], n, err = %s", g.genPackedDecodeCall(*t.Elem, "data[offset:]"))
+	}
+	g.L("\t\tif err != nil {")
+	g.L("\t\t\treturn result, 0, err")
+	g.L("\t\t}")
+	g.L("\t\toffset += n")
+	g.L("\t}")
+	g.L("\treturn result, %d, nil", totalSize)
+}

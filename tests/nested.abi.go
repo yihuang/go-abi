@@ -381,6 +381,7 @@ func (t *DeeplyNested) Decode(data []byte) (int, error) {
 const SimplePairStaticSize = 64
 
 var _ abi.Tuple = (*SimplePair)(nil)
+var _ abi.PackedTuple = (*SimplePair)(nil)
 
 // SimplePair represents an ABI tuple
 type SimplePair struct {
@@ -441,6 +442,64 @@ func (t *SimplePair) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of SimplePair
+func (t SimplePair) PackedEncodedSize() int {
+	return 64
+}
+
+// PackedEncodeTo encodes SimplePair to packed ABI bytes in the provided buffer
+func (value SimplePair) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field First: uint256
+	n, err = abi.PackedEncodeUint256(value.First, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Second: uint256
+	n, err = abi.PackedEncodeUint256(value.Second, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes SimplePair to packed ABI bytes
+func (value SimplePair) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes SimplePair from packed ABI bytes
+func (t *SimplePair) PackedDecode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field First: uint256
+	t.First, _, err = abi.PackedDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Second: uint256
+	t.Second, _, err = abi.PackedDecodeUint256(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	return 64, nil
 }
 
 const UserWithMetadataStaticSize = 128
@@ -1398,6 +1457,7 @@ func NewGetSimplePairCall() *GetSimplePairCall {
 const GetSimplePairReturnStaticSize = 64
 
 var _ abi.Tuple = (*GetSimplePairReturn)(nil)
+var _ abi.PackedTuple = (*GetSimplePairReturn)(nil)
 
 // GetSimplePairReturn represents an ABI tuple
 type GetSimplePairReturn struct {
@@ -1447,6 +1507,52 @@ func (t *GetSimplePairReturn) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of GetSimplePairReturn
+func (t GetSimplePairReturn) PackedEncodedSize() int {
+	return 64
+}
+
+// PackedEncodeTo encodes GetSimplePairReturn to packed ABI bytes in the provided buffer
+func (value GetSimplePairReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: (uint256,uint256)
+	n, err = value.Field1.PackedEncodeTo(buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes GetSimplePairReturn to packed ABI bytes
+func (value GetSimplePairReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes GetSimplePairReturn from packed ABI bytes
+func (t *GetSimplePairReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: (uint256,uint256)
+	_, err = t.Field1.PackedDecode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 64, nil
 }
 
 var _ abi.Method = (*GetTupleArrayCall)(nil)

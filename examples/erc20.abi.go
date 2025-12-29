@@ -51,6 +51,7 @@ var _ abi.Method = (*AllowanceCall)(nil)
 const AllowanceCallStaticSize = 64
 
 var _ abi.Tuple = (*AllowanceCall)(nil)
+var _ abi.PackedTuple = (*AllowanceCall)(nil)
 
 // AllowanceCall represents an ABI tuple
 type AllowanceCall struct {
@@ -113,6 +114,64 @@ func (t *AllowanceCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of AllowanceCall
+func (t AllowanceCall) PackedEncodedSize() int {
+	return 40
+}
+
+// PackedEncodeTo encodes AllowanceCall to packed ABI bytes in the provided buffer
+func (value AllowanceCall) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Owner: address
+	n, err = abi.PackedEncodeAddress(value.Owner, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Spender: address
+	n, err = abi.PackedEncodeAddress(value.Spender, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes AllowanceCall to packed ABI bytes
+func (value AllowanceCall) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes AllowanceCall from packed ABI bytes
+func (t *AllowanceCall) PackedDecode(data []byte) (int, error) {
+	if len(data) < 40 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Owner: address
+	t.Owner, _, err = abi.PackedDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Spender: address
+	t.Spender, _, err = abi.PackedDecodeAddress(data[20:])
+	if err != nil {
+		return 0, err
+	}
+	return 40, nil
+}
+
 // GetMethodName returns the function name
 func (t AllowanceCall) GetMethodName() string {
 	return "allowance"
@@ -152,6 +211,7 @@ func NewAllowanceCall(
 const AllowanceReturnStaticSize = 32
 
 var _ abi.Tuple = (*AllowanceReturn)(nil)
+var _ abi.PackedTuple = (*AllowanceReturn)(nil)
 
 // AllowanceReturn represents an ABI tuple
 type AllowanceReturn struct {
@@ -203,11 +263,58 @@ func (t *AllowanceReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of AllowanceReturn
+func (t AllowanceReturn) PackedEncodedSize() int {
+	return 32
+}
+
+// PackedEncodeTo encodes AllowanceReturn to packed ABI bytes in the provided buffer
+func (value AllowanceReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: uint256
+	n, err = abi.PackedEncodeUint256(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes AllowanceReturn to packed ABI bytes
+func (value AllowanceReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes AllowanceReturn from packed ABI bytes
+func (t *AllowanceReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: uint256
+	t.Field1, _, err = abi.PackedDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 32, nil
+}
+
 var _ abi.Method = (*ApproveCall)(nil)
 
 const ApproveCallStaticSize = 64
 
 var _ abi.Tuple = (*ApproveCall)(nil)
+var _ abi.PackedTuple = (*ApproveCall)(nil)
 
 // ApproveCall represents an ABI tuple
 type ApproveCall struct {
@@ -270,6 +377,64 @@ func (t *ApproveCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of ApproveCall
+func (t ApproveCall) PackedEncodedSize() int {
+	return 52
+}
+
+// PackedEncodeTo encodes ApproveCall to packed ABI bytes in the provided buffer
+func (value ApproveCall) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Spender: address
+	n, err = abi.PackedEncodeAddress(value.Spender, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Amount: uint256
+	n, err = abi.PackedEncodeUint256(value.Amount, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes ApproveCall to packed ABI bytes
+func (value ApproveCall) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes ApproveCall from packed ABI bytes
+func (t *ApproveCall) PackedDecode(data []byte) (int, error) {
+	if len(data) < 52 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Spender: address
+	t.Spender, _, err = abi.PackedDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Amount: uint256
+	t.Amount, _, err = abi.PackedDecodeUint256(data[20:])
+	if err != nil {
+		return 0, err
+	}
+	return 52, nil
+}
+
 // GetMethodName returns the function name
 func (t ApproveCall) GetMethodName() string {
 	return "approve"
@@ -309,6 +474,7 @@ func NewApproveCall(
 const ApproveReturnStaticSize = 32
 
 var _ abi.Tuple = (*ApproveReturn)(nil)
+var _ abi.PackedTuple = (*ApproveReturn)(nil)
 
 // ApproveReturn represents an ABI tuple
 type ApproveReturn struct {
@@ -360,11 +526,58 @@ func (t *ApproveReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of ApproveReturn
+func (t ApproveReturn) PackedEncodedSize() int {
+	return 1
+}
+
+// PackedEncodeTo encodes ApproveReturn to packed ABI bytes in the provided buffer
+func (value ApproveReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: bool
+	n, err = abi.PackedEncodeBool(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes ApproveReturn to packed ABI bytes
+func (value ApproveReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes ApproveReturn from packed ABI bytes
+func (t *ApproveReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 1 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: bool
+	t.Field1, _, err = abi.PackedDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
+}
+
 var _ abi.Method = (*BalanceOfCall)(nil)
 
 const BalanceOfCallStaticSize = 32
 
 var _ abi.Tuple = (*BalanceOfCall)(nil)
+var _ abi.PackedTuple = (*BalanceOfCall)(nil)
 
 // BalanceOfCall represents an ABI tuple
 type BalanceOfCall struct {
@@ -416,6 +629,52 @@ func (t *BalanceOfCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of BalanceOfCall
+func (t BalanceOfCall) PackedEncodedSize() int {
+	return 20
+}
+
+// PackedEncodeTo encodes BalanceOfCall to packed ABI bytes in the provided buffer
+func (value BalanceOfCall) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Account: address
+	n, err = abi.PackedEncodeAddress(value.Account, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes BalanceOfCall to packed ABI bytes
+func (value BalanceOfCall) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes BalanceOfCall from packed ABI bytes
+func (t *BalanceOfCall) PackedDecode(data []byte) (int, error) {
+	if len(data) < 20 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Account: address
+	t.Account, _, err = abi.PackedDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 20, nil
+}
+
 // GetMethodName returns the function name
 func (t BalanceOfCall) GetMethodName() string {
 	return "balanceOf"
@@ -453,6 +712,7 @@ func NewBalanceOfCall(
 const BalanceOfReturnStaticSize = 32
 
 var _ abi.Tuple = (*BalanceOfReturn)(nil)
+var _ abi.PackedTuple = (*BalanceOfReturn)(nil)
 
 // BalanceOfReturn represents an ABI tuple
 type BalanceOfReturn struct {
@@ -504,6 +764,52 @@ func (t *BalanceOfReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of BalanceOfReturn
+func (t BalanceOfReturn) PackedEncodedSize() int {
+	return 32
+}
+
+// PackedEncodeTo encodes BalanceOfReturn to packed ABI bytes in the provided buffer
+func (value BalanceOfReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: uint256
+	n, err = abi.PackedEncodeUint256(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes BalanceOfReturn to packed ABI bytes
+func (value BalanceOfReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes BalanceOfReturn from packed ABI bytes
+func (t *BalanceOfReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: uint256
+	t.Field1, _, err = abi.PackedDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 32, nil
+}
+
 var _ abi.Method = (*DecimalsCall)(nil)
 
 // DecimalsCall represents the input arguments for decimals function
@@ -544,6 +850,7 @@ func NewDecimalsCall() *DecimalsCall {
 const DecimalsReturnStaticSize = 32
 
 var _ abi.Tuple = (*DecimalsReturn)(nil)
+var _ abi.PackedTuple = (*DecimalsReturn)(nil)
 
 // DecimalsReturn represents an ABI tuple
 type DecimalsReturn struct {
@@ -593,6 +900,52 @@ func (t *DecimalsReturn) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of DecimalsReturn
+func (t DecimalsReturn) PackedEncodedSize() int {
+	return 1
+}
+
+// PackedEncodeTo encodes DecimalsReturn to packed ABI bytes in the provided buffer
+func (value DecimalsReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: uint8
+	n, err = abi.PackedEncodeUint8(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes DecimalsReturn to packed ABI bytes
+func (value DecimalsReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes DecimalsReturn from packed ABI bytes
+func (t *DecimalsReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 1 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: uint8
+	t.Field1, _, err = abi.PackedDecodeUint8(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
 }
 
 var _ abi.Method = (*NameCall)(nil)
@@ -861,6 +1214,7 @@ func NewTotalSupplyCall() *TotalSupplyCall {
 const TotalSupplyReturnStaticSize = 32
 
 var _ abi.Tuple = (*TotalSupplyReturn)(nil)
+var _ abi.PackedTuple = (*TotalSupplyReturn)(nil)
 
 // TotalSupplyReturn represents an ABI tuple
 type TotalSupplyReturn struct {
@@ -912,11 +1266,58 @@ func (t *TotalSupplyReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of TotalSupplyReturn
+func (t TotalSupplyReturn) PackedEncodedSize() int {
+	return 32
+}
+
+// PackedEncodeTo encodes TotalSupplyReturn to packed ABI bytes in the provided buffer
+func (value TotalSupplyReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: uint256
+	n, err = abi.PackedEncodeUint256(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes TotalSupplyReturn to packed ABI bytes
+func (value TotalSupplyReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes TotalSupplyReturn from packed ABI bytes
+func (t *TotalSupplyReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: uint256
+	t.Field1, _, err = abi.PackedDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 32, nil
+}
+
 var _ abi.Method = (*TransferCall)(nil)
 
 const TransferCallStaticSize = 64
 
 var _ abi.Tuple = (*TransferCall)(nil)
+var _ abi.PackedTuple = (*TransferCall)(nil)
 
 // TransferCall represents an ABI tuple
 type TransferCall struct {
@@ -979,6 +1380,64 @@ func (t *TransferCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of TransferCall
+func (t TransferCall) PackedEncodedSize() int {
+	return 52
+}
+
+// PackedEncodeTo encodes TransferCall to packed ABI bytes in the provided buffer
+func (value TransferCall) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field To: address
+	n, err = abi.PackedEncodeAddress(value.To, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Amount: uint256
+	n, err = abi.PackedEncodeUint256(value.Amount, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes TransferCall to packed ABI bytes
+func (value TransferCall) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes TransferCall from packed ABI bytes
+func (t *TransferCall) PackedDecode(data []byte) (int, error) {
+	if len(data) < 52 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field To: address
+	t.To, _, err = abi.PackedDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Amount: uint256
+	t.Amount, _, err = abi.PackedDecodeUint256(data[20:])
+	if err != nil {
+		return 0, err
+	}
+	return 52, nil
+}
+
 // GetMethodName returns the function name
 func (t TransferCall) GetMethodName() string {
 	return "transfer"
@@ -1018,6 +1477,7 @@ func NewTransferCall(
 const TransferReturnStaticSize = 32
 
 var _ abi.Tuple = (*TransferReturn)(nil)
+var _ abi.PackedTuple = (*TransferReturn)(nil)
 
 // TransferReturn represents an ABI tuple
 type TransferReturn struct {
@@ -1069,11 +1529,58 @@ func (t *TransferReturn) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of TransferReturn
+func (t TransferReturn) PackedEncodedSize() int {
+	return 1
+}
+
+// PackedEncodeTo encodes TransferReturn to packed ABI bytes in the provided buffer
+func (value TransferReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: bool
+	n, err = abi.PackedEncodeBool(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes TransferReturn to packed ABI bytes
+func (value TransferReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes TransferReturn from packed ABI bytes
+func (t *TransferReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 1 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: bool
+	t.Field1, _, err = abi.PackedDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
+}
+
 var _ abi.Method = (*TransferFromCall)(nil)
 
 const TransferFromCallStaticSize = 96
 
 var _ abi.Tuple = (*TransferFromCall)(nil)
+var _ abi.PackedTuple = (*TransferFromCall)(nil)
 
 // TransferFromCall represents an ABI tuple
 type TransferFromCall struct {
@@ -1147,6 +1654,76 @@ func (t *TransferFromCall) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+// PackedEncodedSize returns the packed encoded size of TransferFromCall
+func (t TransferFromCall) PackedEncodedSize() int {
+	return 72
+}
+
+// PackedEncodeTo encodes TransferFromCall to packed ABI bytes in the provided buffer
+func (value TransferFromCall) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field From: address
+	n, err = abi.PackedEncodeAddress(value.From, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field To: address
+	n, err = abi.PackedEncodeAddress(value.To, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Amount: uint256
+	n, err = abi.PackedEncodeUint256(value.Amount, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes TransferFromCall to packed ABI bytes
+func (value TransferFromCall) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes TransferFromCall from packed ABI bytes
+func (t *TransferFromCall) PackedDecode(data []byte) (int, error) {
+	if len(data) < 72 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field From: address
+	t.From, _, err = abi.PackedDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field To: address
+	t.To, _, err = abi.PackedDecodeAddress(data[20:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Amount: uint256
+	t.Amount, _, err = abi.PackedDecodeUint256(data[40:])
+	if err != nil {
+		return 0, err
+	}
+	return 72, nil
+}
+
 // GetMethodName returns the function name
 func (t TransferFromCall) GetMethodName() string {
 	return "transferFrom"
@@ -1188,6 +1765,7 @@ func NewTransferFromCall(
 const TransferFromReturnStaticSize = 32
 
 var _ abi.Tuple = (*TransferFromReturn)(nil)
+var _ abi.PackedTuple = (*TransferFromReturn)(nil)
 
 // TransferFromReturn represents an ABI tuple
 type TransferFromReturn struct {
@@ -1237,6 +1815,52 @@ func (t *TransferFromReturn) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of TransferFromReturn
+func (t TransferFromReturn) PackedEncodedSize() int {
+	return 1
+}
+
+// PackedEncodeTo encodes TransferFromReturn to packed ABI bytes in the provided buffer
+func (value TransferFromReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: bool
+	n, err = abi.PackedEncodeBool(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes TransferFromReturn to packed ABI bytes
+func (value TransferFromReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes TransferFromReturn from packed ABI bytes
+func (t *TransferFromReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 1 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: bool
+	t.Field1, _, err = abi.PackedDecodeBool(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
 }
 
 // Event signatures
@@ -1334,6 +1958,7 @@ func (e *ApprovalEventIndexed) DecodeTopics(topics []common.Hash) error {
 const ApprovalEventDataStaticSize = 32
 
 var _ abi.Tuple = (*ApprovalEventData)(nil)
+var _ abi.PackedTuple = (*ApprovalEventData)(nil)
 
 // ApprovalEventData represents an ABI tuple
 type ApprovalEventData struct {
@@ -1383,6 +2008,52 @@ func (t *ApprovalEventData) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of ApprovalEventData
+func (t ApprovalEventData) PackedEncodedSize() int {
+	return 32
+}
+
+// PackedEncodeTo encodes ApprovalEventData to packed ABI bytes in the provided buffer
+func (value ApprovalEventData) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Value: uint256
+	n, err = abi.PackedEncodeUint256(value.Value, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes ApprovalEventData to packed ABI bytes
+func (value ApprovalEventData) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes ApprovalEventData from packed ABI bytes
+func (t *ApprovalEventData) PackedDecode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Value: uint256
+	t.Value, _, err = abi.PackedDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 32, nil
 }
 
 // TransferEvent represents the Transfer event
@@ -1472,6 +2143,7 @@ func (e *TransferEventIndexed) DecodeTopics(topics []common.Hash) error {
 const TransferEventDataStaticSize = 32
 
 var _ abi.Tuple = (*TransferEventData)(nil)
+var _ abi.PackedTuple = (*TransferEventData)(nil)
 
 // TransferEventData represents an ABI tuple
 type TransferEventData struct {
@@ -1521,4 +2193,50 @@ func (t *TransferEventData) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of TransferEventData
+func (t TransferEventData) PackedEncodedSize() int {
+	return 32
+}
+
+// PackedEncodeTo encodes TransferEventData to packed ABI bytes in the provided buffer
+func (value TransferEventData) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Value: uint256
+	n, err = abi.PackedEncodeUint256(value.Value, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes TransferEventData to packed ABI bytes
+func (value TransferEventData) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes TransferEventData from packed ABI bytes
+func (t *TransferEventData) PackedDecode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Value: uint256
+	t.Value, _, err = abi.PackedDecodeUint256(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 32, nil
 }
