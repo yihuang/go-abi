@@ -66,12 +66,7 @@ func TestPackedTransfer(t *testing.T) {
 	require.Equal(t, expectedAmount, encoded[20:52])
 
 	// Test round-trip
-	decoded := &PackedTransferCall{}
-	n, err := decoded.PackedDecode(encoded)
-	require.NoError(t, err)
-	require.Equal(t, 52, n)
-	require.Equal(t, to, decoded.To)
-	require.Equal(t, 0, amount.Cmp(decoded.Amount))
+	DecodePackedRoundTrip(t, call)
 }
 
 // TestPackedSmallInts tests packed encoding for small integer types
@@ -100,18 +95,7 @@ func TestPackedSmallInts(t *testing.T) {
 	require.Equal(t, []byte{0xAB, 0xCD, 0xEF, 0x12}, encoded[3:7])
 
 	// Test round-trip
-	decoded := &PackedSmallIntsCall{}
-	n, err := decoded.PackedDecode(encoded)
-	require.NoError(t, err)
-	require.Equal(t, 30, n)
-	require.Equal(t, call.U8, decoded.U8)
-	require.Equal(t, call.U16, decoded.U16)
-	require.Equal(t, call.U32, decoded.U32)
-	require.Equal(t, call.U64, decoded.U64)
-	require.Equal(t, call.I8, decoded.I8)
-	require.Equal(t, call.I16, decoded.I16)
-	require.Equal(t, call.I32, decoded.I32)
-	require.Equal(t, call.I64, decoded.I64)
+	DecodePackedRoundTrip(t, call)
 }
 
 // TestPackedBytes tests packed encoding for fixed bytes types
@@ -134,12 +118,7 @@ func TestPackedBytes(t *testing.T) {
 	require.Equal(t, call.B4[:], encoded[32:36])
 
 	// Test round-trip
-	decoded := &PackedBytesCall{}
-	n, err := decoded.PackedDecode(encoded)
-	require.NoError(t, err)
-	require.Equal(t, 36, n)
-	require.Equal(t, call.B32, decoded.B32)
-	require.Equal(t, call.B4, decoded.B4)
+	DecodePackedRoundTrip(t, call)
 }
 
 // TestPackedBool tests packed encoding for boolean types
@@ -165,22 +144,17 @@ func TestPackedBool(t *testing.T) {
 		require.Equal(t, tc.expected, encoded)
 
 		// Test round-trip
-		decoded := &PackedBoolCall{}
-		n, err := decoded.PackedDecode(encoded)
-		require.NoError(t, err)
-		require.Equal(t, 2, n)
-		require.Equal(t, tc.a, decoded.A)
-		require.Equal(t, tc.b, decoded.B)
+		DecodePackedRoundTrip(t, call)
 	}
 }
 
 // TestPackedIntermediate tests packed encoding for intermediate-sized integers (24, 40, 48, 56 bits)
 func TestPackedIntermediate(t *testing.T) {
 	call := &PackedIntermediateCall{
-		U24: uint32(0xABCDEF),          // 3 bytes
-		U40: uint64(0xABCDEF1234),      // 5 bytes
-		I24: int32(-1234),              // 3 bytes
-		I40: int64(-123456789),         // 5 bytes
+		U24: uint32(0xABCDEF),     // 3 bytes
+		U40: uint64(0xABCDEF1234), // 5 bytes
+		I24: int32(-1234),         // 3 bytes
+		I40: int64(-123456789),    // 5 bytes
 	}
 
 	// Size: 3+5+3+5 = 16 bytes
@@ -197,14 +171,7 @@ func TestPackedIntermediate(t *testing.T) {
 	require.Equal(t, []byte{0xAB, 0xCD, 0xEF, 0x12, 0x34}, encoded[3:8])
 
 	// Test round-trip
-	decoded := &PackedIntermediateCall{}
-	n, err := decoded.PackedDecode(encoded)
-	require.NoError(t, err)
-	require.Equal(t, 16, n)
-	require.Equal(t, call.U24, decoded.U24)
-	require.Equal(t, call.U40, decoded.U40)
-	require.Equal(t, call.I24, decoded.I24)
-	require.Equal(t, call.I40, decoded.I40)
+	DecodePackedRoundTrip(t, call)
 }
 
 // TestPackedStruct tests packed encoding for struct types
@@ -225,13 +192,7 @@ func TestPackedStruct(t *testing.T) {
 	require.Len(t, encoded, 84)
 
 	// Test round-trip
-	decoded := &PackedStructCall{}
-	n, err := decoded.PackedDecode(encoded)
-	require.NoError(t, err)
-	require.Equal(t, 84, n)
-	require.Equal(t, s.Addr, decoded.S.Addr)
-	require.Equal(t, 0, s.Value.Cmp(decoded.S.Value))
-	require.Equal(t, s.Data, decoded.S.Data)
+	DecodePackedRoundTrip(t, call)
 }
 
 // TestPackedCompareWithSolidityEncodePacked verifies our encoding matches Solidity's abi.encodePacked
