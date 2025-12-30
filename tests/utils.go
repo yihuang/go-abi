@@ -70,3 +70,43 @@ func EventDecodeRoundTrip[T any, PT interface {
 		require.True(t, errors.Is(err, io.ErrUnexpectedEOF))
 	}
 }
+
+func DecodePackedRoundTrip[T any, PT interface {
+	abi.PackedTuple
+	*T
+}](t *testing.T, orig PT) {
+	data, err := orig.PackedEncode()
+	require.NoError(t, err)
+
+	var decoded T
+	_, err = PT(&decoded).PackedDecode(data)
+	require.NoError(t, err)
+
+	require.Equal(t, orig, &decoded)
+
+	// test ErrUnexpectedEOF
+	for i := range len(data) {
+		_, err = PT(&decoded).PackedDecode(data[:i])
+		require.Error(t, err)
+		require.True(t, errors.Is(err, io.ErrUnexpectedEOF))
+	}
+
+	// test validation with bit flipping
+	if len(data) > 0 {
+		// Test diverse positions across the entire data
+		for pos := 0; pos < len(data)*8; pos++ {
+			flipped := slices.Clone(data)
+			bitIndex := pos / 8
+			bitOffset := pos % 8
+			flipped[bitIndex] ^= 1 << bitOffset
+
+			var flippedDecoded T
+			_, err := PT(&flippedDecoded).PackedDecode(flipped)
+
+			// it either cause error or unequal result
+			if err == nil {
+				require.NotEqual(t, orig, &flippedDecoded, "orig: %v, flipped at bit %d", orig, pos)
+			}
+		}
+	}
+}

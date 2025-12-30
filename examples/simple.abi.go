@@ -26,6 +26,7 @@ var _ abi.Method = (*SendCall)(nil)
 const SendCallStaticSize = 64
 
 var _ abi.Tuple = (*SendCall)(nil)
+var _ abi.PackedTuple = (*SendCall)(nil)
 
 // SendCall represents an ABI tuple
 type SendCall struct {
@@ -86,6 +87,64 @@ func (t *SendCall) Decode(data []byte) (int, error) {
 		return 0, err
 	}
 	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of SendCall
+func (t SendCall) PackedEncodedSize() int {
+	return 52
+}
+
+// PackedEncodeTo encodes SendCall to packed ABI bytes in the provided buffer
+func (value SendCall) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field To: address
+	n, err = abi.PackedEncodeAddress(value.To, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Amount: uint256
+	n, err = abi.PackedEncodeUint256(value.Amount, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes SendCall to packed ABI bytes
+func (value SendCall) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes SendCall from packed ABI bytes
+func (t *SendCall) PackedDecode(data []byte) (int, error) {
+	if len(data) < 52 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field To: address
+	t.To, _, err = abi.PackedDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Amount: uint256
+	t.Amount, _, err = abi.PackedDecodeUint256(data[20:])
+	if err != nil {
+		return 0, err
+	}
+	return 52, nil
 }
 
 // GetMethodName returns the function name

@@ -131,6 +131,16 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 		g.genDecodingFunction(t)
 	}
 
+	// Generate packed encoding functions (skip non-packable types)
+	for _, t := range allTypes {
+		g.genPackedEncodingFunction(t)
+	}
+
+	// Generate packed decoding functions (skip non-packable types)
+	for _, t := range allTypes {
+		g.genPackedDecodingFunction(t)
+	}
+
 	// Generate code for each function
 	for _, method := range methods {
 		g.genFunction(method)
@@ -390,6 +400,10 @@ func (g *Generator) genStruct(s Struct) {
 	g.L("")
 	// assert interface
 	g.L("var _ %sTuple = (*%s)(nil)", g.StdPrefix, s.Name)
+	// assert PackedTuple interface if all fields are packable
+	if g.canPackStruct(s) {
+		g.L("var _ %sPackedTuple = (*%s)(nil)", g.StdPrefix, s.Name)
+	}
 	g.L("// %s represents an ABI tuple", s.Name)
 	g.L("type %s struct {", s.Name)
 
@@ -424,6 +438,94 @@ func (g *Generator) genStructMethods(s Struct) {
 
 	// Generate Decode method
 	g.genStructDecode(s)
+
+	// Generate packed methods if all fields are packable
+	if g.canPackStruct(s) {
+		g.genPackedEncodedSize(s)
+		g.genStructPackedEncodeTo(s)
+		g.genStructPackedEncode(s)
+		g.genStructPackedDecode(s)
+	}
+}
+
+// canPackStruct returns true if all fields of a struct can be packed
+func (g *Generator) canPackStruct(s Struct) bool {
+	for _, f := range s.Fields {
+		if !CanPackType(*f.Type) {
+			return false
+		}
+	}
+	return true
+}
+
+// genPackedEncodedSize generates the PackedEncodedSize method
+func (g *Generator) genPackedEncodedSize(s Struct) {
+	packedSize := GetPackedTupleSize(s.Types())
+	g.L("")
+	g.L("// PackedEncodedSize returns the packed encoded size of %s", s.Name)
+	g.L("func (t %s) PackedEncodedSize() int {", s.Name)
+	g.L("\treturn %d", packedSize)
+	g.L("}")
+}
+
+// genStructPackedEncodeTo generates the PackedEncodeTo method
+func (g *Generator) genStructPackedEncodeTo(s Struct) {
+	g.L("")
+	g.L("// PackedEncodeTo encodes %s to packed ABI bytes in the provided buffer", s.Name)
+	g.L("func (value %s) PackedEncodeTo(buf []byte) (int, error) {", s.Name)
+
+	g.genPackedTupleEncoding(s.T)
+
+	g.L("}")
+}
+
+// genStructPackedEncode generates the PackedEncode method
+func (g *Generator) genStructPackedEncode(s Struct) {
+	g.L("")
+	g.L("// PackedEncode encodes %s to packed ABI bytes", s.Name)
+	g.L("func (value %s) PackedEncode() ([]byte, error) {", s.Name)
+	g.L("\tbuf := make([]byte, value.PackedEncodedSize())")
+	g.L("\tif _, err := value.PackedEncodeTo(buf); err != nil {")
+	g.L("\t\treturn nil, err")
+	g.L("\t}")
+	g.L("\treturn buf, nil")
+	g.L("}")
+}
+
+// genStructPackedDecode generates the PackedDecode method
+func (g *Generator) genStructPackedDecode(s Struct) {
+	packedSize := GetPackedTupleSize(s.Types())
+	g.L("")
+	g.L("// PackedDecode decodes %s from packed ABI bytes", s.Name)
+	g.L("func (t *%s) PackedDecode(data []byte) (int, error) {", s.Name)
+	g.L("\tif len(data) < %d {", packedSize)
+	g.L("\t\treturn 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
+
+	if len(s.Fields) > 0 {
+		g.L("\tvar err error")
+	}
+
+	var offset int
+	for _, f := range s.Fields {
+		fieldSize := GetPackedTypeSize(*f.Type)
+		dataRef := fmt.Sprintf("data[%d:]", offset)
+
+		g.L("\t// Decode field %s: %s", f.Name, f.Type.String())
+		if f.Type.T == ethabi.TupleTy {
+			g.L("\t_, err = t.%s.PackedDecode(%s)", f.Name, dataRef)
+		} else {
+			g.L("\tt.%s, _, err = %s", f.Name, g.genPackedDecodeCall(*f.Type, dataRef))
+		}
+		g.L("\tif err != nil {")
+		g.L("\t\treturn 0, err")
+		g.L("\t}")
+
+		offset += fieldSize
+	}
+
+	g.L("\treturn %d, nil", packedSize)
+	g.L("}")
 }
 
 // genStructEncodeTo generates the EncodeTo method that calls standalone function
@@ -743,6 +845,94 @@ func (g *Generator) genDecodeCall(t ethabi.Type, dataRef string) string {
 	}
 
 	return fmt.Sprintf("%s(%s)", g.genFuncName(t, "Decode"), dataRef)
+}
+
+func (g *Generator) genPackedEncodeCall(t ethabi.Type, value string, dataRef string) string {
+	if t.T == ethabi.TupleTy {
+		return fmt.Sprintf("%s.PackedEncodeTo(%s)", value, dataRef)
+	}
+	return fmt.Sprintf("%s(%s, %s)", g.genFuncName(t, "PackedEncode"), value, dataRef)
+}
+
+func (g *Generator) genPackedDecodeCall(t ethabi.Type, dataRef string) string {
+	if t.T == ethabi.TupleTy {
+		panic("tuple types should use struct methods for packed decoding")
+	}
+	return fmt.Sprintf("%s(%s)", g.genFuncName(t, "PackedDecode"), dataRef)
+}
+
+// genPackedEncodingFunction generates a standalone packed encoding function for a specific ABI type
+func (g *Generator) genPackedEncodingFunction(t ethabi.Type) {
+	if !CanPackType(t) {
+		return
+	}
+
+	funcName := g.genFuncName(t, "PackedEncode")
+	if strings.Contains(funcName, ".") {
+		return
+	}
+
+	goType := g.abiTypeToGoType(t)
+
+	g.L("")
+	g.L("// %s encodes %s to packed ABI bytes (no padding)", funcName, t.String())
+	g.L("func %s(value %s, buf []byte) (int, error) {", funcName, goType)
+
+	switch t.T {
+	case ethabi.UintTy, ethabi.IntTy:
+		g.genPackedIntEncoding(t)
+	case ethabi.AddressTy:
+		g.genPackedAddressEncoding()
+	case ethabi.BoolTy:
+		g.genPackedBoolEncoding()
+	case ethabi.FixedBytesTy:
+		g.genPackedFixedBytesEncoding(t)
+	case ethabi.ArrayTy:
+		g.genPackedArrayEncoding(t)
+	case ethabi.TupleTy:
+		panic("tuple types should use struct methods for packed encoding")
+	default:
+		panic("unsupported ABI type for packed encoding: " + t.String())
+	}
+
+	g.L("}")
+}
+
+// genPackedDecodingFunction generates a standalone packed decoding function for a specific ABI type
+func (g *Generator) genPackedDecodingFunction(t ethabi.Type) {
+	if !CanPackType(t) {
+		return
+	}
+
+	funcName := g.genFuncName(t, "PackedDecode")
+	if strings.Contains(funcName, ".") {
+		return
+	}
+
+	goType := g.abiTypeToGoType(t)
+
+	g.L("")
+	g.L("// %s decodes %s from packed ABI bytes (no padding)", funcName, t.String())
+	g.L("func %s(data []byte) (%s, int, error) {", funcName, goType)
+
+	switch t.T {
+	case ethabi.UintTy, ethabi.IntTy:
+		g.genPackedIntDecoding(t)
+	case ethabi.AddressTy:
+		g.genPackedAddressDecoding()
+	case ethabi.BoolTy:
+		g.genPackedBoolDecoding()
+	case ethabi.FixedBytesTy:
+		g.genPackedFixedBytesDecoding(t)
+	case ethabi.ArrayTy:
+		g.genPackedArrayDecoding(t)
+	case ethabi.TupleTy:
+		panic("tuple types should use struct methods for packed decoding")
+	default:
+		panic("unsupported ABI type for packed decoding: " + t.String())
+	}
+
+	g.L("}")
 }
 
 // genAllEventTopics generates all event constants at the beginning of the file

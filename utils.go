@@ -172,15 +172,9 @@ func DecodeEvent(event Event, topics []common.Hash, data []byte) error {
 func GenTypeIdentifier(t ethabi.Type) string {
 	switch t.T {
 	case ethabi.UintTy:
-		if t.Size <= 64 {
-			return fmt.Sprintf("Uint%d", t.Size)
-		}
-		return "Uint256"
+		return fmt.Sprintf("Uint%d", t.Size)
 	case ethabi.IntTy:
-		if t.Size <= 64 {
-			return fmt.Sprintf("Int%d", t.Size)
-		}
-		return "Int256"
+		return fmt.Sprintf("Int%d", t.Size)
 	case ethabi.AddressTy:
 		return "Address"
 	case ethabi.BoolTy:

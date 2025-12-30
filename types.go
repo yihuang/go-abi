@@ -20,6 +20,21 @@ type Tuple interface {
 	Decode
 }
 
+type PackedEncode interface {
+	PackedEncodedSize() int
+	PackedEncode() ([]byte, error)
+	PackedEncodeTo([]byte) (int, error)
+}
+
+type PackedDecode interface {
+	PackedDecode([]byte) (int, error)
+}
+
+type PackedTuple interface {
+	PackedEncode
+	PackedDecode
+}
+
 type Method interface {
 	Tuple
 
@@ -58,6 +73,22 @@ func (e EmptyTuple) EncodeTo(data []byte) (int, error) {
 }
 
 func (e *EmptyTuple) Decode(data []byte) (int, error) {
+	return 0, nil
+}
+
+func (e EmptyTuple) PackedEncodedSize() int {
+	return 0
+}
+
+func (e EmptyTuple) PackedEncode() ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (e EmptyTuple) PackedEncodeTo(data []byte) (int, error) {
+	return 0, nil
+}
+
+func (e *EmptyTuple) PackedDecode(data []byte) (int, error) {
 	return 0, nil
 }
 
