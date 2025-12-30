@@ -8414,7 +8414,14 @@ func PackedDecodeBool(data []byte) (bool, int, error) {
 	if len(data) < 1 {
 		return false, 0, io.ErrUnexpectedEOF
 	}
-	return data[0] != 0, 1, nil
+	switch data[0] {
+	case 0x01:
+		return true, 1, nil
+	case 0x00:
+		return false, 1, nil
+	default:
+		return false, 0, ErrDirtyPadding
+	}
 }
 
 // PackedDecodeBytes1 decodes bytes1 from packed ABI bytes (no padding)
