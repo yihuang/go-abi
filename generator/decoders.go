@@ -407,10 +407,14 @@ func (g *Generator) genPackedAddressDecoding() {
 
 // genPackedBoolDecoding generates packed decoding for bool (1 byte)
 func (g *Generator) genPackedBoolDecoding() {
-	g.L("\tif len(data) < 1 {")
-	g.L("\t\treturn false, 0, io.ErrUnexpectedEOF")
+	g.L("\tswitch data[0] {")
+	g.L("\tcase 0x00:")
+	g.L("\t\treturn false, 1, nil")
+	g.L("\tcase 0x01:")
+	g.L("\t\treturn true, 1, nil")
+	g.L("\tdefault:")
+	g.L("\t\treturn false, 0, %sErrDirtyPadding", g.StdPrefix)
 	g.L("\t}")
-	g.L("\treturn data[0] != 0, 1, nil")
 }
 
 // genPackedFixedBytesDecoding generates packed decoding for fixed bytes
