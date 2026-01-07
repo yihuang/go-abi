@@ -12,9 +12,17 @@ func (g *Generator) genIntEncoding(t ethabi.Type) {
 	// Optimize small integer types to avoid big.Int overhead
 	if t.Size <= 64 {
 		g.genSmallIntEncoding(t)
+	} else if t.T == ethabi.UintTy && t.Size == 256 && g.Options.UseUint256 {
+		g.genUint256Encoding()
 	} else {
 		g.genBigIntEncoding(t)
 	}
+}
+
+// genUint256Encoding generates encoding for holiman/uint256.Int types
+func (g *Generator) genUint256Encoding() {
+	g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
+	g.L("\treturn 32, nil")
 }
 
 // genSmallIntEncoding generates optimized encoding for small integer types
@@ -266,6 +274,12 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 	g.L("\t\treturn 0, io.ErrShortBuffer")
 	g.L("\t}")
 
+	// Use uint256.Int for uint256 when enabled
+	if t.T == ethabi.UintTy && t.Size == 256 && g.Options.UseUint256 {
+		g.genPackedUint256Encoding()
+		return
+	}
+
 	if byteSize <= 8 {
 		// For sizes <= 8 bytes, use native integer types
 		switch byteSize {
@@ -319,6 +333,12 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 	}
 
 	g.L("\treturn %d, nil", byteSize)
+}
+
+// genPackedUint256Encoding generates packed encoding for holiman/uint256.Int types
+func (g *Generator) genPackedUint256Encoding() {
+	g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
+	g.L("\treturn 32, nil")
 }
 
 // genPackedAddressEncoding generates packed encoding for address (20 bytes, no padding)

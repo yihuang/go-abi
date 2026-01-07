@@ -19,6 +19,8 @@ func main() {
 		imports       = flag.String("imports", "", "Additional import paths, comma-separated")
 		stdlib        = flag.Bool("stdlib", false, "Generate stdlib itself")
 		artifactInput = flag.Bool("artifact-input", false, "Input file is a solc artifact JSON, will extract the abi field from it")
+		useUint256    = flag.Bool("uint256", false, "Use holiman/uint256.Int instead of *big.Int for uint256 types")
+		buildTag      = flag.String("buildtag", "", "Build tag to add to generated file (e.g., 'uint256')")
 	)
 	flag.Parse()
 
@@ -26,6 +28,8 @@ func main() {
 		generator.PackageName(*packageName),
 		generator.Prefix(*prefix),
 		generator.Stdlib(*stdlib),
+		generator.UseUint256(*useUint256),
+		generator.BuildTag(*buildTag),
 	}
 
 	if *imports != "" {
