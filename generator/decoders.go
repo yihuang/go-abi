@@ -11,7 +11,7 @@ func (g *Generator) genIntDecoding(t ethabi.Type) {
 	// Optimize small integer types to avoid big.Int overhead
 	if t.Size <= 64 {
 		g.genSmallIntDecoding(t)
-	} else if t.T == ethabi.UintTy && t.Size == 256 && g.Options.UseUint256 {
+	} else if t.T == ethabi.UintTy && g.Options.UseUint256 {
 		g.genUint256Decoding()
 	} else {
 		g.genBigIntDecoding(t)
@@ -20,9 +20,6 @@ func (g *Generator) genIntDecoding(t ethabi.Type) {
 
 // genUint256Decoding generates decoding for holiman/uint256.Int types
 func (g *Generator) genUint256Decoding() {
-	g.L("\tif len(data) < 32 {")
-	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
-	g.L("\t}")
 	g.L("\tresult := new(uint256.Int)")
 	g.L("\tresult.SetBytes32(data[:32])")
 	g.L("\treturn result, 32, nil")
@@ -328,12 +325,6 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 	g.L("\t\treturn %s, 0, io.ErrUnexpectedEOF", zeroValue)
 	g.L("\t}")
 
-	// Use uint256.Int for uint256 when enabled
-	if t.T == ethabi.UintTy && t.Size == 256 && g.Options.UseUint256 {
-		g.genPackedUint256Decoding()
-		return
-	}
-
 	if byteSize <= 8 {
 		// For sizes <= 8 bytes, use native integer types
 		switch byteSize {
@@ -407,17 +398,16 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 			g.L("\t}")
 			g.L("\treturn result, %d, nil", byteSize)
 		} else {
-			g.L("\tresult := new(big.Int).SetBytes(data[:%d])", byteSize)
-			g.L("\treturn result, %d, nil", byteSize)
+			if g.Options.UseUint256 {
+				g.L("\tresult := new(uint256.Int)")
+				g.L("\tresult.SetBytes32(data[:%d])", byteSize)
+				g.L("\treturn result, %d, nil", byteSize)
+			} else {
+				g.L("\tresult := new(big.Int).SetBytes(data[:%d])", byteSize)
+				g.L("\treturn result, %d, nil", byteSize)
+			}
 		}
 	}
-}
-
-// genPackedUint256Decoding generates packed decoding for holiman/uint256.Int types
-func (g *Generator) genPackedUint256Decoding() {
-	g.L("\tresult := new(uint256.Int)")
-	g.L("\tresult.SetBytes32(data[:32])")
-	g.L("\treturn result, 32, nil")
 }
 
 // genPackedAddressDecoding generates packed decoding for address (20 bytes)

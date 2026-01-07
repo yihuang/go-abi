@@ -783,7 +783,7 @@ func (g *Generator) abiTypeToGoType(abiType ethabi.Type) string {
 			return "uint32"
 		} else if abiType.Size <= 64 {
 			return "uint64"
-		} else if abiType.Size == 256 && g.Options.UseUint256 {
+		} else if g.Options.UseUint256 {
 			return "*uint256.Int"
 		} else {
 			return "*big.Int"
