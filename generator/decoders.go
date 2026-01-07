@@ -397,15 +397,13 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 			g.L("\t\treturn nil, 0, err")
 			g.L("\t}")
 			g.L("\treturn result, %d, nil", byteSize)
+		} else if g.Options.UseUint256 {
+			g.L("\tresult := new(uint256.Int)")
+			g.L("\tresult.SetBytes32(data[:%d])", byteSize)
+			g.L("\treturn result, %d, nil", byteSize)
 		} else {
-			if g.Options.UseUint256 {
-				g.L("\tresult := new(uint256.Int)")
-				g.L("\tresult.SetBytes32(data[:%d])", byteSize)
-				g.L("\treturn result, %d, nil", byteSize)
-			} else {
-				g.L("\tresult := new(big.Int).SetBytes(data[:%d])", byteSize)
-				g.L("\treturn result, %d, nil", byteSize)
-			}
+			g.L("\tresult := new(big.Int).SetBytes(data[:%d])", byteSize)
+			g.L("\treturn result, %d, nil", byteSize)
 		}
 	}
 }
