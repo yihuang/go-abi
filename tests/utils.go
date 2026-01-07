@@ -1,5 +1,3 @@
-//go:build !uint256
-
 package tests
 
 import (
