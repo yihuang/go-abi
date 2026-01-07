@@ -24,6 +24,10 @@ func main() {
 	)
 	flag.Parse()
 
+	if *useUint256 && *buildTag == "" {
+		*buildTag = "uint256"
+	}
+
 	opts := []generator.Option{
 		generator.PackageName(*packageName),
 		generator.Prefix(*prefix),
