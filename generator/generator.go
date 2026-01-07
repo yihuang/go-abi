@@ -83,9 +83,6 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 	if g.Options.BuildTag != "" {
 		g.L("//go:build %s", g.Options.BuildTag)
 		g.L("")
-	} else {
-		g.L("//go:build !uint256")
-		g.L("")
 	}
 
 	// Write do not edit warning

@@ -14,7 +14,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var OverloadABI -output overload.abi.go -prefix overload
+//go:generate go run ../cmd -var OverloadABI -output overload.abi.go -prefix overload -buildtag=!uint256
 
 var OverloadABI = []string{
 	"function overloaded1(address to, uint256 amount) returns (bool)",

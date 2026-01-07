@@ -315,10 +315,14 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 		case 8:
 			g.L("\tbinary.BigEndian.PutUint64(buf[:8], uint64(value))")
 		}
-	} else if t.T == ethabi.UintTy && g.Options.UseUint256 {
-		g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
 	} else {
-		// For sizes > 8 bytes (big.Int), use EncodeBigInt
+		// For sizes > 8 bytes
+		if t.T == ethabi.UintTy && g.Options.UseUint256 {
+			// Use uint256.Int for large unsigned integers when enabled
+			g.genPackedLargeUintEncoding(t)
+			return
+		}
+		// Use big.Int
 		if t.T == ethabi.IntTy {
 			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], true); err != nil {", g.StdPrefix, byteSize)
 		} else {
@@ -328,6 +332,21 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 		g.L("\t}")
 	}
 
+	g.L("\treturn %d, nil", byteSize)
+}
+
+// genPackedLargeUintEncoding generates packed encoding for large unsigned integers using uint256.Int
+func (g *Generator) genPackedLargeUintEncoding(t ethabi.Type) {
+	byteSize := t.Size / 8
+	if byteSize == 32 {
+		// Full 32 bytes - use WriteToArray32
+		g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
+	} else {
+		// For smaller sizes, write to temp array and copy relevant bytes
+		g.L("\tvar tmp [32]byte")
+		g.L("\tvalue.WriteToArray32(&tmp)")
+		g.L("\tcopy(buf[:%d], tmp[%d:])", byteSize, 32-byteSize)
+	}
 	g.L("\treturn %d, nil", byteSize)
 }
 

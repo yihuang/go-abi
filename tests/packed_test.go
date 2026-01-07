@@ -14,7 +14,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var PackedTestABI -output packed.abi.go -prefix packed
+//go:generate go run ../cmd -var PackedTestABI -output packed.abi.go -prefix packed -buildtag=!uint256
 
 // PackedTestABI contains human-readable ABI definitions for packed encoding testing
 var PackedTestABI = []string{

@@ -2,7 +2,7 @@
 
 package tests
 
-//go:generate go run ../cmd -var Uint256TestABI -output=uint256.abi.go -package=tests -uint256 -buildtag=uint256
+//go:generate go run ../cmd -var Uint256TestABI -output=uint256.abi.go -package=tests -uint256
 
 var Uint256TestABI = []string{
 	"function transfer(address to, uint256 amount) returns (bool)",

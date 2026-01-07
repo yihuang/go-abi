@@ -14,7 +14,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var TestABI -output test.abi.go -prefix test
+//go:generate go run ../cmd -var TestABI -output test.abi.go -prefix test -buildtag=!uint256
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{

@@ -6092,6 +6092,9 @@ func DecodeStringSlice(data []byte) ([]string, int, error) {
 
 // DecodeUint104 decodes uint104 from ABI bytes
 func DecodeUint104(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6129,6 +6132,9 @@ func DecodeUint104Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint112 decodes uint112 from ABI bytes
 func DecodeUint112(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6166,6 +6172,9 @@ func DecodeUint112Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint120 decodes uint120 from ABI bytes
 func DecodeUint120(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6203,6 +6212,9 @@ func DecodeUint120Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint128 decodes uint128 from ABI bytes
 func DecodeUint128(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6240,6 +6252,9 @@ func DecodeUint128Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint136 decodes uint136 from ABI bytes
 func DecodeUint136(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6277,6 +6292,9 @@ func DecodeUint136Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint144 decodes uint144 from ABI bytes
 func DecodeUint144(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6314,6 +6332,9 @@ func DecodeUint144Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint152 decodes uint152 from ABI bytes
 func DecodeUint152(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6360,6 +6381,9 @@ func DecodeUint16(data []byte) (uint16, int, error) {
 
 // DecodeUint160 decodes uint160 from ABI bytes
 func DecodeUint160(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6397,6 +6421,9 @@ func DecodeUint160Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint168 decodes uint168 from ABI bytes
 func DecodeUint168(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6464,6 +6491,9 @@ func DecodeUint16Slice(data []byte) ([]uint16, int, error) {
 
 // DecodeUint176 decodes uint176 from ABI bytes
 func DecodeUint176(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6501,6 +6531,9 @@ func DecodeUint176Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint184 decodes uint184 from ABI bytes
 func DecodeUint184(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6538,6 +6571,9 @@ func DecodeUint184Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint192 decodes uint192 from ABI bytes
 func DecodeUint192(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6575,6 +6611,9 @@ func DecodeUint192Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint200 decodes uint200 from ABI bytes
 func DecodeUint200(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6612,6 +6651,9 @@ func DecodeUint200Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint208 decodes uint208 from ABI bytes
 func DecodeUint208(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6649,6 +6691,9 @@ func DecodeUint208Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint216 decodes uint216 from ABI bytes
 func DecodeUint216(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6686,6 +6731,9 @@ func DecodeUint216Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint224 decodes uint224 from ABI bytes
 func DecodeUint224(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6723,6 +6771,9 @@ func DecodeUint224Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint232 decodes uint232 from ABI bytes
 func DecodeUint232(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6769,6 +6820,9 @@ func DecodeUint24(data []byte) (uint32, int, error) {
 
 // DecodeUint240 decodes uint240 from ABI bytes
 func DecodeUint240(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6806,6 +6860,9 @@ func DecodeUint240Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint248 decodes uint248 from ABI bytes
 func DecodeUint248(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -6873,6 +6930,9 @@ func DecodeUint24Slice(data []byte) ([]uint32, int, error) {
 
 // DecodeUint256 decodes uint256 from ABI bytes
 func DecodeUint256(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -7105,6 +7165,9 @@ func DecodeUint64Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint72 decodes uint72 from ABI bytes
 func DecodeUint72(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -7151,6 +7214,9 @@ func DecodeUint8(data []byte) (uint8, int, error) {
 
 // DecodeUint80 decodes uint80 from ABI bytes
 func DecodeUint80(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -7188,6 +7254,9 @@ func DecodeUint80Slice(data []byte) ([]*uint256.Int, int, error) {
 
 // DecodeUint88 decodes uint88 from ABI bytes
 func DecodeUint88(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -7255,6 +7324,9 @@ func DecodeUint8Slice(data []byte) ([]uint8, int, error) {
 
 // DecodeUint96 decodes uint96 from ABI bytes
 func DecodeUint96(data []byte) (*uint256.Int, int, error) {
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	result := new(uint256.Int)
 	result.SetBytes32(data[:32])
 	return result, 32, nil
@@ -7958,7 +8030,9 @@ func PackedEncodeUint104(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 13 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:13], tmp[19:])
 	return 13, nil
 }
 
@@ -7967,7 +8041,9 @@ func PackedEncodeUint112(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 14 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:14], tmp[18:])
 	return 14, nil
 }
 
@@ -7976,7 +8052,9 @@ func PackedEncodeUint120(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 15 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:15], tmp[17:])
 	return 15, nil
 }
 
@@ -7985,7 +8063,9 @@ func PackedEncodeUint128(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 16 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:16], tmp[16:])
 	return 16, nil
 }
 
@@ -7994,7 +8074,9 @@ func PackedEncodeUint136(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 17 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:17], tmp[15:])
 	return 17, nil
 }
 
@@ -8003,7 +8085,9 @@ func PackedEncodeUint144(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 18 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:18], tmp[14:])
 	return 18, nil
 }
 
@@ -8012,7 +8096,9 @@ func PackedEncodeUint152(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 19 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:19], tmp[13:])
 	return 19, nil
 }
 
@@ -8030,7 +8116,9 @@ func PackedEncodeUint160(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 20 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:20], tmp[12:])
 	return 20, nil
 }
 
@@ -8039,7 +8127,9 @@ func PackedEncodeUint168(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 21 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:21], tmp[11:])
 	return 21, nil
 }
 
@@ -8048,7 +8138,9 @@ func PackedEncodeUint176(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 22 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:22], tmp[10:])
 	return 22, nil
 }
 
@@ -8057,7 +8149,9 @@ func PackedEncodeUint184(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 23 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:23], tmp[9:])
 	return 23, nil
 }
 
@@ -8066,7 +8160,9 @@ func PackedEncodeUint192(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 24 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:24], tmp[8:])
 	return 24, nil
 }
 
@@ -8075,7 +8171,9 @@ func PackedEncodeUint200(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 25 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:25], tmp[7:])
 	return 25, nil
 }
 
@@ -8084,7 +8182,9 @@ func PackedEncodeUint208(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 26 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:26], tmp[6:])
 	return 26, nil
 }
 
@@ -8093,7 +8193,9 @@ func PackedEncodeUint216(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 27 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:27], tmp[5:])
 	return 27, nil
 }
 
@@ -8102,7 +8204,9 @@ func PackedEncodeUint224(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 28 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:28], tmp[4:])
 	return 28, nil
 }
 
@@ -8111,7 +8215,9 @@ func PackedEncodeUint232(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 29 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:29], tmp[3:])
 	return 29, nil
 }
 
@@ -8131,7 +8237,9 @@ func PackedEncodeUint240(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 30 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:30], tmp[2:])
 	return 30, nil
 }
 
@@ -8140,7 +8248,9 @@ func PackedEncodeUint248(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 31 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:31], tmp[1:])
 	return 31, nil
 }
 
@@ -8218,7 +8328,9 @@ func PackedEncodeUint72(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 9 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:9], tmp[23:])
 	return 9, nil
 }
 
@@ -8236,7 +8348,9 @@ func PackedEncodeUint80(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 10 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:10], tmp[22:])
 	return 10, nil
 }
 
@@ -8245,7 +8359,9 @@ func PackedEncodeUint88(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 11 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:11], tmp[21:])
 	return 11, nil
 }
 
@@ -8254,7 +8370,9 @@ func PackedEncodeUint96(value *uint256.Int, buf []byte) (int, error) {
 	if len(buf) < 12 {
 		return 0, io.ErrShortBuffer
 	}
-	value.WriteToArray32((*[32]byte)(buf[:32]))
+	var tmp [32]byte
+	value.WriteToArray32(&tmp)
+	copy(buf[:12], tmp[20:])
 	return 12, nil
 }
 
@@ -8974,7 +9092,7 @@ func PackedDecodeUint104(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:13])
+	result.SetBytes(data[:13])
 	return result, 13, nil
 }
 
@@ -8984,7 +9102,7 @@ func PackedDecodeUint112(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:14])
+	result.SetBytes(data[:14])
 	return result, 14, nil
 }
 
@@ -8994,7 +9112,7 @@ func PackedDecodeUint120(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:15])
+	result.SetBytes(data[:15])
 	return result, 15, nil
 }
 
@@ -9004,7 +9122,7 @@ func PackedDecodeUint128(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:16])
+	result.SetBytes(data[:16])
 	return result, 16, nil
 }
 
@@ -9014,7 +9132,7 @@ func PackedDecodeUint136(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:17])
+	result.SetBytes(data[:17])
 	return result, 17, nil
 }
 
@@ -9024,7 +9142,7 @@ func PackedDecodeUint144(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:18])
+	result.SetBytes(data[:18])
 	return result, 18, nil
 }
 
@@ -9034,7 +9152,7 @@ func PackedDecodeUint152(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:19])
+	result.SetBytes(data[:19])
 	return result, 19, nil
 }
 
@@ -9052,7 +9170,7 @@ func PackedDecodeUint160(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:20])
+	result.SetBytes(data[:20])
 	return result, 20, nil
 }
 
@@ -9062,7 +9180,7 @@ func PackedDecodeUint168(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:21])
+	result.SetBytes(data[:21])
 	return result, 21, nil
 }
 
@@ -9072,7 +9190,7 @@ func PackedDecodeUint176(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:22])
+	result.SetBytes(data[:22])
 	return result, 22, nil
 }
 
@@ -9082,7 +9200,7 @@ func PackedDecodeUint184(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:23])
+	result.SetBytes(data[:23])
 	return result, 23, nil
 }
 
@@ -9092,7 +9210,7 @@ func PackedDecodeUint192(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:24])
+	result.SetBytes(data[:24])
 	return result, 24, nil
 }
 
@@ -9102,7 +9220,7 @@ func PackedDecodeUint200(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:25])
+	result.SetBytes(data[:25])
 	return result, 25, nil
 }
 
@@ -9112,7 +9230,7 @@ func PackedDecodeUint208(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:26])
+	result.SetBytes(data[:26])
 	return result, 26, nil
 }
 
@@ -9122,7 +9240,7 @@ func PackedDecodeUint216(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:27])
+	result.SetBytes(data[:27])
 	return result, 27, nil
 }
 
@@ -9132,7 +9250,7 @@ func PackedDecodeUint224(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:28])
+	result.SetBytes(data[:28])
 	return result, 28, nil
 }
 
@@ -9142,7 +9260,7 @@ func PackedDecodeUint232(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:29])
+	result.SetBytes(data[:29])
 	return result, 29, nil
 }
 
@@ -9160,7 +9278,7 @@ func PackedDecodeUint240(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:30])
+	result.SetBytes(data[:30])
 	return result, 30, nil
 }
 
@@ -9170,7 +9288,7 @@ func PackedDecodeUint248(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:31])
+	result.SetBytes(data[:31])
 	return result, 31, nil
 }
 
@@ -9230,7 +9348,7 @@ func PackedDecodeUint72(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:9])
+	result.SetBytes(data[:9])
 	return result, 9, nil
 }
 
@@ -9248,7 +9366,7 @@ func PackedDecodeUint80(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:10])
+	result.SetBytes(data[:10])
 	return result, 10, nil
 }
 
@@ -9258,7 +9376,7 @@ func PackedDecodeUint88(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:11])
+	result.SetBytes(data[:11])
 	return result, 11, nil
 }
 
@@ -9268,7 +9386,7 @@ func PackedDecodeUint96(data []byte) (*uint256.Int, int, error) {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 	result := new(uint256.Int)
-	result.SetBytes32(data[:12])
+	result.SetBytes(data[:12])
 	return result, 12, nil
 }
 
