@@ -413,13 +413,6 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 	}
 }
 
-// genPackedUint256Decoding generates packed decoding for holiman/uint256.Int types
-func (g *Generator) genPackedUint256Decoding() {
-	g.L("\tresult := new(uint256.Int)")
-	g.L("\tresult.SetBytes32(data[:32])")
-	g.L("\treturn result, 32, nil")
-}
-
 // genPackedLargeUintDecoding generates packed decoding for large unsigned integers using uint256.Int
 func (g *Generator) genPackedLargeUintDecoding(t ethabi.Type) {
 	byteSize := t.Size / 8

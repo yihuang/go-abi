@@ -1,8 +1,6 @@
-//go:build !uint256
-
 package examples
 
-//go:generate go run ../cmd -var ERC20ABI -output erc20.abi.go -buildtag=!uint256
+//go:generate go run ../cmd -var ERC20ABI -output erc20.abi.go
 
 // ERC20ABI contains the standard ERC20 interface
 var ERC20ABI = []string{
@@ -19,7 +17,7 @@ var ERC20ABI = []string{
 	"event Approval(address indexed owner, address indexed spender, uint256 value)",
 }
 
-//go:generate go run ../cmd -var SimpleABI -output simple.abi.go -buildtag=!uint256
+//go:generate go run ../cmd -var SimpleABI -output simple.abi.go
 
 // SimpleABI contains a single function definition
 var SimpleABI = "function send(address to, uint256 amount)"

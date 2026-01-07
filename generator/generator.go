@@ -79,9 +79,15 @@ func (g *Generator) L(format string, args ...any) {
 
 // GenerateFromABI generates Go code from ABI JSON using standalone functions
 func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
-	// Write build tag if specified
+	// Write build tag
 	if g.Options.BuildTag != "" {
 		g.L("//go:build %s", g.Options.BuildTag)
+		g.L("")
+	} else if g.Options.UseUint256 {
+		g.L("//go:build uint256")
+		g.L("")
+	} else {
+		g.L("//go:build !uint256")
 		g.L("")
 	}
 
