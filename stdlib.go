@@ -1,5 +1,3 @@
-//go:build !uint256
-
 package abi
 
 import (
@@ -12,6 +10,8 @@ import (
 )
 
 //go:generate go run ./cmd -var StdlibABI -output=stdlib.abi.go -stdlib
+
+//go:generate go run ./cmd -var StdlibABI -output=stdlib_uint256.abi.go -stdlib -uint256 -buildtag=uint256
 
 var StdlibABI = []string{
 	"function basic(bool,address,bytes32,string,bytes,bool[],address[],bytes32[],string[],bytes[]) returns ()",
