@@ -29,56 +29,56 @@ func newUint256Slice(count int) []*uint256.Int {
 }
 
 func BenchmarkUint256_Transfer_Encode(b *testing.B) {
-	call := NewTransferCall(testAddress, newUint256(1000000000000000000))
-	benchEncode(b, call)
+	call := NewTransferCall(TestAddress, newUint256(1000000000000000000))
+	BenchEncode(b, call)
 }
 
 func BenchmarkUint256_Transfer_EncodeTo(b *testing.B) {
-	call := NewTransferCall(testAddress, newUint256(1000000000000000000))
-	benchEncodeTo(b, call)
+	call := NewTransferCall(TestAddress, newUint256(1000000000000000000))
+	BenchEncodeTo(b, call)
 }
 
 func BenchmarkUint256_Transfer_Decode(b *testing.B) {
-	call := NewTransferCall(testAddress, newUint256(1000000000000000000))
+	call := NewTransferCall(TestAddress, newUint256(1000000000000000000))
 	encoded, _ := call.Encode()
-	benchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
+	BenchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
 }
 
 func BenchmarkUint256_MultiTransfer_Encode(b *testing.B) {
 	recipients := make([]common.Address, 10)
 	for i := range recipients {
-		recipients[i] = testAddress
+		recipients[i] = TestAddress
 	}
 	call := NewMultiTransferCall(recipients, newUint256Slice(10))
-	benchEncode(b, call)
+	BenchEncode(b, call)
 }
 
 func BenchmarkUint256_MultiTransfer_EncodeTo(b *testing.B) {
 	recipients := make([]common.Address, 10)
 	for i := range recipients {
-		recipients[i] = testAddress
+		recipients[i] = TestAddress
 	}
 	call := NewMultiTransferCall(recipients, newUint256Slice(10))
-	benchEncodeTo(b, call)
+	BenchEncodeTo(b, call)
 }
 
 func BenchmarkUint256_MultiTransfer_Decode(b *testing.B) {
 	recipients := make([]common.Address, 10)
 	for i := range recipients {
-		recipients[i] = testAddress
+		recipients[i] = TestAddress
 	}
 	call := NewMultiTransferCall(recipients, newUint256Slice(10))
 	encoded, _ := call.Encode()
-	benchDecode(b, encoded, func() abi.Decode { return &MultiTransferCall{} })
+	BenchDecode(b, encoded, func() abi.Decode { return &MultiTransferCall{} })
 }
 
 func BenchmarkUint256_LargeValue_Encode(b *testing.B) {
-	call := NewTransferCall(testAddress, newUint256Max())
-	benchEncode(b, call)
+	call := NewTransferCall(TestAddress, newUint256Max())
+	BenchEncode(b, call)
 }
 
 func BenchmarkUint256_LargeValue_Decode(b *testing.B) {
-	call := NewTransferCall(testAddress, newUint256Max())
+	call := NewTransferCall(TestAddress, newUint256Max())
 	encoded, _ := call.Encode()
-	benchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
+	BenchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
 }

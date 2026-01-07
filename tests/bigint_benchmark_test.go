@@ -29,56 +29,56 @@ func newBigIntSlice(count int) []*big.Int {
 }
 
 func BenchmarkBigInt_Transfer_Encode(b *testing.B) {
-	call := NewTransferCall(testAddress, newBigInt(1000000000000000000))
-	benchEncode(b, call)
+	call := NewTransferCall(TestAddress, newBigInt(1000000000000000000))
+	BenchEncode(b, call)
 }
 
 func BenchmarkBigInt_Transfer_EncodeTo(b *testing.B) {
-	call := NewTransferCall(testAddress, newBigInt(1000000000000000000))
-	benchEncodeTo(b, call)
+	call := NewTransferCall(TestAddress, newBigInt(1000000000000000000))
+	BenchEncodeTo(b, call)
 }
 
 func BenchmarkBigInt_Transfer_Decode(b *testing.B) {
-	call := NewTransferCall(testAddress, newBigInt(1000000000000000000))
+	call := NewTransferCall(TestAddress, newBigInt(1000000000000000000))
 	encoded, _ := call.Encode()
-	benchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
+	BenchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
 }
 
 func BenchmarkBigInt_TransferBatch_Encode(b *testing.B) {
 	recipients := make([]common.Address, 10)
 	for i := range recipients {
-		recipients[i] = testAddress
+		recipients[i] = TestAddress
 	}
 	call := NewTransferBatchCall(recipients, newBigIntSlice(10))
-	benchEncode(b, call)
+	BenchEncode(b, call)
 }
 
 func BenchmarkBigInt_TransferBatch_EncodeTo(b *testing.B) {
 	recipients := make([]common.Address, 10)
 	for i := range recipients {
-		recipients[i] = testAddress
+		recipients[i] = TestAddress
 	}
 	call := NewTransferBatchCall(recipients, newBigIntSlice(10))
-	benchEncodeTo(b, call)
+	BenchEncodeTo(b, call)
 }
 
 func BenchmarkBigInt_TransferBatch_Decode(b *testing.B) {
 	recipients := make([]common.Address, 10)
 	for i := range recipients {
-		recipients[i] = testAddress
+		recipients[i] = TestAddress
 	}
 	call := NewTransferBatchCall(recipients, newBigIntSlice(10))
 	encoded, _ := call.Encode()
-	benchDecode(b, encoded, func() abi.Decode { return &TransferBatchCall{} })
+	BenchDecode(b, encoded, func() abi.Decode { return &TransferBatchCall{} })
 }
 
 func BenchmarkBigInt_LargeValue_Encode(b *testing.B) {
-	call := NewTransferCall(testAddress, newBigIntMax())
-	benchEncode(b, call)
+	call := NewTransferCall(TestAddress, newBigIntMax())
+	BenchEncode(b, call)
 }
 
 func BenchmarkBigInt_LargeValue_Decode(b *testing.B) {
-	call := NewTransferCall(testAddress, newBigIntMax())
+	call := NewTransferCall(TestAddress, newBigIntMax())
 	encoded, _ := call.Encode()
-	benchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
+	BenchDecode(b, encoded, func() abi.Decode { return &TransferCall{} })
 }

@@ -164,3 +164,110 @@ func TestUint256MaxValue(t *testing.T) {
 		t.Errorf("Max value mismatch: got %s, want %s", decoded.Amount.String(), maxValue.String())
 	}
 }
+
+func TestUint256TransferRoundTrip(t *testing.T) {
+	call := &TransferCall{
+		To:     common.HexToAddress("0x1234567890123456789012345678901234567890"),
+		Amount: uint256.NewInt(1000000000000000000),
+	}
+	DecodeRoundTrip(t, call)
+}
+
+func TestUint256TransferMaxValueRoundTrip(t *testing.T) {
+	maxValue := new(uint256.Int)
+	maxValue.SetAllOne()
+
+	call := &TransferCall{
+		To:     common.HexToAddress("0xabcdef0123456789abcdef0123456789abcdef01"),
+		Amount: maxValue,
+	}
+	DecodeRoundTrip(t, call)
+}
+
+func TestUint256BalanceOfRoundTrip(t *testing.T) {
+	call := &BalanceOfCall{
+		Account: common.HexToAddress("0xabcdef0123456789abcdef0123456789abcdef01"),
+	}
+	DecodeRoundTrip(t, call)
+}
+
+func TestUint256BalanceOfReturnRoundTrip(t *testing.T) {
+	ret := &BalanceOfReturn{
+		Field1: uint256.NewInt(999999999999999999),
+	}
+	DecodeRoundTrip(t, ret)
+}
+
+func TestUint256BalanceOfReturnMaxRoundTrip(t *testing.T) {
+	maxValue := new(uint256.Int)
+	maxValue.SetAllOne()
+
+	ret := &BalanceOfReturn{
+		Field1: maxValue,
+	}
+	DecodeRoundTrip(t, ret)
+}
+
+func TestUint256MultiTransferRoundTrip(t *testing.T) {
+	call := &MultiTransferCall{
+		Recipients: []common.Address{
+			common.HexToAddress("0x1111111111111111111111111111111111111111"),
+			common.HexToAddress("0x2222222222222222222222222222222222222222"),
+			common.HexToAddress("0x3333333333333333333333333333333333333333"),
+		},
+		Amounts: []*uint256.Int{
+			uint256.NewInt(100),
+			uint256.NewInt(200),
+			uint256.NewInt(300),
+		},
+	}
+	DecodeRoundTrip(t, call)
+}
+
+func TestUint256MultiTransferEmptyRoundTrip(t *testing.T) {
+	call := &MultiTransferCall{
+		Recipients: []common.Address{},
+		Amounts:    []*uint256.Int{},
+	}
+	DecodeRoundTrip(t, call)
+}
+
+func TestUint256MultiTransferLargeValuesRoundTrip(t *testing.T) {
+	maxValue := new(uint256.Int)
+	maxValue.SetAllOne()
+
+	halfMax := new(uint256.Int).Rsh(maxValue, 1)
+
+	call := &MultiTransferCall{
+		Recipients: []common.Address{
+			common.HexToAddress("0x1111111111111111111111111111111111111111"),
+			common.HexToAddress("0x2222222222222222222222222222222222222222"),
+		},
+		Amounts: []*uint256.Int{
+			maxValue,
+			halfMax,
+		},
+	}
+	DecodeRoundTrip(t, call)
+}
+
+func TestUint256TransferEventRoundTrip(t *testing.T) {
+	event := NewTransferEvent(
+		common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		common.HexToAddress("0x2222222222222222222222222222222222222222"),
+		uint256.NewInt(1000000000000000000),
+	)
+	EventDecodeRoundTrip(t, event)
+}
+
+func TestUint256TransferEventMaxValueRoundTrip(t *testing.T) {
+	maxValue := new(uint256.Int)
+	maxValue.SetAllOne()
+
+	event := NewTransferEvent(
+		common.HexToAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+		common.HexToAddress("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+		maxValue,
+	)
+	EventDecodeRoundTrip(t, event)
+}

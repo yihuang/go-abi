@@ -6,9 +6,44 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/test-go/testify/require"
 	"github.com/yihuang/go-abi"
 )
+
+var TestAddress = common.HexToAddress("0x1234567890123456789012345678901234567890")
+
+func BenchEncode(b *testing.B, call abi.Tuple) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := call.Encode()
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchEncodeTo(b *testing.B, call abi.Tuple) {
+	buf := make([]byte, call.EncodedSize())
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := call.EncodeTo(buf)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchDecode(b *testing.B, encoded []byte, newCall func() abi.Decode) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		call := newCall()
+		_, err := call.Decode(encoded)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
 
 func DecodeRoundTrip[T any, PT interface {
 	abi.Tuple
