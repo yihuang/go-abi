@@ -11,6 +11,7 @@ type Options struct {
 	Stdlib         bool
 	UseUint256     bool   // Use holiman/uint256 for uint256 types instead of *big.Int
 	BuildTag       string // Build tag to add to generated file (e.g., "uint256")
+	GenerateLazy   bool   // Generate lazy decoding View types
 }
 
 func NewOptions(opts ...Option) *Options {
@@ -66,5 +67,11 @@ func UseUint256(use bool) Option {
 func BuildTag(tag string) Option {
 	return func(o *Options) {
 		o.BuildTag = tag
+	}
+}
+
+func GenerateLazy(enable bool) Option {
+	return func(o *Options) {
+		o.GenerateLazy = enable
 	}
 }
