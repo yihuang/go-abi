@@ -1,3 +1,5 @@
+//go:build !uint256
+
 package tests
 
 import (
@@ -12,7 +14,8 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var TestABI -output test.abi.go -prefix test
+//go:generate go run ../cmd -var TestABI -output test.abi.go -prefix test -buildtag=!uint256
+//go:generate go run ../cmd -var TestABI -output test_uint256.abi.go -prefix test -buildtag=uint256 -uint256
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{
@@ -34,6 +37,7 @@ var TestABI = []string{
 	"event EmptyIndexed(string denom)",
 	"function emptyArgs() returns ()",
 	"function understore(string _name) returns ()",
+	"function multiTransfer(address[] recipients, uint256[] amounts)",
 }
 
 var TestABIDef ethabi.ABI

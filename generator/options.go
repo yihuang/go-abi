@@ -9,6 +9,8 @@ type Options struct {
 	ExternalTuples map[string]string
 	Prefix         string
 	Stdlib         bool
+	UseUint256     bool   // Use holiman/uint256 for uint256 types instead of *big.Int
+	BuildTag       string // Build tag to add to generated file (e.g., "uint256")
 }
 
 func NewOptions(opts ...Option) *Options {
@@ -52,5 +54,17 @@ func ExtraImports(imports []ImportSpec) Option {
 func ExternalTuples(m map[string]string) Option {
 	return func(o *Options) {
 		o.ExternalTuples = m
+	}
+}
+
+func UseUint256(use bool) Option {
+	return func(o *Options) {
+		o.UseUint256 = use
+	}
+}
+
+func BuildTag(tag string) Option {
+	return func(o *Options) {
+		o.BuildTag = tag
 	}
 }

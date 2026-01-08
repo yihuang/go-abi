@@ -12,9 +12,17 @@ func (g *Generator) genIntEncoding(t ethabi.Type) {
 	// Optimize small integer types to avoid big.Int overhead
 	if t.Size <= 64 {
 		g.genSmallIntEncoding(t)
+	} else if t.T == ethabi.UintTy && g.Options.UseUint256 {
+		g.genUint256Encoding()
 	} else {
 		g.genBigIntEncoding(t)
 	}
+}
+
+// genUint256Encoding generates encoding for holiman/uint256.Int types
+func (g *Generator) genUint256Encoding() {
+	g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
+	g.L("\treturn 32, nil")
 }
 
 // genSmallIntEncoding generates optimized encoding for small integer types
@@ -308,7 +316,13 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 			g.L("\tbinary.BigEndian.PutUint64(buf[:8], uint64(value))")
 		}
 	} else {
-		// For sizes > 8 bytes (big.Int), use EncodeBigInt
+		// For sizes > 8 bytes
+		if t.T == ethabi.UintTy && g.Options.UseUint256 {
+			// Use uint256.Int for large unsigned integers when enabled
+			g.genPackedLargeUintEncoding(t)
+			return
+		}
+		// Use big.Int
 		if t.T == ethabi.IntTy {
 			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], true); err != nil {", g.StdPrefix, byteSize)
 		} else {
@@ -318,6 +332,21 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 		g.L("\t}")
 	}
 
+	g.L("\treturn %d, nil", byteSize)
+}
+
+// genPackedLargeUintEncoding generates packed encoding for large unsigned integers using uint256.Int
+func (g *Generator) genPackedLargeUintEncoding(t ethabi.Type) {
+	byteSize := t.Size / 8
+	if byteSize == 32 {
+		// Full 32 bytes - use WriteToArray32
+		g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
+	} else {
+		// For smaller sizes, write to temp array and copy relevant bytes
+		g.L("\tvar tmp [32]byte")
+		g.L("\tvalue.WriteToArray32(&tmp)")
+		g.L("\tcopy(buf[:%d], tmp[%d:])", byteSize, 32-byteSize)
+	}
 	g.L("\treturn %d, nil", byteSize)
 }
 

@@ -11,9 +11,21 @@ func (g *Generator) genIntDecoding(t ethabi.Type) {
 	// Optimize small integer types to avoid big.Int overhead
 	if t.Size <= 64 {
 		g.genSmallIntDecoding(t)
+	} else if t.T == ethabi.UintTy && g.Options.UseUint256 {
+		g.genUint256Decoding()
 	} else {
 		g.genBigIntDecoding(t)
 	}
+}
+
+// genUint256Decoding generates decoding for holiman/uint256.Int types
+func (g *Generator) genUint256Decoding() {
+	g.L("\tif len(data) < 32 {")
+	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
+	g.L("\tresult := new(uint256.Int)")
+	g.L("\tresult.SetBytes32(data[:32])")
+	g.L("\treturn result, 32, nil")
 }
 
 // genSmallIntDecoding generates optimized decoding for small integer types
@@ -381,7 +393,13 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 			}
 		}
 	} else {
-		// For sizes > 8 bytes (big.Int)
+		// For sizes > 8 bytes
+		if t.T == ethabi.UintTy && g.Options.UseUint256 {
+			// Use uint256.Int for large unsigned integers when enabled
+			g.genPackedLargeUintDecoding(t)
+			return
+		}
+		// Use big.Int
 		if t.T == ethabi.IntTy {
 			g.L("\tresult, err := %sDecodeBigInt(data[:%d], true)", g.StdPrefix, byteSize)
 			g.L("\tif err != nil {")
@@ -393,6 +411,18 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 			g.L("\treturn result, %d, nil", byteSize)
 		}
 	}
+}
+
+// genPackedLargeUintDecoding generates packed decoding for large unsigned integers using uint256.Int
+func (g *Generator) genPackedLargeUintDecoding(t ethabi.Type) {
+	byteSize := t.Size / 8
+	g.L("\tresult := new(uint256.Int)")
+	if byteSize == 32 {
+		g.L("\tresult.SetBytes32(data[:32])")
+	} else {
+		g.L("\tresult.SetBytes(data[:%d])", byteSize)
+	}
+	g.L("\treturn result, %d, nil", byteSize)
 }
 
 // genPackedAddressDecoding generates packed decoding for address (20 bytes)
