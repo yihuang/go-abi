@@ -15,7 +15,7 @@ import (
 )
 
 //go:generate go run ../cmd -var TestABI -output test.abi.go -prefix test -buildtag=!uint256
-//go:generate go run ../cmd -var TestABI -output test_uint256.abi.go -prefix test -buildtag=uint256
+//go:generate go run ../cmd -var TestABI -output test_uint256.abi.go -prefix test -buildtag=uint256 -uint256
 
 // TestABI contains human-readable ABI definitions for testing
 var TestABI = []string{

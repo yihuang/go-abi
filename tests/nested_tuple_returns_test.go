@@ -14,7 +14,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var NestedTupleReturnsABI -output nested.abi.go -prefix nested -buildtag=!uint256
+//go:generate go run ../cmd -var NestedTupleReturnsABI -output nested.abi.go -prefix nested
 
 // NestedTupleReturnsABI contains human-readable ABI definitions for testing nested tuples in function returns
 var NestedTupleReturnsABI = []string{
