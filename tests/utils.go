@@ -3,7 +3,6 @@ package tests
 import (
 	"errors"
 	"io"
-	"math/big"
 	"slices"
 	"testing"
 
@@ -13,6 +12,60 @@ import (
 )
 
 var TestAddress = common.HexToAddress("0x1234567890123456789012345678901234567890")
+
+var testAddressMatrix = [][3][]common.Address{{
+	{
+		common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		common.HexToAddress("0x2222222222222222222222222222222222222222"),
+	},
+	{
+		common.HexToAddress("0x3333333333333333333333333333333333333333"),
+		common.HexToAddress("0x4444444444444444444444444444444444444444"),
+		common.HexToAddress("0x5555555555555555555555555555555555555555"),
+	},
+	{
+		common.HexToAddress("0x1111111111111111111111111111111111111111"),
+		common.HexToAddress("0x2222222222222222222222222222222222222222"),
+	},
+}}
+
+var testAddresses5 = [5]common.Address{
+	common.HexToAddress("0x1111111111111111111111111111111111111111"),
+	common.HexToAddress("0x2222222222222222222222222222222222222222"),
+	common.HexToAddress("0x3333333333333333333333333333333333333333"),
+	common.HexToAddress("0x4444444444444444444444444444444444444444"),
+	common.HexToAddress("0x5555555555555555555555555555555555555555"),
+}
+
+var testBytes32s2 = [2][32]byte{
+	{0x01, 0x02, 0x03},
+	{0x04, 0x05, 0x06},
+}
+
+func createTestMatrix[T any](newInt func(int64) T) [][]T {
+	return [][]T{
+		{newInt(1), newInt(2), newInt(3), newInt(4), newInt(5)},
+		{newInt(6), newInt(7), newInt(8)},
+		{newInt(9), newInt(10)},
+		{newInt(11)},
+	}
+}
+
+func createTestUints3[T any](newInt func(int64) T) [3]T {
+	return [3]T{newInt(100), newInt(200), newInt(300)}
+}
+
+var testUserData = []struct {
+	Id        int64
+	Name      string
+	Emails    []string
+	CreatedAt int64
+	Tags      []string
+}{
+	{1, "User 1", []string{"user1@example.com", "user1@gmail.com", "user1@test.org"}, 1234567890, []string{"tag1", "tag2", "tag3", "tag4", "tag5"}},
+	{2, "User 2 with a longer name for testing", []string{"user2@example.com", "user2@work.com"}, 9876543210, []string{"tag6", "tag7"}},
+	{3, "User 3", []string{"user3@example.com"}, 5555555555, []string{"tag8", "tag9", "tag10", "tag11"}},
+}
 
 func BenchEncode(b *testing.B, call abi.Tuple) {
 	b.ResetTimer()
@@ -147,73 +200,6 @@ func DecodePackedRoundTrip[T any, PT interface {
 	}
 }
 
-// Benchmark data setup functions - shared across all benchmark files
-func createComplexDynamicTuplesData() TestComplexDynamicTuplesCall {
-	return TestComplexDynamicTuplesCall{
-		Users: []User2{
-			{
-				Id: big.NewInt(1),
-				Profile: UserProfile{
-					Name:   "User 1",
-					Emails: []string{"user1@example.com", "user1@gmail.com", "user1@test.org"},
-					Metadata: UserMetadata2{
-						CreatedAt: big.NewInt(1234567890),
-						Tags:      []string{"tag1", "tag2", "tag3", "tag4", "tag5"},
-					},
-				},
-			},
-			{
-				Id: big.NewInt(2),
-				Profile: UserProfile{
-					Name:   "User 2 with a longer name for testing",
-					Emails: []string{"user2@example.com", "user2@work.com"},
-					Metadata: UserMetadata2{
-						CreatedAt: big.NewInt(9876543210),
-						Tags:      []string{"tag6", "tag7"},
-					},
-				},
-			},
-			{
-				Id: big.NewInt(3),
-				Profile: UserProfile{
-					Name:   "User 3",
-					Emails: []string{"user3@example.com"},
-					Metadata: UserMetadata2{
-						CreatedAt: big.NewInt(5555555555),
-						Tags:      []string{"tag8", "tag9", "tag10", "tag11"},
-					},
-				},
-			},
-		},
-	}
-}
-
-func createNestedDynamicArraysData() TestNestedDynamicArraysCall {
-	return TestNestedDynamicArraysCall{
-		Matrix: [][]*big.Int{
-			{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)},
-			{big.NewInt(6), big.NewInt(7), big.NewInt(8)},
-			{big.NewInt(9), big.NewInt(10)},
-			{big.NewInt(11)},
-		},
-		AddressMatrix: [][3][]common.Address{{
-			{
-				common.HexToAddress("0x1111111111111111111111111111111111111111"),
-				common.HexToAddress("0x2222222222222222222222222222222222222222"),
-			},
-			{
-				common.HexToAddress("0x3333333333333333333333333333333333333333"),
-				common.HexToAddress("0x4444444444444444444444444444444444444444"),
-				common.HexToAddress("0x5555555555555555555555555555555555555555"),
-			},
-			{
-				common.HexToAddress("0x1111111111111111111111111111111111111111"),
-				common.HexToAddress("0x2222222222222222222222222222222222222222"),
-			},
-		}},
-	}
-}
-
 func createMixedTypesData() TestMixedTypesCall {
 	return TestMixedTypesCall{
 		FixedData:   [32]byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08},
@@ -252,42 +238,6 @@ func createSmallIntegersData() TestSmallIntegersCall {
 		I24: -8388608,
 		I32: -2147483648,
 		I64: -9223372036854775808,
-	}
-}
-
-func createDeeplyNestedData() TestDeeplyNestedCall {
-	return TestDeeplyNestedCall{
-		Data: Level1{
-			Level1: Level2{
-				Level2: Level3{
-					Level3: Level4{
-						Value:       big.NewInt(999),
-						Description: "Deeply nested value",
-					},
-				},
-			},
-		},
-	}
-}
-
-func createFixedArraysData() TestFixedArraysCall {
-	return TestFixedArraysCall{
-		Addresses: [5]common.Address{
-			common.HexToAddress("0x1111111111111111111111111111111111111111"),
-			common.HexToAddress("0x2222222222222222222222222222222222222222"),
-			common.HexToAddress("0x3333333333333333333333333333333333333333"),
-			common.HexToAddress("0x4444444444444444444444444444444444444444"),
-			common.HexToAddress("0x5555555555555555555555555555555555555555"),
-		},
-		Uints: [3]*big.Int{
-			big.NewInt(100),
-			big.NewInt(200),
-			big.NewInt(300),
-		},
-		Bytes32s: [2][32]byte{
-			{0x01, 0x02, 0x03},
-			{0x04, 0x05, 0x06},
-		},
 	}
 }
 
