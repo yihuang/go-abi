@@ -1,0 +1,4 @@
+ignore:
+  - "**/*.abi.go"
+  - "tests/benchmark_*.go"
+  - "tests/utils.go"
