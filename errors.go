@@ -34,4 +34,7 @@ var (
 
 	// ErrIntegerTooLarge is returned when an integer value exceeds 256 bits
 	ErrIntegerTooLarge = errors.New("integer too large")
+
+	// ErrViewIndexOutOfBounds is returned when accessing a slice view with an invalid index
+	ErrViewIndexOutOfBounds = errors.New("view index out of bounds")
 )

@@ -21,6 +21,7 @@ func main() {
 		artifactInput = flag.Bool("artifact-input", false, "Input file is a solc artifact JSON, will extract the abi field from it")
 		useUint256    = flag.Bool("uint256", false, "Use holiman/uint256.Int instead of *big.Int for uint256 types")
 		buildTag      = flag.String("buildtag", "", "Build tag to add to generated file (e.g., 'uint256')")
+		lazy          = flag.Bool("lazy", false, "Generate lazy decoding View types")
 	)
 	flag.Parse()
 
@@ -31,6 +32,7 @@ func main() {
 		generator.Stdlib(*stdlib),
 		generator.UseUint256(*useUint256),
 		generator.BuildTag(*buildTag),
+		generator.GenerateLazy(*lazy),
 	}
 
 	if *imports != "" {
