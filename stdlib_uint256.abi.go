@@ -3345,6 +3345,9 @@ func DecodeBytes(data []byte) ([]byte, int, error) {
 		return nil, 0, err
 	}
 	data = data[32:]
+	if length > len(data) {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
 	paddedLength := Pad32(length)
 	if len(data) < paddedLength {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6035,6 +6038,9 @@ func DecodeString(data []byte) (string, int, error) {
 		return "", 0, err
 	}
 	data = data[32:]
+	if length > len(data) {
+		return "", 0, io.ErrUnexpectedEOF
+	}
 	paddedLength := Pad32(length)
 	if len(data) < paddedLength {
 		return "", 0, io.ErrUnexpectedEOF

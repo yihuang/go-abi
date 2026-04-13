@@ -112,6 +112,9 @@ func (g *Generator) genStringDecoding() {
 	g.L("\t\treturn \"\", 0, err")
 	g.L("\t}")
 	g.L("\tdata = data[32:]")
+	g.L("\tif length > len(data) {")
+	g.L("\t\treturn \"\", 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
 
 	g.L("\tpaddedLength := %sPad32(length)", g.StdPrefix)
 	g.L("\tif len(data) < paddedLength {")
@@ -143,6 +146,9 @@ func (g *Generator) genBytesDecoding() {
 	g.L("\t\treturn nil, 0, err")
 	g.L("\t}")
 	g.L("\tdata = data[32:]")
+	g.L("\tif length > len(data) {")
+	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
 
 	g.L("\tpaddedLength := %sPad32(length)", g.StdPrefix)
 	g.L("\tif len(data) < paddedLength {")
