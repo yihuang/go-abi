@@ -2,6 +2,7 @@ package abi
 
 import (
 	"encoding/hex"
+	"errors"
 	"io"
 	"math/big"
 	"testing"
@@ -141,6 +142,45 @@ func TestDecodeBigInt(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, tt.data, hex.EncodeToString(buf))
 			}
+		})
+	}
+}
+
+// TestDecodeDynamicMalformedLength ensures that DecodeString and DecodeBytes
+// both return a clean error (not a runtime panic) when the encoded length overflows Pad32.
+func TestDecodeDynamicMalformedLength(t *testing.T) {
+	// 9223372036854775787 = 0x7FFFFFFFFFFFFFEB
+	poisonLen := uint64(9223372036854775787)
+	data := make([]byte, 32)
+	for i := 0; i < 8; i++ {
+		data[31-i] = byte(poisonLen >> (i * 8))
+	}
+
+	tests := []struct {
+		name   string
+		decode func([]byte) (int, error)
+	}{
+		{
+			name: "DecodeString",
+			decode: func(d []byte) (int, error) {
+				_, n, err := DecodeString(d)
+				return n, err
+			},
+		},
+		{
+			name: "DecodeBytes",
+			decode: func(d []byte) (int, error) {
+				_, n, err := DecodeBytes(d)
+				return n, err
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := tt.decode(data)
+			require.Error(t, err)
+			require.True(t, errors.Is(err, io.ErrUnexpectedEOF))
 		})
 	}
 }
