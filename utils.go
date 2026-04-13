@@ -60,7 +60,14 @@ var (
 	MaxUint256 = new(big.Int).Sub(tt256, common.Big1)
 )
 
+// Pad32 rounds n up to the nearest multiple of 32,
+// return saturated value when overflow.
 func Pad32(n int) int {
+	// If n is so large that adding 31 would overflow int,
+	// return the maximum possible multiple of 32.
+	if n > math.MaxInt-31 {
+		return math.MaxInt
+	}
 	return (n + 31) / 32 * 32
 }
 
