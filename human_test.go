@@ -675,6 +675,39 @@ func TestParseHumanReadableABI_AddressPayable(t *testing.T) {
 				}
 			]`,
 		},
+		{
+			// Identifier names containing "payable" must not be mangled by
+			// the address-payable normalization.
+			name:  "identifier starting with payable",
+			input: []string{"function b(uint256 payable_amount)"},
+			expected: `[
+				{
+					"type": "function",
+					"name": "b",
+					"inputs": [
+						{"name": "payable_amount", "type": "uint256"}
+					],
+					"outputs": [],
+					"stateMutability": "nonpayable"
+				}
+			]`,
+		},
+		{
+			// Parameter literally named "payable" must keep its name.
+			name:  "parameter named payable",
+			input: []string{"function c(uint256 payable)"},
+			expected: `[
+				{
+					"type": "function",
+					"name": "c",
+					"inputs": [
+						{"name": "payable", "type": "uint256"}
+					],
+					"outputs": [],
+					"stateMutability": "nonpayable"
+				}
+			]`,
+		},
 	}
 
 	for _, tt := range tests {
