@@ -5521,6 +5521,8 @@ func (v *User2SliceView) Materialize() ([]User2, error) {
 	return result, err
 }
 
+// GroupView is not generated: Group references an ExternalTuples type.
+
 // ItemView provides lazy access to Item ABI data
 type ItemView struct {
 	data    []byte
@@ -6054,6 +6056,8 @@ func (v *TestDeeplyNestedReturnView) Raw() []byte {
 	return v.data
 }
 
+// TestExternalTupleCallView is not generated: TestExternalTupleCall references an ExternalTuples type.
+
 // TestExternalTupleReturnView provides lazy access to TestExternalTupleReturn ABI data
 type TestExternalTupleReturnView struct {
 	data []byte
@@ -6543,6 +6547,8 @@ func (v *TestNestedDynamicArraysReturnView) Materialize() (*TestNestedDynamicArr
 func (v *TestNestedDynamicArraysReturnView) Raw() []byte {
 	return v.data
 }
+
+// TestNestedStructCallView is not generated: TestNestedStructCall references an ExternalTuples type.
 
 // TestNestedStructReturnView provides lazy access to TestNestedStructReturn ABI data
 type TestNestedStructReturnView struct {

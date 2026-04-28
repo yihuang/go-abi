@@ -70,6 +70,12 @@ func BuildTag(tag string) Option {
 	}
 }
 
+// GenerateLazy enables generation of *View types that wrap raw ABI bytes
+// and decode fields on demand. Getters return *XxxView for tuples,
+// *XxxSliceView for slices of generated types, and plain Go values for
+// stdlib scalars and slices of them. Constructing a view validates nested
+// dynamic structures eagerly, so leaf-only access is only free inside
+// all-static tuples.
 func GenerateLazy(enable bool) Option {
 	return func(o *Options) {
 		o.GenerateLazy = enable

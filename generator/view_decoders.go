@@ -221,14 +221,15 @@ func (g *Generator) genViewGetter(structName string, field StructField, staticOf
 	g.L("}")
 }
 
-// viewGetterReturnType returns the return type for a view getter
+// viewGetterReturnType returns the return type for a view getter:
+// *XxxView for tuples, *XxxSliceView for slices of generated types,
+// and the plain Go type for stdlib scalars and slices of them (the
+// stdlib decoder is already cheap, so a view would only add allocs).
 func (g *Generator) viewGetterReturnType(t ethabi.Type) string {
 	switch t.T {
 	case ethabi.TupleTy:
 		return "*" + abi.TupleStructName(t) + "View"
 	case ethabi.SliceTy:
-		// If the slice type is a stdlib type (and we're not in stdlib mode),
-		// return the regular Go type instead of the view type
 		typeID := abi.GenTypeIdentifier(t)
 		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
 			return g.abiTypeToGoType(t)
@@ -349,8 +350,11 @@ func (g *Generator) genAllViews(abiDef ethabi.ABI) {
 	// Generate views for all tuples in sorted order
 	for _, name := range SortedMapKeys(tupleTypes) {
 		s := tupleTypes[name]
-		// Skip structs that reference external tuples (their views would be incomplete)
+		// No View for structs referencing external tuples — we can't
+		// generate getters for types defined outside this package.
 		if structReferencesExternalTuple(s, g.Options.ExternalTuples) {
+			g.L("")
+			g.L("// %sView is not generated: %s references an ExternalTuples type.", s.Name, s.Name)
 			continue
 		}
 		g.genViewStruct(s)
