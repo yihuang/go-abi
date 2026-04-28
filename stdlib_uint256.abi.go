@@ -96,18 +96,14 @@ func EncodeBytes(value []byte, buf []byte) (int, error) {
 // EncodeBytes1 encodes bytes1 to ABI bytes
 func EncodeBytes1(value [1]byte, buf []byte) (int, error) {
 	copy(buf[:1], value[:])
-	for i := 1; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[1:32])
 	return 32, nil
 }
 
 // EncodeBytes10 encodes bytes10 to ABI bytes
 func EncodeBytes10(value [10]byte, buf []byte) (int, error) {
 	copy(buf[:10], value[:])
-	for i := 10; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[10:32])
 	return 32, nil
 }
 
@@ -133,9 +129,7 @@ func EncodeBytes10Slice(value [][10]byte, buf []byte) (int, error) {
 // EncodeBytes11 encodes bytes11 to ABI bytes
 func EncodeBytes11(value [11]byte, buf []byte) (int, error) {
 	copy(buf[:11], value[:])
-	for i := 11; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[11:32])
 	return 32, nil
 }
 
@@ -161,9 +155,7 @@ func EncodeBytes11Slice(value [][11]byte, buf []byte) (int, error) {
 // EncodeBytes12 encodes bytes12 to ABI bytes
 func EncodeBytes12(value [12]byte, buf []byte) (int, error) {
 	copy(buf[:12], value[:])
-	for i := 12; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[12:32])
 	return 32, nil
 }
 
@@ -189,9 +181,7 @@ func EncodeBytes12Slice(value [][12]byte, buf []byte) (int, error) {
 // EncodeBytes13 encodes bytes13 to ABI bytes
 func EncodeBytes13(value [13]byte, buf []byte) (int, error) {
 	copy(buf[:13], value[:])
-	for i := 13; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[13:32])
 	return 32, nil
 }
 
@@ -217,9 +207,7 @@ func EncodeBytes13Slice(value [][13]byte, buf []byte) (int, error) {
 // EncodeBytes14 encodes bytes14 to ABI bytes
 func EncodeBytes14(value [14]byte, buf []byte) (int, error) {
 	copy(buf[:14], value[:])
-	for i := 14; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[14:32])
 	return 32, nil
 }
 
@@ -245,9 +233,7 @@ func EncodeBytes14Slice(value [][14]byte, buf []byte) (int, error) {
 // EncodeBytes15 encodes bytes15 to ABI bytes
 func EncodeBytes15(value [15]byte, buf []byte) (int, error) {
 	copy(buf[:15], value[:])
-	for i := 15; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[15:32])
 	return 32, nil
 }
 
@@ -273,9 +259,7 @@ func EncodeBytes15Slice(value [][15]byte, buf []byte) (int, error) {
 // EncodeBytes16 encodes bytes16 to ABI bytes
 func EncodeBytes16(value [16]byte, buf []byte) (int, error) {
 	copy(buf[:16], value[:])
-	for i := 16; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[16:32])
 	return 32, nil
 }
 
@@ -301,9 +285,7 @@ func EncodeBytes16Slice(value [][16]byte, buf []byte) (int, error) {
 // EncodeBytes17 encodes bytes17 to ABI bytes
 func EncodeBytes17(value [17]byte, buf []byte) (int, error) {
 	copy(buf[:17], value[:])
-	for i := 17; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[17:32])
 	return 32, nil
 }
 
@@ -329,9 +311,7 @@ func EncodeBytes17Slice(value [][17]byte, buf []byte) (int, error) {
 // EncodeBytes18 encodes bytes18 to ABI bytes
 func EncodeBytes18(value [18]byte, buf []byte) (int, error) {
 	copy(buf[:18], value[:])
-	for i := 18; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[18:32])
 	return 32, nil
 }
 
@@ -357,9 +337,7 @@ func EncodeBytes18Slice(value [][18]byte, buf []byte) (int, error) {
 // EncodeBytes19 encodes bytes19 to ABI bytes
 func EncodeBytes19(value [19]byte, buf []byte) (int, error) {
 	copy(buf[:19], value[:])
-	for i := 19; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[19:32])
 	return 32, nil
 }
 
@@ -404,18 +382,14 @@ func EncodeBytes1Slice(value [][1]byte, buf []byte) (int, error) {
 // EncodeBytes2 encodes bytes2 to ABI bytes
 func EncodeBytes2(value [2]byte, buf []byte) (int, error) {
 	copy(buf[:2], value[:])
-	for i := 2; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[2:32])
 	return 32, nil
 }
 
 // EncodeBytes20 encodes bytes20 to ABI bytes
 func EncodeBytes20(value [20]byte, buf []byte) (int, error) {
 	copy(buf[:20], value[:])
-	for i := 20; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[20:32])
 	return 32, nil
 }
 
@@ -441,9 +415,7 @@ func EncodeBytes20Slice(value [][20]byte, buf []byte) (int, error) {
 // EncodeBytes21 encodes bytes21 to ABI bytes
 func EncodeBytes21(value [21]byte, buf []byte) (int, error) {
 	copy(buf[:21], value[:])
-	for i := 21; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[21:32])
 	return 32, nil
 }
 
@@ -469,9 +441,7 @@ func EncodeBytes21Slice(value [][21]byte, buf []byte) (int, error) {
 // EncodeBytes22 encodes bytes22 to ABI bytes
 func EncodeBytes22(value [22]byte, buf []byte) (int, error) {
 	copy(buf[:22], value[:])
-	for i := 22; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[22:32])
 	return 32, nil
 }
 
@@ -497,9 +467,7 @@ func EncodeBytes22Slice(value [][22]byte, buf []byte) (int, error) {
 // EncodeBytes23 encodes bytes23 to ABI bytes
 func EncodeBytes23(value [23]byte, buf []byte) (int, error) {
 	copy(buf[:23], value[:])
-	for i := 23; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[23:32])
 	return 32, nil
 }
 
@@ -525,9 +493,7 @@ func EncodeBytes23Slice(value [][23]byte, buf []byte) (int, error) {
 // EncodeBytes24 encodes bytes24 to ABI bytes
 func EncodeBytes24(value [24]byte, buf []byte) (int, error) {
 	copy(buf[:24], value[:])
-	for i := 24; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[24:32])
 	return 32, nil
 }
 
@@ -553,9 +519,7 @@ func EncodeBytes24Slice(value [][24]byte, buf []byte) (int, error) {
 // EncodeBytes25 encodes bytes25 to ABI bytes
 func EncodeBytes25(value [25]byte, buf []byte) (int, error) {
 	copy(buf[:25], value[:])
-	for i := 25; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[25:32])
 	return 32, nil
 }
 
@@ -581,9 +545,7 @@ func EncodeBytes25Slice(value [][25]byte, buf []byte) (int, error) {
 // EncodeBytes26 encodes bytes26 to ABI bytes
 func EncodeBytes26(value [26]byte, buf []byte) (int, error) {
 	copy(buf[:26], value[:])
-	for i := 26; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[26:32])
 	return 32, nil
 }
 
@@ -609,9 +571,7 @@ func EncodeBytes26Slice(value [][26]byte, buf []byte) (int, error) {
 // EncodeBytes27 encodes bytes27 to ABI bytes
 func EncodeBytes27(value [27]byte, buf []byte) (int, error) {
 	copy(buf[:27], value[:])
-	for i := 27; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[27:32])
 	return 32, nil
 }
 
@@ -637,9 +597,7 @@ func EncodeBytes27Slice(value [][27]byte, buf []byte) (int, error) {
 // EncodeBytes28 encodes bytes28 to ABI bytes
 func EncodeBytes28(value [28]byte, buf []byte) (int, error) {
 	copy(buf[:28], value[:])
-	for i := 28; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[28:32])
 	return 32, nil
 }
 
@@ -665,9 +623,7 @@ func EncodeBytes28Slice(value [][28]byte, buf []byte) (int, error) {
 // EncodeBytes29 encodes bytes29 to ABI bytes
 func EncodeBytes29(value [29]byte, buf []byte) (int, error) {
 	copy(buf[:29], value[:])
-	for i := 29; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[29:32])
 	return 32, nil
 }
 
@@ -712,18 +668,14 @@ func EncodeBytes2Slice(value [][2]byte, buf []byte) (int, error) {
 // EncodeBytes3 encodes bytes3 to ABI bytes
 func EncodeBytes3(value [3]byte, buf []byte) (int, error) {
 	copy(buf[:3], value[:])
-	for i := 3; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[3:32])
 	return 32, nil
 }
 
 // EncodeBytes30 encodes bytes30 to ABI bytes
 func EncodeBytes30(value [30]byte, buf []byte) (int, error) {
 	copy(buf[:30], value[:])
-	for i := 30; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[30:32])
 	return 32, nil
 }
 
@@ -749,9 +701,7 @@ func EncodeBytes30Slice(value [][30]byte, buf []byte) (int, error) {
 // EncodeBytes31 encodes bytes31 to ABI bytes
 func EncodeBytes31(value [31]byte, buf []byte) (int, error) {
 	copy(buf[:31], value[:])
-	for i := 31; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[31:32])
 	return 32, nil
 }
 
@@ -821,9 +771,7 @@ func EncodeBytes3Slice(value [][3]byte, buf []byte) (int, error) {
 // EncodeBytes4 encodes bytes4 to ABI bytes
 func EncodeBytes4(value [4]byte, buf []byte) (int, error) {
 	copy(buf[:4], value[:])
-	for i := 4; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[4:32])
 	return 32, nil
 }
 
@@ -849,9 +797,7 @@ func EncodeBytes4Slice(value [][4]byte, buf []byte) (int, error) {
 // EncodeBytes5 encodes bytes5 to ABI bytes
 func EncodeBytes5(value [5]byte, buf []byte) (int, error) {
 	copy(buf[:5], value[:])
-	for i := 5; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[5:32])
 	return 32, nil
 }
 
@@ -877,9 +823,7 @@ func EncodeBytes5Slice(value [][5]byte, buf []byte) (int, error) {
 // EncodeBytes6 encodes bytes6 to ABI bytes
 func EncodeBytes6(value [6]byte, buf []byte) (int, error) {
 	copy(buf[:6], value[:])
-	for i := 6; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[6:32])
 	return 32, nil
 }
 
@@ -905,9 +849,7 @@ func EncodeBytes6Slice(value [][6]byte, buf []byte) (int, error) {
 // EncodeBytes7 encodes bytes7 to ABI bytes
 func EncodeBytes7(value [7]byte, buf []byte) (int, error) {
 	copy(buf[:7], value[:])
-	for i := 7; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[7:32])
 	return 32, nil
 }
 
@@ -933,9 +875,7 @@ func EncodeBytes7Slice(value [][7]byte, buf []byte) (int, error) {
 // EncodeBytes8 encodes bytes8 to ABI bytes
 func EncodeBytes8(value [8]byte, buf []byte) (int, error) {
 	copy(buf[:8], value[:])
-	for i := 8; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[8:32])
 	return 32, nil
 }
 
@@ -961,9 +901,7 @@ func EncodeBytes8Slice(value [][8]byte, buf []byte) (int, error) {
 // EncodeBytes9 encodes bytes9 to ABI bytes
 func EncodeBytes9(value [9]byte, buf []byte) (int, error) {
 	copy(buf[:9], value[:])
-	for i := 9; i < 32; i++ {
-		buf[i] = 0
-	}
+	clear(buf[9:32])
 	return 32, nil
 }
 
