@@ -18,7 +18,22 @@ build/
 # Coverage files
 coverage.out
 coverage.html
+cov.out
+cpu.out
 *.cover
+coverage/
+
+# Profiling
+*.prof
+uint256.out
+out.prof
+
+# Documentation
+# docs/abi-spec.rst is imported from upstream, not generated
+# Keep it tracked if added intentionally
+
+# Tests
+tests.test
 
 # IDE files
 .vscode/
