@@ -328,14 +328,16 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 			g.genPackedLargeUintEncoding(t)
 			return
 		}
-		// Use big.Int
+		// Use big.Int via temp buffer (EncodeBigInt always expects 32 bytes)
+		g.L("\tvar tmp [32]byte")
+		signed := "false"
 		if t.T == ethabi.IntTy {
-			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], true); err != nil {", g.StdPrefix, byteSize)
-		} else {
-			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], false); err != nil {", g.StdPrefix, byteSize)
+			signed = "true"
 		}
+		g.L("\tif err := %sEncodeBigInt(value, tmp[:], %s); err != nil {", g.StdPrefix, signed)
 		g.L("\t\treturn 0, err")
 		g.L("\t}")
+		g.L("\tcopy(buf[:%d], tmp[%d:])", byteSize, 32-byteSize)
 	}
 
 	g.L("\treturn %d, nil", byteSize)

@@ -407,7 +407,15 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 		}
 		// Use big.Int
 		if t.T == ethabi.IntTy {
-			g.L("\tresult, err := %sDecodeBigInt(data[:%d], true)", g.StdPrefix, byteSize)
+			// DecodeBigInt expects 32 bytes; sign-extend packed bytes to 32
+			g.L("\tvar buf [32]byte")
+			g.L("\tif data[0]&0x80 != 0 {")
+			g.L("\t\tfor i := 0; i < 32-%d; i++ {", byteSize)
+			g.L("\t\t\tbuf[i] = 0xFF")
+			g.L("\t\t}")
+			g.L("\t}")
+			g.L("\tcopy(buf[32-%d:], data[:%d])", byteSize, byteSize)
+			g.L("\tresult, err := %sDecodeBigInt(buf[:], true)", g.StdPrefix)
 			g.L("\tif err != nil {")
 			g.L("\t\treturn nil, 0, err")
 			g.L("\t}")

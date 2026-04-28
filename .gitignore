@@ -71,3 +71,4 @@ temp/
 
 # Worktree
 .dev/worktree/
+pi-session-*.html

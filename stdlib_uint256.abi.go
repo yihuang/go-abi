@@ -7869,9 +7869,11 @@ func PackedEncodeInt104(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 13 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:13], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:13], tmp[19:])
 	return 13, nil
 }
 
@@ -7880,9 +7882,11 @@ func PackedEncodeInt112(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 14 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:14], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:14], tmp[18:])
 	return 14, nil
 }
 
@@ -7891,9 +7895,11 @@ func PackedEncodeInt120(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 15 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:15], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:15], tmp[17:])
 	return 15, nil
 }
 
@@ -7902,9 +7908,11 @@ func PackedEncodeInt128(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 16 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:16], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:16], tmp[16:])
 	return 16, nil
 }
 
@@ -7913,9 +7921,11 @@ func PackedEncodeInt136(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 17 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:17], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:17], tmp[15:])
 	return 17, nil
 }
 
@@ -7924,9 +7934,11 @@ func PackedEncodeInt144(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 18 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:18], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:18], tmp[14:])
 	return 18, nil
 }
 
@@ -7935,9 +7947,11 @@ func PackedEncodeInt152(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 19 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:19], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:19], tmp[13:])
 	return 19, nil
 }
 
@@ -7955,9 +7969,11 @@ func PackedEncodeInt160(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 20 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:20], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:20], tmp[12:])
 	return 20, nil
 }
 
@@ -7966,9 +7982,11 @@ func PackedEncodeInt168(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 21 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:21], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:21], tmp[11:])
 	return 21, nil
 }
 
@@ -7977,9 +7995,11 @@ func PackedEncodeInt176(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 22 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:22], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:22], tmp[10:])
 	return 22, nil
 }
 
@@ -7988,9 +8008,11 @@ func PackedEncodeInt184(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 23 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:23], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:23], tmp[9:])
 	return 23, nil
 }
 
@@ -7999,9 +8021,11 @@ func PackedEncodeInt192(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 24 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:24], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:24], tmp[8:])
 	return 24, nil
 }
 
@@ -8010,9 +8034,11 @@ func PackedEncodeInt200(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 25 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:25], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:25], tmp[7:])
 	return 25, nil
 }
 
@@ -8021,9 +8047,11 @@ func PackedEncodeInt208(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 26 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:26], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:26], tmp[6:])
 	return 26, nil
 }
 
@@ -8032,9 +8060,11 @@ func PackedEncodeInt216(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 27 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:27], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:27], tmp[5:])
 	return 27, nil
 }
 
@@ -8043,9 +8073,11 @@ func PackedEncodeInt224(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 28 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:28], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:28], tmp[4:])
 	return 28, nil
 }
 
@@ -8054,9 +8086,11 @@ func PackedEncodeInt232(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 29 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:29], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:29], tmp[3:])
 	return 29, nil
 }
 
@@ -8076,9 +8110,11 @@ func PackedEncodeInt240(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 30 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:30], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:30], tmp[2:])
 	return 30, nil
 }
 
@@ -8087,9 +8123,11 @@ func PackedEncodeInt248(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 31 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:31], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:31], tmp[1:])
 	return 31, nil
 }
 
@@ -8098,9 +8136,11 @@ func PackedEncodeInt256(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 32 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:32], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:32], tmp[0:])
 	return 32, nil
 }
 
@@ -8169,9 +8209,11 @@ func PackedEncodeInt72(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 9 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:9], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:9], tmp[23:])
 	return 9, nil
 }
 
@@ -8189,9 +8231,11 @@ func PackedEncodeInt80(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 10 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:10], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:10], tmp[22:])
 	return 10, nil
 }
 
@@ -8200,9 +8244,11 @@ func PackedEncodeInt88(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 11 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:11], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:11], tmp[21:])
 	return 11, nil
 }
 
@@ -8211,9 +8257,11 @@ func PackedEncodeInt96(value *big.Int, buf []byte) (int, error) {
 	if len(buf) < 12 {
 		return 0, io.ErrShortBuffer
 	}
-	if err := EncodeBigInt(value, buf[:12], true); err != nil {
+	var tmp [32]byte
+	if err := EncodeBigInt(value, tmp[:], true); err != nil {
 		return 0, err
 	}
+	copy(buf[:12], tmp[20:])
 	return 12, nil
 }
 
@@ -8915,7 +8963,14 @@ func PackedDecodeInt104(data []byte) (*big.Int, int, error) {
 	if len(data) < 13 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:13], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-13; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-13:], data[:13])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -8927,7 +8982,14 @@ func PackedDecodeInt112(data []byte) (*big.Int, int, error) {
 	if len(data) < 14 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:14], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-14; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-14:], data[:14])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -8939,7 +9001,14 @@ func PackedDecodeInt120(data []byte) (*big.Int, int, error) {
 	if len(data) < 15 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:15], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-15; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-15:], data[:15])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -8951,7 +9020,14 @@ func PackedDecodeInt128(data []byte) (*big.Int, int, error) {
 	if len(data) < 16 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:16], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-16; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-16:], data[:16])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -8963,7 +9039,14 @@ func PackedDecodeInt136(data []byte) (*big.Int, int, error) {
 	if len(data) < 17 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:17], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-17; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-17:], data[:17])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -8975,7 +9058,14 @@ func PackedDecodeInt144(data []byte) (*big.Int, int, error) {
 	if len(data) < 18 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:18], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-18; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-18:], data[:18])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -8987,7 +9077,14 @@ func PackedDecodeInt152(data []byte) (*big.Int, int, error) {
 	if len(data) < 19 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:19], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-19; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-19:], data[:19])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9007,7 +9104,14 @@ func PackedDecodeInt160(data []byte) (*big.Int, int, error) {
 	if len(data) < 20 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:20], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-20; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-20:], data[:20])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9019,7 +9123,14 @@ func PackedDecodeInt168(data []byte) (*big.Int, int, error) {
 	if len(data) < 21 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:21], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-21; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-21:], data[:21])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9031,7 +9142,14 @@ func PackedDecodeInt176(data []byte) (*big.Int, int, error) {
 	if len(data) < 22 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:22], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-22; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-22:], data[:22])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9043,7 +9161,14 @@ func PackedDecodeInt184(data []byte) (*big.Int, int, error) {
 	if len(data) < 23 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:23], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-23; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-23:], data[:23])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9055,7 +9180,14 @@ func PackedDecodeInt192(data []byte) (*big.Int, int, error) {
 	if len(data) < 24 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:24], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-24; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-24:], data[:24])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9067,7 +9199,14 @@ func PackedDecodeInt200(data []byte) (*big.Int, int, error) {
 	if len(data) < 25 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:25], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-25; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-25:], data[:25])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9079,7 +9218,14 @@ func PackedDecodeInt208(data []byte) (*big.Int, int, error) {
 	if len(data) < 26 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:26], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-26; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-26:], data[:26])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9091,7 +9237,14 @@ func PackedDecodeInt216(data []byte) (*big.Int, int, error) {
 	if len(data) < 27 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:27], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-27; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-27:], data[:27])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9103,7 +9256,14 @@ func PackedDecodeInt224(data []byte) (*big.Int, int, error) {
 	if len(data) < 28 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:28], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-28; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-28:], data[:28])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9115,7 +9275,14 @@ func PackedDecodeInt232(data []byte) (*big.Int, int, error) {
 	if len(data) < 29 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:29], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-29; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-29:], data[:29])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9139,7 +9306,14 @@ func PackedDecodeInt240(data []byte) (*big.Int, int, error) {
 	if len(data) < 30 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:30], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-30; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-30:], data[:30])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9151,7 +9325,14 @@ func PackedDecodeInt248(data []byte) (*big.Int, int, error) {
 	if len(data) < 31 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:31], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-31; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-31:], data[:31])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9163,7 +9344,14 @@ func PackedDecodeInt256(data []byte) (*big.Int, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:32], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-32; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-32:], data[:32])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9227,7 +9415,14 @@ func PackedDecodeInt72(data []byte) (*big.Int, int, error) {
 	if len(data) < 9 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:9], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-9; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-9:], data[:9])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9247,7 +9442,14 @@ func PackedDecodeInt80(data []byte) (*big.Int, int, error) {
 	if len(data) < 10 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:10], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-10; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-10:], data[:10])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9259,7 +9461,14 @@ func PackedDecodeInt88(data []byte) (*big.Int, int, error) {
 	if len(data) < 11 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:11], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-11; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-11:], data[:11])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -9271,7 +9480,14 @@ func PackedDecodeInt96(data []byte) (*big.Int, int, error) {
 	if len(data) < 12 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	result, err := DecodeBigInt(data[:12], true)
+	var buf [32]byte
+	if data[0]&0x80 != 0 {
+		for i := 0; i < 32-12; i++ {
+			buf[i] = 0xFF
+		}
+	}
+	copy(buf[32-12:], data[:12])
+	result, err := DecodeBigInt(buf[:], true)
 	if err != nil {
 		return nil, 0, err
 	}

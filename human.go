@@ -329,6 +329,10 @@ func parseParametersWithStructs(paramsStr string, isEvent bool, structs map[stri
 
 // parseParameterWithStructs parses a single parameter string with struct context
 func parseParameterWithStructs(paramStr string, isEvent bool, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
+	// Strip Solidity's "payable" qualifier: "address payable" -> "address"
+	// This is syntactically valid only for address, but we strip it generically.
+	paramStr = strings.ReplaceAll(paramStr, " payable", "")
+
 	// For tuple types, we need special handling
 	// Look for opening parenthesis and find matching closing parenthesis
 	if strings.HasPrefix(paramStr, "(") {
