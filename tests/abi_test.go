@@ -227,7 +227,8 @@ func TestEventDynamicIndexed(t *testing.T) {
 	// topics[0] = event signature hash
 	// topics[1] = keccak256 hash of ABI-encoded string
 	encoded := make([]byte, abi.SizeString(denom))
-	abi.EncodeString(denom, encoded)
+	_, err = abi.EncodeString(denom, encoded)
+	require.NoError(t, err)
 	expectedTopic := crypto.Keccak256Hash(encoded)
 	require.Equal(t, expectedTopic, topics[1], "dynamic indexed field should be keccak256 hashed")
 
