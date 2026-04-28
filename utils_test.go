@@ -153,8 +153,8 @@ func TestDecodeBigInt(t *testing.T) {
 // Without this, reusing a buffer via EncodeTo would leave garbage in padding bytes.
 func TestFixedBytesEncodePadding(t *testing.T) {
 	tests := []struct {
-		name  string
-		size  int
+		name   string
+		size   int
 		encode func(value []byte, buf []byte) (int, error)
 	}{
 		{"bytes1", 1, func(value []byte, buf []byte) (int, error) {
@@ -191,7 +191,9 @@ func TestFixedBytesEncodePadding(t *testing.T) {
 
 			n, err := tt.encode(value, buf)
 			require.NoError(t, err)
-			require.Equal(t, 32, n, "fixed-bytes encoder should report writing a full 32-byte word")
+			require.Equal(t, 32, n,
+				"fixed-bytes encoder should report writing a full 32-byte word, got %d", n)
+
 			// Verify: bytes from tt.size to 32 should be zero (padding)
 			for i := tt.size; i < 32; i++ {
 				require.Equal(t, byte(0x00), buf[i],
@@ -213,9 +215,9 @@ func TestFixedBytesEncodePadding(t *testing.T) {
 // The value is correct, but the consumed count should be 32.
 func TestFixedBytesDecodePadding(t *testing.T) {
 	tests := []struct {
-		name    string
-		decode  func(data []byte) (interface{}, int, error)
-		size    int
+		name   string
+		decode func(data []byte) (interface{}, int, error)
+		size   int
 	}{
 		{"bytes1", func(data []byte) (interface{}, int, error) { return DecodeBytes1(data) }, 1},
 		{"bytes3", func(data []byte) (interface{}, int, error) { return DecodeBytes3(data) }, 3},
@@ -233,7 +235,7 @@ func TestFixedBytesDecodePadding(t *testing.T) {
 			}
 			_, n, err := tt.decode(data)
 			require.NoError(t, err)
-			// Fixed-size byte decoders should consume the full 32-byte ABI word.
+			// Fixed-size byte decoders should consume the full 32-byte ABI word
 			require.Equal(t, 32, n,
 				"Decode%s should return 32 bytes consumed (ABI word), got %d", tt.name, n)
 		})
@@ -323,8 +325,8 @@ func TestDecodeIntSignExtension(t *testing.T) {
 	t.Run("positive_with_garbage_rejected", func(t *testing.T) {
 		// Positive value with garbage in upper bytes
 		data := make([]byte, 32)
-		data[31] = 0x05                         // value = 5
-		data[30] = 0x01                         // garbage in padding
+		data[31] = 0x05 // value = 5
+		data[30] = 0x01 // garbage in padding
 
 		_, err := DecodeInt[int8](data, MinInt8, MaxInt8)
 		require.True(t, errors.Is(err, ErrDirtyPadding))
