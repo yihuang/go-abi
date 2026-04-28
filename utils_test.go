@@ -209,10 +209,9 @@ func TestFixedBytesEncodePadding(t *testing.T) {
 	}
 }
 
-// TestFixedBytesDecodePadding verifies that fixed bytes decode functions
-// correctly reject dirty padding bytes, and accept clean padding.
-// BUG: The decode functions return N bytes instead of 32 (the ABI word size).
-// The value is correct, but the consumed count should be 32.
+// TestFixedBytesDecodePadding verifies that fixed-bytes decode functions
+// correctly reject dirty padding bytes, accept clean padding, and consume
+// the full 32-byte ABI word.
 func TestFixedBytesDecodePadding(t *testing.T) {
 	tests := []struct {
 		name   string
