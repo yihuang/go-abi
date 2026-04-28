@@ -646,13 +646,13 @@ func TestParseHumanReadableABI_AddressPayable(t *testing.T) {
 	}{
 		{
 			name:  "address payable parameter",
-			input: []string{"function deposit(address payable recipient) payable"},
+			input: []string{"function deposit(address payable payableRecipient) payable"},
 			expected: `[
 				{
 					"type": "function",
 					"name": "deposit",
 					"inputs": [
-						{"name": "recipient", "type": "address"}
+						{"name": "payableRecipient", "type": "address"}
 					],
 					"outputs": [],
 					"stateMutability": "payable"
