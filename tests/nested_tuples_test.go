@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/test-go/testify/require"
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/yihuang/go-abi"

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/test-go/testify/require"
 )
 
 func TestParseHumanReadableABI(t *testing.T) {
@@ -590,6 +590,14 @@ func TestParseHumanReadableABI_Errors(t *testing.T) {
 			input: []string{"function invalid format"},
 		},
 		{
+			name:  "invalid trailing modifier",
+			input: []string{"function f() nonsense"},
+		},
+		{
+			name:  "malformed returns clause",
+			input: []string{"function f() returns uint256"},
+		},
+		{
 			name:  "invalid type",
 			input: []string{"function test(uint257 invalid) returns (bool)"},
 		},
@@ -605,12 +613,117 @@ func TestParseHumanReadableABI_Errors(t *testing.T) {
 			name:  "unprocessed parentheses",
 			input: []string{"function communityPool() view returns (tuple(string denom, uint256 amount)[] coins)"},
 		},
+		{
+			name: "circular struct A -> B -> A",
+			input: []string{
+				"struct A { B b }",
+				"struct B { A a }",
+				"function test(A a)",
+			},
+		},
+		{
+			name: "self-referencing struct",
+			input: []string{
+				"struct Node { Node next; uint256 value }",
+				"function test(Node n)",
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := ParseHumanReadableABI(tt.input)
 			require.Error(t, err)
+		})
+	}
+}
+
+func TestParseHumanReadableABI_AddressPayable(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected string
+	}{
+		{
+			name:  "address payable parameter",
+			input: []string{"function deposit(address payable payableRecipient) payable"},
+			expected: `[
+				{
+					"type": "function",
+					"name": "deposit",
+					"inputs": [
+						{"name": "payableRecipient", "type": "address"}
+					],
+					"outputs": [],
+					"stateMutability": "payable"
+				}
+			]`,
+		},
+		{
+			name:  "address payable indexed in event",
+			input: []string{"event Transfer(address indexed from, address payable indexed to, uint256 value)"},
+			expected: `[
+				{
+					"type": "event",
+					"name": "Transfer",
+					"inputs": [
+						{"name": "from", "type": "address", "indexed": true},
+						{"name": "to", "type": "address", "indexed": true},
+						{"name": "value", "type": "uint256", "indexed": false}
+					],
+					"anonymous": false
+				}
+			]`,
+		},
+		{
+			// Identifier names containing "payable" must not be mangled by
+			// the address-payable normalization.
+			name:  "identifier starting with payable",
+			input: []string{"function b(uint256 payable_amount)"},
+			expected: `[
+				{
+					"type": "function",
+					"name": "b",
+					"inputs": [
+						{"name": "payable_amount", "type": "uint256"}
+					],
+					"outputs": [],
+					"stateMutability": "nonpayable"
+				}
+			]`,
+		},
+		{
+			// Parameter literally named "payable" must keep its name.
+			name:  "parameter named payable",
+			input: []string{"function c(uint256 payable)"},
+			expected: `[
+				{
+					"type": "function",
+					"name": "c",
+					"inputs": [
+						{"name": "payable", "type": "uint256"}
+					],
+					"outputs": [],
+					"stateMutability": "nonpayable"
+				}
+			]`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := ParseHumanReadableABI(tt.input)
+			require.NoError(t, err)
+
+			var expectedJSON interface{}
+			err = json.Unmarshal([]byte(tt.expected), &expectedJSON)
+			require.NoError(t, err)
+
+			var actualJSON interface{}
+			err = json.Unmarshal(result, &actualJSON)
+			require.NoError(t, err)
+
+			require.Equal(t, expectedJSON, actualJSON)
 		})
 	}
 }

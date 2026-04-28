@@ -71,6 +71,9 @@ func (g *Generator) genBigIntDecoding(t ethabi.Type) {
 
 // genAddressDecoding generates decoding for address types
 func (g *Generator) genAddressDecoding() {
+	g.L("\tif len(data) < 32 {")
+	g.L("\t\treturn common.Address{}, 0, io.ErrUnexpectedEOF")
+	g.L("\t}")
 	g.L("\tvar result common.Address")
 	g.L("\tfor i := 0; i < 12; i++ {")
 	g.L("\t\tif data[i] != 0x00 {")
@@ -163,6 +166,9 @@ func (g *Generator) genBytesDecoding() {
 
 // genFixedBytesDecoding generates decoding for fixed bytes types
 func (g *Generator) genFixedBytesDecoding(t ethabi.Type) {
+	g.L("\tif len(data) < 32 {")
+	g.L("\t\treturn [%d]byte{}, 0, io.ErrUnexpectedEOF", t.Size)
+	g.L("\t}")
 	// Validate padding bytes
 	g.L("\t// Validate padding bytes for fixed bytes[%d]", t.Size)
 	g.L("\tfor i := %d; i < 32; i++ {", t.Size)
@@ -172,7 +178,7 @@ func (g *Generator) genFixedBytesDecoding(t ethabi.Type) {
 	g.L("\t}")
 	g.L("\tvar result [%d]byte", t.Size)
 	g.L("\tcopy(result[:], data[:%d])", t.Size)
-	g.L("\treturn result, %d, nil", t.Size)
+	g.L("\treturn result, 32, nil")
 }
 
 // genSliceDecoding generates decoding for slice types
@@ -401,7 +407,15 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 		}
 		// Use big.Int
 		if t.T == ethabi.IntTy {
-			g.L("\tresult, err := %sDecodeBigInt(data[:%d], true)", g.StdPrefix, byteSize)
+			// DecodeBigInt expects 32 bytes; sign-extend packed bytes to 32
+			g.L("\tvar buf [32]byte")
+			g.L("\tif data[0]&0x80 != 0 {")
+			g.L("\t\tfor i := 0; i < 32-%d; i++ {", byteSize)
+			g.L("\t\t\tbuf[i] = 0xFF")
+			g.L("\t\t}")
+			g.L("\t}")
+			g.L("\tcopy(buf[32-%d:], data[:%d])", byteSize, byteSize)
+			g.L("\tresult, err := %sDecodeBigInt(buf[:], true)", g.StdPrefix)
 			g.L("\tif err != nil {")
 			g.L("\t\treturn nil, 0, err")
 			g.L("\t}")

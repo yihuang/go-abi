@@ -11,6 +11,7 @@ import (
 
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/yihuang/go-abi"
 )
 
@@ -212,6 +213,51 @@ func TestSmallIntegers(t *testing.T) {
 	require.Equal(t, encoded, goEthEncoded)
 
 	DecodeRoundTrip(t, args)
+}
+
+func TestEventDynamicIndexed(t *testing.T) {
+	// DynamicIndexed event has a string indexed field.
+	// The topic should be keccak256(abi.encode("denom_value")).
+	denom := "hello"
+	event := NewDynamicIndexedEvent(denom)
+
+	topics, data, err := abi.EncodeEvent(event)
+	require.NoError(t, err)
+
+	// topics[0] = event signature hash
+	// topics[1] = keccak256 hash of ABI-encoded string
+	encoded := make([]byte, abi.SizeString(denom))
+	_, err = abi.EncodeString(denom, encoded)
+	require.NoError(t, err)
+	expectedTopic := crypto.Keccak256Hash(encoded)
+	require.Equal(t, expectedTopic, topics[1], "dynamic indexed field should be keccak256 hashed")
+
+	// Data section should be empty (no non-indexed fields)
+	require.Empty(t, data)
+
+	// Decode topics back (dynamic indexed fields are silently ignored on decode)
+	var decoded DynamicIndexedEvent
+	err = abi.DecodeEvent(&decoded, topics, data)
+	require.NoError(t, err)
+	require.Equal(t, event.GetEventName(), decoded.GetEventName())
+	require.Equal(t, event.GetEventID(), decoded.GetEventID())
+}
+
+func TestEventEmptyIndexed(t *testing.T) {
+	// EmptyIndexed event has a non-indexed string field (data only).
+	// No indexed fields means only the event signature topic.
+	event := NewEmptyIndexedEvent("test data")
+
+	topics, data, err := abi.EncodeEvent(event)
+	require.NoError(t, err)
+
+	// topics[0] only (no indexed fields)
+	require.Len(t, topics, 1)
+
+	// Data section contains the string
+	require.NotEmpty(t, data)
+
+	EventDecodeRoundTrip(t, event)
 }
 
 func TestEmptyFuncCall(t *testing.T) {

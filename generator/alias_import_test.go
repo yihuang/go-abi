@@ -26,11 +26,4 @@ func TestAliasImports(t *testing.T) {
 		`math "math"`,
 		`"time"`,
 	)
-
-	// Verify that the import block contains the alias imports
-	assertContains(t, code,
-		`cmn "github.com/ethereum/go-ethereum/common"`,
-		`math "math"`,
-		`"time"`,
-	)
 }

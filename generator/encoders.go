@@ -126,7 +126,11 @@ func (g *Generator) genBytesEncoding() {
 // genFixedBytesEncoding generates encoding for fixed bytes types
 func (g *Generator) genFixedBytesEncoding(t ethabi.Type) {
 	g.L("\tcopy(buf[:%d], value[:])", t.Size)
-	g.L("\treturn %d, nil", t.Size)
+	if t.Size < 32 {
+		// Zero out padding bytes to ensure clean ABI 32-byte slot
+		g.L("\tclear(buf[%d:32])", t.Size)
+	}
+	g.L("\treturn 32, nil")
 }
 
 // genSliceEncoding generates encoding for slice types
@@ -322,14 +326,16 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 			g.genPackedLargeUintEncoding(t)
 			return
 		}
-		// Use big.Int
+		// Use big.Int via temp buffer (EncodeBigInt always expects 32 bytes)
+		g.L("\tvar tmp [32]byte")
+		signed := "false"
 		if t.T == ethabi.IntTy {
-			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], true); err != nil {", g.StdPrefix, byteSize)
-		} else {
-			g.L("\tif err := %sEncodeBigInt(value, buf[:%d], false); err != nil {", g.StdPrefix, byteSize)
+			signed = "true"
 		}
+		g.L("\tif err := %sEncodeBigInt(value, tmp[:], %s); err != nil {", g.StdPrefix, signed)
 		g.L("\t\treturn 0, err")
 		g.L("\t}")
+		g.L("\tcopy(buf[:%d], tmp[%d:])", byteSize, 32-byteSize)
 	}
 
 	g.L("\treturn %d, nil", byteSize)

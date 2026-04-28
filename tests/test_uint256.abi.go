@@ -3806,6 +3806,11 @@ type EmptyIndexedEventIndexed struct {
 	abi.EmptyIndexed
 }
 
+// EncodeTopics encodes indexed fields of EmptyIndexed event to topics
+func (e EmptyIndexedEventIndexed) EncodeTopics() ([]common.Hash, error) {
+	return []common.Hash{EmptyIndexedEventTopic}, nil
+}
+
 const EmptyIndexedEventDataStaticSize = 32
 
 var _ abi.Tuple = (*EmptyIndexedEventData)(nil)
