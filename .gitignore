@@ -31,6 +31,12 @@ out.prof
 # Documentation
 # docs/abi-spec.rst is imported from upstream, not generated
 # Keep it tracked if added intentionally
+/docs/abi-spec.rst
+/cov.out
+/cpu.out
+/uint256.out
+/out.prof
+/tests.test
 
 # Tests
 tests.test
