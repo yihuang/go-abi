@@ -128,9 +128,7 @@ func (g *Generator) genFixedBytesEncoding(t ethabi.Type) {
 	g.L("\tcopy(buf[:%d], value[:])", t.Size)
 	if t.Size < 32 {
 		// Zero out padding bytes to ensure clean ABI 32-byte slot
-		g.L("\tfor i := %d; i < 32; i++ {", t.Size)
-		g.L("\t\tbuf[i] = 0")
-		g.L("\t}")
+		g.L("\tclear(buf[%d:32])", t.Size)
 	}
 	g.L("\treturn 32, nil")
 }
