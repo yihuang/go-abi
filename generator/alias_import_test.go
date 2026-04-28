@@ -57,15 +57,4 @@ func TestAliasImports(t *testing.T) {
 	if !strings.Contains(code, `"time"`) {
 		t.Error("Expected regular import '\"time\"' not found")
 	}
-
-	// Verify that the import block contains the alias imports
-	if !strings.Contains(code, `cmn "github.com/ethereum/go-ethereum/common"`) {
-		t.Error("Expected alias import 'cmn \"github.com/ethereum/go-ethereum/common\"' not found")
-	}
-	if !strings.Contains(code, `math "math"`) {
-		t.Error("Expected alias import 'math \"math\"' not found")
-	}
-	if !strings.Contains(code, `"time"`) {
-		t.Error("Expected regular import '\"time\"' not found")
-	}
 }

@@ -10,9 +10,9 @@ import (
 
 // Regular expressions compiled once at package level
 var (
-	// Function: function name(type1,type2) [payable|view|pure] [returns(type3,type4)]
-	// Match basic function structure, handle parameters and returns manually
-	functionRegex = regexp.MustCompile(`^function\s+(\w+)\s*\(.*\)\s*(payable|view|pure)?(?:\s+returns\s*\(.*\))?$`)
+	// Function: match function name only; parameters and returns are parsed manually
+	// to handle nested parentheses in tuples properly.
+	functionRegex = regexp.MustCompile(`^function\s+(\w+)\s*\(`)
 
 	// Event: event name(type1 indexed name1, type2 name2)
 	eventRegex = regexp.MustCompile(`^event\s+(\w+)\s*\(([^)]*)\)$`)
