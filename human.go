@@ -331,7 +331,7 @@ func parseParametersWithStructs(paramsStr string, isEvent bool, structs map[stri
 func parseParameterWithStructs(paramStr string, isEvent bool, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	// Strip Solidity's "payable" qualifier: "address payable" -> "address"
 	// This is syntactically valid only for address, but we strip it generically.
-	paramStr = strings.ReplaceAll(paramStr, " payable", "")
+	paramStr = strings.ReplaceAll(paramStr, " address payable ", " adddress ")
 
 	// For tuple types, we need special handling
 	// Look for opening parenthesis and find matching closing parenthesis
