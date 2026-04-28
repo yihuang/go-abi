@@ -31,6 +31,9 @@ var (
 
 	// Type without tuple: matches types like uint256, address[], bytes32[4], etc.
 	typeWithoutTupleRegex = regexp.MustCompile(`^(\w+)((\[\d*\])+)?$`)
+
+	// Word-bounded so identifiers like "payable_amount" are not stripped.
+	addressPayableRegex = regexp.MustCompile(`\baddress\s+payable\b`)
 )
 
 // ParseHumanReadableABI parses human-readable ABI definitions and converts them to JSON ABI format
@@ -330,8 +333,7 @@ func parseParametersWithStructs(paramsStr string, isEvent bool, structs map[stri
 // parseParameterWithStructs parses a single parameter string with struct context
 func parseParameterWithStructs(paramStr string, isEvent bool, structs map[string][]map[string]interface{}) (map[string]interface{}, error) {
 	// Strip Solidity's "payable" qualifier: "address payable" -> "address"
-	// This is syntactically valid only for address, but we strip it generically.
-	paramStr = strings.ReplaceAll(paramStr, " address payable ", " adddress ")
+	paramStr = addressPayableRegex.ReplaceAllString(paramStr, "address")
 
 	// For tuple types, we need special handling
 	// Look for opening parenthesis and find matching closing parenthesis
