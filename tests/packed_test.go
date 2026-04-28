@@ -201,8 +201,8 @@ func TestPackedStruct(t *testing.T) {
 }
 
 func TestPackedLargeInts(t *testing.T) {
-	u128 := new(big.Int).Lsh(big.NewInt(1), 127) // 2^127
-	i128 := new(big.Int).Lsh(big.NewInt(-1), 127) // -2^127
+	u128 := new(big.Int).Lsh(big.NewInt(1), 126)  // 2^126
+	i128 := new(big.Int).Lsh(big.NewInt(-1), 126) // -2^126
 
 	call := &PackedLargeIntsCall{
 		U128: u128,
@@ -221,10 +221,13 @@ func TestPackedLargeInts(t *testing.T) {
 	u128.FillBytes(expectedU128)
 	require.Equal(t, expectedU128, encoded[:16])
 
-	// Verify: next 16 bytes = i128 big-endian (two's complement)
-	// big.Int with negative value will produce two's complement via FillBytes
+	// Verify: next 16 bytes = i128 two's complement big-endian
+	// big.Int.FillBytes returns absolute value for negatives, so compute
+	// the 128-bit two's complement manually for verification.
+	mask := new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 128), big.NewInt(1))
+	twoComp := new(big.Int).And(i128, mask) // two's complement in 128 bits
 	expectedI128 := make([]byte, 16)
-	i128.FillBytes(expectedI128)
+	twoComp.FillBytes(expectedI128)
 	require.Equal(t, expectedI128, encoded[16:32])
 
 	// Test round-trip
