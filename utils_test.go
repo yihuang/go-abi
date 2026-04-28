@@ -238,9 +238,9 @@ func TestFixedBytesDecodePadding(t *testing.T) {
 			}
 			_, n, err := tt.decode(data)
 			require.NoError(t, err)
-			// BUG: should return 32 (full ABI word), currently returns tt.size
+			// Fixed-size byte decoders should consume the full 32-byte ABI word.
 			require.Equal(t, 32, n,
-				"Decode%s should return 32 bytes consumed (ABI word), got %%d", tt.name)
+				"Decode%s should return 32 bytes consumed (ABI word), got %d", tt.name, n)
 		})
 
 		t.Run(tt.name+"/dirty", func(t *testing.T) {
