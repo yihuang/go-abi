@@ -25,6 +25,9 @@ var PackedTestABI = []string{
 	"function packedIntermediate(uint24 u24, uint40 u40, int24 i24, int40 i40) returns (bool)",
 	"struct PackedStruct { address addr; uint256 value; bytes32 data }",
 	"function packedStruct(PackedStruct s) returns (bool)",
+	"function packedLargeInts(uint128 u128, int128 i128) returns (bool)",
+	"struct PackedFixedArray { address[3] addrs; uint256[2] values }",
+	"function packedFixedArrayStruct(PackedFixedArray s) returns (bool)",
 }
 
 var PackedTestABIDef ethabi.ABI
@@ -192,6 +195,68 @@ func TestPackedStruct(t *testing.T) {
 	encoded, err := call.PackedEncode()
 	require.NoError(t, err)
 	require.Len(t, encoded, 84)
+
+	// Test round-trip
+	DecodePackedRoundTrip(t, call)
+}
+
+func TestPackedLargeInts(t *testing.T) {
+	u128 := new(big.Int).Lsh(big.NewInt(1), 126)  // 2^126
+	i128 := new(big.Int).Lsh(big.NewInt(-1), 126) // -2^126
+
+	call := &PackedLargeIntsCall{
+		U128: u128,
+		I128: i128,
+	}
+
+	// Size: 16 + 16 = 32 bytes
+	require.Equal(t, 32, call.PackedEncodedSize())
+
+	encoded, err := call.PackedEncode()
+	require.NoError(t, err)
+	require.Len(t, encoded, 32)
+
+	// Verify: first 16 bytes = u128 big-endian
+	expectedU128 := make([]byte, 16)
+	u128.FillBytes(expectedU128)
+	require.Equal(t, expectedU128, encoded[:16])
+
+	// Verify: next 16 bytes = i128 two's complement big-endian
+	// big.Int.FillBytes returns absolute value for negatives, so compute
+	// the 128-bit two's complement manually for verification.
+	mask := new(big.Int).Sub(new(big.Int).Lsh(big.NewInt(1), 128), big.NewInt(1))
+	twoComp := new(big.Int).And(i128, mask) // two's complement in 128 bits
+	expectedI128 := make([]byte, 16)
+	twoComp.FillBytes(expectedI128)
+	require.Equal(t, expectedI128, encoded[16:32])
+
+	// Test round-trip
+	DecodePackedRoundTrip(t, call)
+}
+
+func TestPackedFixedArrayStruct(t *testing.T) {
+	s := PackedFixedArray{
+		Addrs: [3]common.Address{
+			common.HexToAddress("0x1111111111111111111111111111111111111111"),
+			common.HexToAddress("0x2222222222222222222222222222222222222222"),
+			common.HexToAddress("0x3333333333333333333333333333333333333333"),
+		},
+		Values: [2]*big.Int{
+			big.NewInt(100),
+			big.NewInt(200),
+		},
+	}
+
+	call := &PackedFixedArrayStructCall{
+		S: s,
+	}
+
+	// Size: 3*20 + 2*32 = 60 + 64 = 124 bytes
+	require.Equal(t, 124, call.PackedEncodedSize())
+
+	encoded, err := call.PackedEncode()
+	require.NoError(t, err)
+	require.Len(t, encoded, 124)
 
 	// Test round-trip
 	DecodePackedRoundTrip(t, call)

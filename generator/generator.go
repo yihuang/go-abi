@@ -1073,6 +1073,11 @@ func (g *Generator) genEventIndexed(event ethabi.Event) {
 		g.L("type %sEventIndexed struct {", event.Name)
 		g.L("\t%sEmptyIndexed", g.StdPrefix)
 		g.L("}")
+		g.L("")
+		g.L("// EncodeTopics encodes indexed fields of %s event to topics", name)
+		g.L("func (e %sEventIndexed) EncodeTopics() ([]common.Hash, error) {", name)
+		g.L("\treturn []common.Hash{%sEventTopic}, nil", name)
+		g.L("}")
 		return
 	}
 

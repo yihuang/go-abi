@@ -41,7 +41,7 @@ func TestExternalTuples(t *testing.T) {
 	}
 
 	// Should contain the generated tuple struct
-	if !contains(code, "type ProcessUserDataCall struct") {
+	if !strings.Contains(code, "type ProcessUserDataCall struct") {
 		t.Error("Expected generated code to contain ProcessUserDataCall struct")
 	}
 
@@ -58,21 +58,19 @@ func TestExternalTuples(t *testing.T) {
 	}
 
 	// Should NOT contain the generated nested tuple struct
-	if contains(codeWithExternal, "type Tuple_b53c1574 struct") {
+	if strings.Contains(codeWithExternal, "type Tuple_b53c1574 struct") {
 		t.Error("Expected generated code to NOT contain Tuple_b53c1574 struct when using external tuple")
 	}
 
 	// Should use the external type name in the function signature
-	if !contains(codeWithExternal, "MyCustomUserData") {
+	if !strings.Contains(codeWithExternal, "MyCustomUserData") {
 		t.Error("Expected generated code to use external tuple type name")
 	}
 
 	// The function input struct should still be generated but use the external type
-	if !contains(codeWithExternal, "Data MyCustomUserData") {
+	if !strings.Contains(codeWithExternal, "Data MyCustomUserData") {
 		t.Error("Expected function input struct to use external tuple type")
 	}
 }
 
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && (s[0:len(substr)] == substr || contains(s[1:], substr)))
-}
+

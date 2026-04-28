@@ -60,44 +60,44 @@ type Event interface {
 
 type EmptyTuple struct{}
 
-func (e EmptyTuple) EncodedSize() int {
+func (EmptyTuple) EncodedSize() int {
 	return 0
 }
 
-func (e EmptyTuple) Encode() ([]byte, error) {
+func (EmptyTuple) Encode() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (e EmptyTuple) EncodeTo(data []byte) (int, error) {
+func (EmptyTuple) EncodeTo(data []byte) (int, error) {
 	return 0, nil
 }
 
-func (e *EmptyTuple) Decode(data []byte) (int, error) {
+func (EmptyTuple) Decode(data []byte) (int, error) {
 	return 0, nil
 }
 
-func (e EmptyTuple) PackedEncodedSize() int {
+func (EmptyTuple) PackedEncodedSize() int {
 	return 0
 }
 
-func (e EmptyTuple) PackedEncode() ([]byte, error) {
+func (EmptyTuple) PackedEncode() ([]byte, error) {
 	return []byte{}, nil
 }
 
-func (e EmptyTuple) PackedEncodeTo(data []byte) (int, error) {
+func (EmptyTuple) PackedEncodeTo(data []byte) (int, error) {
 	return 0, nil
 }
 
-func (e *EmptyTuple) PackedDecode(data []byte) (int, error) {
+func (EmptyTuple) PackedDecode(data []byte) (int, error) {
 	return 0, nil
 }
 
 type EmptyIndexed struct{}
 
-func (e EmptyIndexed) EncodeTopics() ([]common.Hash, error) {
+func (EmptyIndexed) EncodeTopics() ([]common.Hash, error) {
 	return nil, nil
 }
 
-func (e *EmptyIndexed) DecodeTopics([]common.Hash) error {
+func (EmptyIndexed) DecodeTopics([]common.Hash) error {
 	return nil
 }
