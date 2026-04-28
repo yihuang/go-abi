@@ -191,12 +191,7 @@ func TestFixedBytesEncodePadding(t *testing.T) {
 
 			n, err := tt.encode(value, buf)
 			require.NoError(t, err)
-
-			// The encode function should return the number of bytes written
-			// For fixed bytes less than 32, it should return 32 (full word)
-			// Currently it returns tt.size which is the BUG we're testing for
-			_ = n
-
+			require.Equal(t, 32, n, "fixed-bytes encoder should report writing a full 32-byte word")
 			// Verify: bytes from tt.size to 32 should be zero (padding)
 			for i := tt.size; i < 32; i++ {
 				require.Equal(t, byte(0x00), buf[i],
