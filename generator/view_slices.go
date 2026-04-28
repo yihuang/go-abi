@@ -108,10 +108,12 @@ func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 	if !hasDynamicElem {
 		// Static elements - simple size calculation
 		elemSize := GetTypeSize(*t.Elem)
-		g.L("\ttotalSize := 32 + length * %d", elemSize)
-		g.L("\tif len(data) < totalSize {")
+		// Reject implausible lengths before arithmetic, otherwise length*N
+		// can overflow int and len(data) < totalSize fails to catch it.
+		g.L("\tif length > len(data) || length*%d > len(data)-32 {", elemSize)
 		g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 		g.L("\t}")
+		g.L("\ttotalSize := 32 + length * %d", elemSize)
 		g.L("\treturn &%s{", typeName)
 		g.L("\t\tdata: data[:totalSize],")
 		g.L("\t\tlength: length,")
@@ -122,8 +124,8 @@ func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 		g.L("\t\treturn &%s{data: data[:32], length: 0, offsets: nil}, 32, nil", typeName)
 		g.L("\t}")
 		g.L("")
-		g.L("\tminSize := 32 + length * 32")
-		g.L("\tif len(data) < minSize {")
+		// Same overflow guard for the offset table (32 bytes per element).
+		g.L("\tif length > len(data) || length*32 > len(data)-32 {")
 		g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 		g.L("\t}")
 		g.L("")

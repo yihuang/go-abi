@@ -5128,8 +5128,7 @@ func DecodeAddressSliceArray3SliceView(data []byte) (*AddressSliceArray3SliceVie
 		return &AddressSliceArray3SliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
 	}
 
-	minSize := 32 + length*32
-	if len(data) < minSize {
+	if length > len(data) || length*32 > len(data)-32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 
@@ -5221,8 +5220,7 @@ func DecodeItemSliceView(data []byte) (*ItemSliceView, int, error) {
 		return &ItemSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
 	}
 
-	minSize := 32 + length*32
-	if len(data) < minSize {
+	if length > len(data) || length*32 > len(data)-32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 
@@ -5301,8 +5299,7 @@ func DecodeStringSliceSliceView(data []byte) (*StringSliceSliceView, int, error)
 		return &StringSliceSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
 	}
 
-	minSize := 32 + length*32
-	if len(data) < minSize {
+	if length > len(data) || length*32 > len(data)-32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 
@@ -5381,8 +5378,7 @@ func DecodeUint256SliceSliceView(data []byte) (*Uint256SliceSliceView, int, erro
 		return &Uint256SliceSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
 	}
 
-	minSize := 32 + length*32
-	if len(data) < minSize {
+	if length > len(data) || length*32 > len(data)-32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 
@@ -5461,8 +5457,7 @@ func DecodeUser2SliceView(data []byte) (*User2SliceView, int, error) {
 		return &User2SliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
 	}
 
-	minSize := 32 + length*32
-	if len(data) < minSize {
+	if length > len(data) || length*32 > len(data)-32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 

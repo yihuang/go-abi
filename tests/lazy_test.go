@@ -3,6 +3,7 @@
 package tests
 
 import (
+	"math"
 	"testing"
 
 	"github.com/test-go/testify/require"
@@ -119,6 +120,21 @@ func TestLazyViewInvalidData(t *testing.T) {
 	// Set it to something wrong
 	invalidData[31] = 0x10 // offset = 16, which is wrong
 	_, _, err = DecodeProfileView(invalidData)
+	require.Error(t, err)
+}
+
+// TestLazyViewSliceOversizedLength guards against slice-view decoders
+// trusting an attacker-supplied length. Without the size guard, a
+// length near MaxInt overflows length*32 and lets execution reach
+// make([]int, length), which panics with "makeslice: len out of range".
+func TestLazyViewSliceOversizedLength(t *testing.T) {
+	// length = MaxInt encoded as 32-byte big-endian
+	data := make([]byte, 32)
+	val := uint64(math.MaxInt)
+	for i := 0; i < 8; i++ {
+		data[31-i] = byte(val >> (i * 8))
+	}
+	_, _, err := DecodeRecordSliceView(data)
 	require.Error(t, err)
 }
 

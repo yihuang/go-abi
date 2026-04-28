@@ -1077,8 +1077,7 @@ func DecodeRecordSliceView(data []byte) (*RecordSliceView, int, error) {
 		return &RecordSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
 	}
 
-	minSize := 32 + length*32
-	if len(data) < minSize {
+	if length > len(data) || length*32 > len(data)-32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
 
