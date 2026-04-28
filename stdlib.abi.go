@@ -95,13 +95,19 @@ func EncodeBytes(value []byte, buf []byte) (int, error) {
 // EncodeBytes1 encodes bytes1 to ABI bytes
 func EncodeBytes1(value [1]byte, buf []byte) (int, error) {
 	copy(buf[:1], value[:])
-	return 1, nil
+	for i := 1; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes10 encodes bytes10 to ABI bytes
 func EncodeBytes10(value [10]byte, buf []byte) (int, error) {
 	copy(buf[:10], value[:])
-	return 10, nil
+	for i := 10; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes10Slice encodes bytes10[] to ABI bytes
@@ -126,7 +132,10 @@ func EncodeBytes10Slice(value [][10]byte, buf []byte) (int, error) {
 // EncodeBytes11 encodes bytes11 to ABI bytes
 func EncodeBytes11(value [11]byte, buf []byte) (int, error) {
 	copy(buf[:11], value[:])
-	return 11, nil
+	for i := 11; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes11Slice encodes bytes11[] to ABI bytes
@@ -151,7 +160,10 @@ func EncodeBytes11Slice(value [][11]byte, buf []byte) (int, error) {
 // EncodeBytes12 encodes bytes12 to ABI bytes
 func EncodeBytes12(value [12]byte, buf []byte) (int, error) {
 	copy(buf[:12], value[:])
-	return 12, nil
+	for i := 12; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes12Slice encodes bytes12[] to ABI bytes
@@ -176,7 +188,10 @@ func EncodeBytes12Slice(value [][12]byte, buf []byte) (int, error) {
 // EncodeBytes13 encodes bytes13 to ABI bytes
 func EncodeBytes13(value [13]byte, buf []byte) (int, error) {
 	copy(buf[:13], value[:])
-	return 13, nil
+	for i := 13; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes13Slice encodes bytes13[] to ABI bytes
@@ -201,7 +216,10 @@ func EncodeBytes13Slice(value [][13]byte, buf []byte) (int, error) {
 // EncodeBytes14 encodes bytes14 to ABI bytes
 func EncodeBytes14(value [14]byte, buf []byte) (int, error) {
 	copy(buf[:14], value[:])
-	return 14, nil
+	for i := 14; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes14Slice encodes bytes14[] to ABI bytes
@@ -226,7 +244,10 @@ func EncodeBytes14Slice(value [][14]byte, buf []byte) (int, error) {
 // EncodeBytes15 encodes bytes15 to ABI bytes
 func EncodeBytes15(value [15]byte, buf []byte) (int, error) {
 	copy(buf[:15], value[:])
-	return 15, nil
+	for i := 15; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes15Slice encodes bytes15[] to ABI bytes
@@ -251,7 +272,10 @@ func EncodeBytes15Slice(value [][15]byte, buf []byte) (int, error) {
 // EncodeBytes16 encodes bytes16 to ABI bytes
 func EncodeBytes16(value [16]byte, buf []byte) (int, error) {
 	copy(buf[:16], value[:])
-	return 16, nil
+	for i := 16; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes16Slice encodes bytes16[] to ABI bytes
@@ -276,7 +300,10 @@ func EncodeBytes16Slice(value [][16]byte, buf []byte) (int, error) {
 // EncodeBytes17 encodes bytes17 to ABI bytes
 func EncodeBytes17(value [17]byte, buf []byte) (int, error) {
 	copy(buf[:17], value[:])
-	return 17, nil
+	for i := 17; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes17Slice encodes bytes17[] to ABI bytes
@@ -301,7 +328,10 @@ func EncodeBytes17Slice(value [][17]byte, buf []byte) (int, error) {
 // EncodeBytes18 encodes bytes18 to ABI bytes
 func EncodeBytes18(value [18]byte, buf []byte) (int, error) {
 	copy(buf[:18], value[:])
-	return 18, nil
+	for i := 18; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes18Slice encodes bytes18[] to ABI bytes
@@ -326,7 +356,10 @@ func EncodeBytes18Slice(value [][18]byte, buf []byte) (int, error) {
 // EncodeBytes19 encodes bytes19 to ABI bytes
 func EncodeBytes19(value [19]byte, buf []byte) (int, error) {
 	copy(buf[:19], value[:])
-	return 19, nil
+	for i := 19; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes19Slice encodes bytes19[] to ABI bytes
@@ -370,13 +403,19 @@ func EncodeBytes1Slice(value [][1]byte, buf []byte) (int, error) {
 // EncodeBytes2 encodes bytes2 to ABI bytes
 func EncodeBytes2(value [2]byte, buf []byte) (int, error) {
 	copy(buf[:2], value[:])
-	return 2, nil
+	for i := 2; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes20 encodes bytes20 to ABI bytes
 func EncodeBytes20(value [20]byte, buf []byte) (int, error) {
 	copy(buf[:20], value[:])
-	return 20, nil
+	for i := 20; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes20Slice encodes bytes20[] to ABI bytes
@@ -401,7 +440,10 @@ func EncodeBytes20Slice(value [][20]byte, buf []byte) (int, error) {
 // EncodeBytes21 encodes bytes21 to ABI bytes
 func EncodeBytes21(value [21]byte, buf []byte) (int, error) {
 	copy(buf[:21], value[:])
-	return 21, nil
+	for i := 21; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes21Slice encodes bytes21[] to ABI bytes
@@ -426,7 +468,10 @@ func EncodeBytes21Slice(value [][21]byte, buf []byte) (int, error) {
 // EncodeBytes22 encodes bytes22 to ABI bytes
 func EncodeBytes22(value [22]byte, buf []byte) (int, error) {
 	copy(buf[:22], value[:])
-	return 22, nil
+	for i := 22; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes22Slice encodes bytes22[] to ABI bytes
@@ -451,7 +496,10 @@ func EncodeBytes22Slice(value [][22]byte, buf []byte) (int, error) {
 // EncodeBytes23 encodes bytes23 to ABI bytes
 func EncodeBytes23(value [23]byte, buf []byte) (int, error) {
 	copy(buf[:23], value[:])
-	return 23, nil
+	for i := 23; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes23Slice encodes bytes23[] to ABI bytes
@@ -476,7 +524,10 @@ func EncodeBytes23Slice(value [][23]byte, buf []byte) (int, error) {
 // EncodeBytes24 encodes bytes24 to ABI bytes
 func EncodeBytes24(value [24]byte, buf []byte) (int, error) {
 	copy(buf[:24], value[:])
-	return 24, nil
+	for i := 24; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes24Slice encodes bytes24[] to ABI bytes
@@ -501,7 +552,10 @@ func EncodeBytes24Slice(value [][24]byte, buf []byte) (int, error) {
 // EncodeBytes25 encodes bytes25 to ABI bytes
 func EncodeBytes25(value [25]byte, buf []byte) (int, error) {
 	copy(buf[:25], value[:])
-	return 25, nil
+	for i := 25; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes25Slice encodes bytes25[] to ABI bytes
@@ -526,7 +580,10 @@ func EncodeBytes25Slice(value [][25]byte, buf []byte) (int, error) {
 // EncodeBytes26 encodes bytes26 to ABI bytes
 func EncodeBytes26(value [26]byte, buf []byte) (int, error) {
 	copy(buf[:26], value[:])
-	return 26, nil
+	for i := 26; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes26Slice encodes bytes26[] to ABI bytes
@@ -551,7 +608,10 @@ func EncodeBytes26Slice(value [][26]byte, buf []byte) (int, error) {
 // EncodeBytes27 encodes bytes27 to ABI bytes
 func EncodeBytes27(value [27]byte, buf []byte) (int, error) {
 	copy(buf[:27], value[:])
-	return 27, nil
+	for i := 27; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes27Slice encodes bytes27[] to ABI bytes
@@ -576,7 +636,10 @@ func EncodeBytes27Slice(value [][27]byte, buf []byte) (int, error) {
 // EncodeBytes28 encodes bytes28 to ABI bytes
 func EncodeBytes28(value [28]byte, buf []byte) (int, error) {
 	copy(buf[:28], value[:])
-	return 28, nil
+	for i := 28; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes28Slice encodes bytes28[] to ABI bytes
@@ -601,7 +664,10 @@ func EncodeBytes28Slice(value [][28]byte, buf []byte) (int, error) {
 // EncodeBytes29 encodes bytes29 to ABI bytes
 func EncodeBytes29(value [29]byte, buf []byte) (int, error) {
 	copy(buf[:29], value[:])
-	return 29, nil
+	for i := 29; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes29Slice encodes bytes29[] to ABI bytes
@@ -645,13 +711,19 @@ func EncodeBytes2Slice(value [][2]byte, buf []byte) (int, error) {
 // EncodeBytes3 encodes bytes3 to ABI bytes
 func EncodeBytes3(value [3]byte, buf []byte) (int, error) {
 	copy(buf[:3], value[:])
-	return 3, nil
+	for i := 3; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes30 encodes bytes30 to ABI bytes
 func EncodeBytes30(value [30]byte, buf []byte) (int, error) {
 	copy(buf[:30], value[:])
-	return 30, nil
+	for i := 30; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes30Slice encodes bytes30[] to ABI bytes
@@ -676,7 +748,10 @@ func EncodeBytes30Slice(value [][30]byte, buf []byte) (int, error) {
 // EncodeBytes31 encodes bytes31 to ABI bytes
 func EncodeBytes31(value [31]byte, buf []byte) (int, error) {
 	copy(buf[:31], value[:])
-	return 31, nil
+	for i := 31; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes31Slice encodes bytes31[] to ABI bytes
@@ -745,7 +820,10 @@ func EncodeBytes3Slice(value [][3]byte, buf []byte) (int, error) {
 // EncodeBytes4 encodes bytes4 to ABI bytes
 func EncodeBytes4(value [4]byte, buf []byte) (int, error) {
 	copy(buf[:4], value[:])
-	return 4, nil
+	for i := 4; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes4Slice encodes bytes4[] to ABI bytes
@@ -770,7 +848,10 @@ func EncodeBytes4Slice(value [][4]byte, buf []byte) (int, error) {
 // EncodeBytes5 encodes bytes5 to ABI bytes
 func EncodeBytes5(value [5]byte, buf []byte) (int, error) {
 	copy(buf[:5], value[:])
-	return 5, nil
+	for i := 5; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes5Slice encodes bytes5[] to ABI bytes
@@ -795,7 +876,10 @@ func EncodeBytes5Slice(value [][5]byte, buf []byte) (int, error) {
 // EncodeBytes6 encodes bytes6 to ABI bytes
 func EncodeBytes6(value [6]byte, buf []byte) (int, error) {
 	copy(buf[:6], value[:])
-	return 6, nil
+	for i := 6; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes6Slice encodes bytes6[] to ABI bytes
@@ -820,7 +904,10 @@ func EncodeBytes6Slice(value [][6]byte, buf []byte) (int, error) {
 // EncodeBytes7 encodes bytes7 to ABI bytes
 func EncodeBytes7(value [7]byte, buf []byte) (int, error) {
 	copy(buf[:7], value[:])
-	return 7, nil
+	for i := 7; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes7Slice encodes bytes7[] to ABI bytes
@@ -845,7 +932,10 @@ func EncodeBytes7Slice(value [][7]byte, buf []byte) (int, error) {
 // EncodeBytes8 encodes bytes8 to ABI bytes
 func EncodeBytes8(value [8]byte, buf []byte) (int, error) {
 	copy(buf[:8], value[:])
-	return 8, nil
+	for i := 8; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes8Slice encodes bytes8[] to ABI bytes
@@ -870,7 +960,10 @@ func EncodeBytes8Slice(value [][8]byte, buf []byte) (int, error) {
 // EncodeBytes9 encodes bytes9 to ABI bytes
 func EncodeBytes9(value [9]byte, buf []byte) (int, error) {
 	copy(buf[:9], value[:])
-	return 9, nil
+	for i := 9; i < 32; i++ {
+		buf[i] = 0
+	}
+	return 32, nil
 }
 
 // EncodeBytes9Slice encodes bytes9[] to ABI bytes
@@ -3293,6 +3386,9 @@ func SizeUint96Slice(value []*big.Int) int {
 
 // DecodeAddress decodes address from ABI bytes
 func DecodeAddress(data []byte) (common.Address, int, error) {
+	if len(data) < 32 {
+		return common.Address{}, 0, io.ErrUnexpectedEOF
+	}
 	var result common.Address
 	for i := 0; i < 12; i++ {
 		if data[i] != 0x00 {
@@ -3409,6 +3505,9 @@ func DecodeBytes(data []byte) ([]byte, int, error) {
 
 // DecodeBytes1 decodes bytes1 from ABI bytes
 func DecodeBytes1(data []byte) ([1]byte, int, error) {
+	if len(data) < 32 {
+		return [1]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[1]
 	for i := 1; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3417,11 +3516,14 @@ func DecodeBytes1(data []byte) ([1]byte, int, error) {
 	}
 	var result [1]byte
 	copy(result[:], data[:1])
-	return result, 1, nil
+	return result, 32, nil
 }
 
 // DecodeBytes10 decodes bytes10 from ABI bytes
 func DecodeBytes10(data []byte) ([10]byte, int, error) {
+	if len(data) < 32 {
+		return [10]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[10]
 	for i := 10; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3430,7 +3532,7 @@ func DecodeBytes10(data []byte) ([10]byte, int, error) {
 	}
 	var result [10]byte
 	copy(result[:], data[:10])
-	return result, 10, nil
+	return result, 32, nil
 }
 
 // DecodeBytes10Slice decodes bytes10[] from ABI bytes
@@ -3465,6 +3567,9 @@ func DecodeBytes10Slice(data []byte) ([][10]byte, int, error) {
 
 // DecodeBytes11 decodes bytes11 from ABI bytes
 func DecodeBytes11(data []byte) ([11]byte, int, error) {
+	if len(data) < 32 {
+		return [11]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[11]
 	for i := 11; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3473,7 +3578,7 @@ func DecodeBytes11(data []byte) ([11]byte, int, error) {
 	}
 	var result [11]byte
 	copy(result[:], data[:11])
-	return result, 11, nil
+	return result, 32, nil
 }
 
 // DecodeBytes11Slice decodes bytes11[] from ABI bytes
@@ -3508,6 +3613,9 @@ func DecodeBytes11Slice(data []byte) ([][11]byte, int, error) {
 
 // DecodeBytes12 decodes bytes12 from ABI bytes
 func DecodeBytes12(data []byte) ([12]byte, int, error) {
+	if len(data) < 32 {
+		return [12]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[12]
 	for i := 12; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3516,7 +3624,7 @@ func DecodeBytes12(data []byte) ([12]byte, int, error) {
 	}
 	var result [12]byte
 	copy(result[:], data[:12])
-	return result, 12, nil
+	return result, 32, nil
 }
 
 // DecodeBytes12Slice decodes bytes12[] from ABI bytes
@@ -3551,6 +3659,9 @@ func DecodeBytes12Slice(data []byte) ([][12]byte, int, error) {
 
 // DecodeBytes13 decodes bytes13 from ABI bytes
 func DecodeBytes13(data []byte) ([13]byte, int, error) {
+	if len(data) < 32 {
+		return [13]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[13]
 	for i := 13; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3559,7 +3670,7 @@ func DecodeBytes13(data []byte) ([13]byte, int, error) {
 	}
 	var result [13]byte
 	copy(result[:], data[:13])
-	return result, 13, nil
+	return result, 32, nil
 }
 
 // DecodeBytes13Slice decodes bytes13[] from ABI bytes
@@ -3594,6 +3705,9 @@ func DecodeBytes13Slice(data []byte) ([][13]byte, int, error) {
 
 // DecodeBytes14 decodes bytes14 from ABI bytes
 func DecodeBytes14(data []byte) ([14]byte, int, error) {
+	if len(data) < 32 {
+		return [14]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[14]
 	for i := 14; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3602,7 +3716,7 @@ func DecodeBytes14(data []byte) ([14]byte, int, error) {
 	}
 	var result [14]byte
 	copy(result[:], data[:14])
-	return result, 14, nil
+	return result, 32, nil
 }
 
 // DecodeBytes14Slice decodes bytes14[] from ABI bytes
@@ -3637,6 +3751,9 @@ func DecodeBytes14Slice(data []byte) ([][14]byte, int, error) {
 
 // DecodeBytes15 decodes bytes15 from ABI bytes
 func DecodeBytes15(data []byte) ([15]byte, int, error) {
+	if len(data) < 32 {
+		return [15]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[15]
 	for i := 15; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3645,7 +3762,7 @@ func DecodeBytes15(data []byte) ([15]byte, int, error) {
 	}
 	var result [15]byte
 	copy(result[:], data[:15])
-	return result, 15, nil
+	return result, 32, nil
 }
 
 // DecodeBytes15Slice decodes bytes15[] from ABI bytes
@@ -3680,6 +3797,9 @@ func DecodeBytes15Slice(data []byte) ([][15]byte, int, error) {
 
 // DecodeBytes16 decodes bytes16 from ABI bytes
 func DecodeBytes16(data []byte) ([16]byte, int, error) {
+	if len(data) < 32 {
+		return [16]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[16]
 	for i := 16; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3688,7 +3808,7 @@ func DecodeBytes16(data []byte) ([16]byte, int, error) {
 	}
 	var result [16]byte
 	copy(result[:], data[:16])
-	return result, 16, nil
+	return result, 32, nil
 }
 
 // DecodeBytes16Slice decodes bytes16[] from ABI bytes
@@ -3723,6 +3843,9 @@ func DecodeBytes16Slice(data []byte) ([][16]byte, int, error) {
 
 // DecodeBytes17 decodes bytes17 from ABI bytes
 func DecodeBytes17(data []byte) ([17]byte, int, error) {
+	if len(data) < 32 {
+		return [17]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[17]
 	for i := 17; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3731,7 +3854,7 @@ func DecodeBytes17(data []byte) ([17]byte, int, error) {
 	}
 	var result [17]byte
 	copy(result[:], data[:17])
-	return result, 17, nil
+	return result, 32, nil
 }
 
 // DecodeBytes17Slice decodes bytes17[] from ABI bytes
@@ -3766,6 +3889,9 @@ func DecodeBytes17Slice(data []byte) ([][17]byte, int, error) {
 
 // DecodeBytes18 decodes bytes18 from ABI bytes
 func DecodeBytes18(data []byte) ([18]byte, int, error) {
+	if len(data) < 32 {
+		return [18]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[18]
 	for i := 18; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3774,7 +3900,7 @@ func DecodeBytes18(data []byte) ([18]byte, int, error) {
 	}
 	var result [18]byte
 	copy(result[:], data[:18])
-	return result, 18, nil
+	return result, 32, nil
 }
 
 // DecodeBytes18Slice decodes bytes18[] from ABI bytes
@@ -3809,6 +3935,9 @@ func DecodeBytes18Slice(data []byte) ([][18]byte, int, error) {
 
 // DecodeBytes19 decodes bytes19 from ABI bytes
 func DecodeBytes19(data []byte) ([19]byte, int, error) {
+	if len(data) < 32 {
+		return [19]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[19]
 	for i := 19; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3817,7 +3946,7 @@ func DecodeBytes19(data []byte) ([19]byte, int, error) {
 	}
 	var result [19]byte
 	copy(result[:], data[:19])
-	return result, 19, nil
+	return result, 32, nil
 }
 
 // DecodeBytes19Slice decodes bytes19[] from ABI bytes
@@ -3882,6 +4011,9 @@ func DecodeBytes1Slice(data []byte) ([][1]byte, int, error) {
 
 // DecodeBytes2 decodes bytes2 from ABI bytes
 func DecodeBytes2(data []byte) ([2]byte, int, error) {
+	if len(data) < 32 {
+		return [2]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[2]
 	for i := 2; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3890,11 +4022,14 @@ func DecodeBytes2(data []byte) ([2]byte, int, error) {
 	}
 	var result [2]byte
 	copy(result[:], data[:2])
-	return result, 2, nil
+	return result, 32, nil
 }
 
 // DecodeBytes20 decodes bytes20 from ABI bytes
 func DecodeBytes20(data []byte) ([20]byte, int, error) {
+	if len(data) < 32 {
+		return [20]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[20]
 	for i := 20; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3903,7 +4038,7 @@ func DecodeBytes20(data []byte) ([20]byte, int, error) {
 	}
 	var result [20]byte
 	copy(result[:], data[:20])
-	return result, 20, nil
+	return result, 32, nil
 }
 
 // DecodeBytes20Slice decodes bytes20[] from ABI bytes
@@ -3938,6 +4073,9 @@ func DecodeBytes20Slice(data []byte) ([][20]byte, int, error) {
 
 // DecodeBytes21 decodes bytes21 from ABI bytes
 func DecodeBytes21(data []byte) ([21]byte, int, error) {
+	if len(data) < 32 {
+		return [21]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[21]
 	for i := 21; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3946,7 +4084,7 @@ func DecodeBytes21(data []byte) ([21]byte, int, error) {
 	}
 	var result [21]byte
 	copy(result[:], data[:21])
-	return result, 21, nil
+	return result, 32, nil
 }
 
 // DecodeBytes21Slice decodes bytes21[] from ABI bytes
@@ -3981,6 +4119,9 @@ func DecodeBytes21Slice(data []byte) ([][21]byte, int, error) {
 
 // DecodeBytes22 decodes bytes22 from ABI bytes
 func DecodeBytes22(data []byte) ([22]byte, int, error) {
+	if len(data) < 32 {
+		return [22]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[22]
 	for i := 22; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -3989,7 +4130,7 @@ func DecodeBytes22(data []byte) ([22]byte, int, error) {
 	}
 	var result [22]byte
 	copy(result[:], data[:22])
-	return result, 22, nil
+	return result, 32, nil
 }
 
 // DecodeBytes22Slice decodes bytes22[] from ABI bytes
@@ -4024,6 +4165,9 @@ func DecodeBytes22Slice(data []byte) ([][22]byte, int, error) {
 
 // DecodeBytes23 decodes bytes23 from ABI bytes
 func DecodeBytes23(data []byte) ([23]byte, int, error) {
+	if len(data) < 32 {
+		return [23]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[23]
 	for i := 23; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4032,7 +4176,7 @@ func DecodeBytes23(data []byte) ([23]byte, int, error) {
 	}
 	var result [23]byte
 	copy(result[:], data[:23])
-	return result, 23, nil
+	return result, 32, nil
 }
 
 // DecodeBytes23Slice decodes bytes23[] from ABI bytes
@@ -4067,6 +4211,9 @@ func DecodeBytes23Slice(data []byte) ([][23]byte, int, error) {
 
 // DecodeBytes24 decodes bytes24 from ABI bytes
 func DecodeBytes24(data []byte) ([24]byte, int, error) {
+	if len(data) < 32 {
+		return [24]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[24]
 	for i := 24; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4075,7 +4222,7 @@ func DecodeBytes24(data []byte) ([24]byte, int, error) {
 	}
 	var result [24]byte
 	copy(result[:], data[:24])
-	return result, 24, nil
+	return result, 32, nil
 }
 
 // DecodeBytes24Slice decodes bytes24[] from ABI bytes
@@ -4110,6 +4257,9 @@ func DecodeBytes24Slice(data []byte) ([][24]byte, int, error) {
 
 // DecodeBytes25 decodes bytes25 from ABI bytes
 func DecodeBytes25(data []byte) ([25]byte, int, error) {
+	if len(data) < 32 {
+		return [25]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[25]
 	for i := 25; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4118,7 +4268,7 @@ func DecodeBytes25(data []byte) ([25]byte, int, error) {
 	}
 	var result [25]byte
 	copy(result[:], data[:25])
-	return result, 25, nil
+	return result, 32, nil
 }
 
 // DecodeBytes25Slice decodes bytes25[] from ABI bytes
@@ -4153,6 +4303,9 @@ func DecodeBytes25Slice(data []byte) ([][25]byte, int, error) {
 
 // DecodeBytes26 decodes bytes26 from ABI bytes
 func DecodeBytes26(data []byte) ([26]byte, int, error) {
+	if len(data) < 32 {
+		return [26]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[26]
 	for i := 26; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4161,7 +4314,7 @@ func DecodeBytes26(data []byte) ([26]byte, int, error) {
 	}
 	var result [26]byte
 	copy(result[:], data[:26])
-	return result, 26, nil
+	return result, 32, nil
 }
 
 // DecodeBytes26Slice decodes bytes26[] from ABI bytes
@@ -4196,6 +4349,9 @@ func DecodeBytes26Slice(data []byte) ([][26]byte, int, error) {
 
 // DecodeBytes27 decodes bytes27 from ABI bytes
 func DecodeBytes27(data []byte) ([27]byte, int, error) {
+	if len(data) < 32 {
+		return [27]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[27]
 	for i := 27; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4204,7 +4360,7 @@ func DecodeBytes27(data []byte) ([27]byte, int, error) {
 	}
 	var result [27]byte
 	copy(result[:], data[:27])
-	return result, 27, nil
+	return result, 32, nil
 }
 
 // DecodeBytes27Slice decodes bytes27[] from ABI bytes
@@ -4239,6 +4395,9 @@ func DecodeBytes27Slice(data []byte) ([][27]byte, int, error) {
 
 // DecodeBytes28 decodes bytes28 from ABI bytes
 func DecodeBytes28(data []byte) ([28]byte, int, error) {
+	if len(data) < 32 {
+		return [28]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[28]
 	for i := 28; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4247,7 +4406,7 @@ func DecodeBytes28(data []byte) ([28]byte, int, error) {
 	}
 	var result [28]byte
 	copy(result[:], data[:28])
-	return result, 28, nil
+	return result, 32, nil
 }
 
 // DecodeBytes28Slice decodes bytes28[] from ABI bytes
@@ -4282,6 +4441,9 @@ func DecodeBytes28Slice(data []byte) ([][28]byte, int, error) {
 
 // DecodeBytes29 decodes bytes29 from ABI bytes
 func DecodeBytes29(data []byte) ([29]byte, int, error) {
+	if len(data) < 32 {
+		return [29]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[29]
 	for i := 29; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4290,7 +4452,7 @@ func DecodeBytes29(data []byte) ([29]byte, int, error) {
 	}
 	var result [29]byte
 	copy(result[:], data[:29])
-	return result, 29, nil
+	return result, 32, nil
 }
 
 // DecodeBytes29Slice decodes bytes29[] from ABI bytes
@@ -4355,6 +4517,9 @@ func DecodeBytes2Slice(data []byte) ([][2]byte, int, error) {
 
 // DecodeBytes3 decodes bytes3 from ABI bytes
 func DecodeBytes3(data []byte) ([3]byte, int, error) {
+	if len(data) < 32 {
+		return [3]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[3]
 	for i := 3; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4363,11 +4528,14 @@ func DecodeBytes3(data []byte) ([3]byte, int, error) {
 	}
 	var result [3]byte
 	copy(result[:], data[:3])
-	return result, 3, nil
+	return result, 32, nil
 }
 
 // DecodeBytes30 decodes bytes30 from ABI bytes
 func DecodeBytes30(data []byte) ([30]byte, int, error) {
+	if len(data) < 32 {
+		return [30]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[30]
 	for i := 30; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4376,7 +4544,7 @@ func DecodeBytes30(data []byte) ([30]byte, int, error) {
 	}
 	var result [30]byte
 	copy(result[:], data[:30])
-	return result, 30, nil
+	return result, 32, nil
 }
 
 // DecodeBytes30Slice decodes bytes30[] from ABI bytes
@@ -4411,6 +4579,9 @@ func DecodeBytes30Slice(data []byte) ([][30]byte, int, error) {
 
 // DecodeBytes31 decodes bytes31 from ABI bytes
 func DecodeBytes31(data []byte) ([31]byte, int, error) {
+	if len(data) < 32 {
+		return [31]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[31]
 	for i := 31; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4419,7 +4590,7 @@ func DecodeBytes31(data []byte) ([31]byte, int, error) {
 	}
 	var result [31]byte
 	copy(result[:], data[:31])
-	return result, 31, nil
+	return result, 32, nil
 }
 
 // DecodeBytes31Slice decodes bytes31[] from ABI bytes
@@ -4454,6 +4625,9 @@ func DecodeBytes31Slice(data []byte) ([][31]byte, int, error) {
 
 // DecodeBytes32 decodes bytes32 from ABI bytes
 func DecodeBytes32(data []byte) ([32]byte, int, error) {
+	if len(data) < 32 {
+		return [32]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[32]
 	for i := 32; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4527,6 +4701,9 @@ func DecodeBytes3Slice(data []byte) ([][3]byte, int, error) {
 
 // DecodeBytes4 decodes bytes4 from ABI bytes
 func DecodeBytes4(data []byte) ([4]byte, int, error) {
+	if len(data) < 32 {
+		return [4]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[4]
 	for i := 4; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4535,7 +4712,7 @@ func DecodeBytes4(data []byte) ([4]byte, int, error) {
 	}
 	var result [4]byte
 	copy(result[:], data[:4])
-	return result, 4, nil
+	return result, 32, nil
 }
 
 // DecodeBytes4Slice decodes bytes4[] from ABI bytes
@@ -4570,6 +4747,9 @@ func DecodeBytes4Slice(data []byte) ([][4]byte, int, error) {
 
 // DecodeBytes5 decodes bytes5 from ABI bytes
 func DecodeBytes5(data []byte) ([5]byte, int, error) {
+	if len(data) < 32 {
+		return [5]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[5]
 	for i := 5; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4578,7 +4758,7 @@ func DecodeBytes5(data []byte) ([5]byte, int, error) {
 	}
 	var result [5]byte
 	copy(result[:], data[:5])
-	return result, 5, nil
+	return result, 32, nil
 }
 
 // DecodeBytes5Slice decodes bytes5[] from ABI bytes
@@ -4613,6 +4793,9 @@ func DecodeBytes5Slice(data []byte) ([][5]byte, int, error) {
 
 // DecodeBytes6 decodes bytes6 from ABI bytes
 func DecodeBytes6(data []byte) ([6]byte, int, error) {
+	if len(data) < 32 {
+		return [6]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[6]
 	for i := 6; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4621,7 +4804,7 @@ func DecodeBytes6(data []byte) ([6]byte, int, error) {
 	}
 	var result [6]byte
 	copy(result[:], data[:6])
-	return result, 6, nil
+	return result, 32, nil
 }
 
 // DecodeBytes6Slice decodes bytes6[] from ABI bytes
@@ -4656,6 +4839,9 @@ func DecodeBytes6Slice(data []byte) ([][6]byte, int, error) {
 
 // DecodeBytes7 decodes bytes7 from ABI bytes
 func DecodeBytes7(data []byte) ([7]byte, int, error) {
+	if len(data) < 32 {
+		return [7]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[7]
 	for i := 7; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4664,7 +4850,7 @@ func DecodeBytes7(data []byte) ([7]byte, int, error) {
 	}
 	var result [7]byte
 	copy(result[:], data[:7])
-	return result, 7, nil
+	return result, 32, nil
 }
 
 // DecodeBytes7Slice decodes bytes7[] from ABI bytes
@@ -4699,6 +4885,9 @@ func DecodeBytes7Slice(data []byte) ([][7]byte, int, error) {
 
 // DecodeBytes8 decodes bytes8 from ABI bytes
 func DecodeBytes8(data []byte) ([8]byte, int, error) {
+	if len(data) < 32 {
+		return [8]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[8]
 	for i := 8; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4707,7 +4896,7 @@ func DecodeBytes8(data []byte) ([8]byte, int, error) {
 	}
 	var result [8]byte
 	copy(result[:], data[:8])
-	return result, 8, nil
+	return result, 32, nil
 }
 
 // DecodeBytes8Slice decodes bytes8[] from ABI bytes
@@ -4742,6 +4931,9 @@ func DecodeBytes8Slice(data []byte) ([][8]byte, int, error) {
 
 // DecodeBytes9 decodes bytes9 from ABI bytes
 func DecodeBytes9(data []byte) ([9]byte, int, error) {
+	if len(data) < 32 {
+		return [9]byte{}, 0, io.ErrUnexpectedEOF
+	}
 	// Validate padding bytes for fixed bytes[9]
 	for i := 9; i < 32; i++ {
 		if data[i] != 0x00 {
@@ -4750,7 +4942,7 @@ func DecodeBytes9(data []byte) ([9]byte, int, error) {
 	}
 	var result [9]byte
 	copy(result[:], data[:9])
-	return result, 9, nil
+	return result, 32, nil
 }
 
 // DecodeBytes9Slice decodes bytes9[] from ABI bytes

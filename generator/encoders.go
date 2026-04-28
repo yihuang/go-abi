@@ -126,7 +126,13 @@ func (g *Generator) genBytesEncoding() {
 // genFixedBytesEncoding generates encoding for fixed bytes types
 func (g *Generator) genFixedBytesEncoding(t ethabi.Type) {
 	g.L("\tcopy(buf[:%d], value[:])", t.Size)
-	g.L("\treturn %d, nil", t.Size)
+	if t.Size < 32 {
+		// Zero out padding bytes to ensure clean ABI 32-byte slot
+		g.L("\tfor i := %d; i < 32; i++ {", t.Size)
+		g.L("\t\tbuf[i] = 0")
+		g.L("\t}")
+	}
+	g.L("\treturn 32, nil")
 }
 
 // genSliceEncoding generates encoding for slice types
