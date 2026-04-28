@@ -590,6 +590,14 @@ func TestParseHumanReadableABI_Errors(t *testing.T) {
 			input: []string{"function invalid format"},
 		},
 		{
+			name:  "invalid trailing modifier",
+			input: []string{"function f() nonsense"},
+		},
+		{
+			name:  "malformed returns clause",
+			input: []string{"function f() returns uint256"},
+		},
+		{
 			name:  "invalid type",
 			input: []string{"function test(uint257 invalid) returns (bool)"},
 		},
@@ -606,7 +614,7 @@ func TestParseHumanReadableABI_Errors(t *testing.T) {
 			input: []string{"function communityPool() view returns (tuple(string denom, uint256 amount)[] coins)"},
 		},
 		{
-			name:  "circular struct A -> B -> A",
+			name: "circular struct A -> B -> A",
 			input: []string{
 				"struct A { B b }",
 				"struct B { A a }",
@@ -614,7 +622,7 @@ func TestParseHumanReadableABI_Errors(t *testing.T) {
 			},
 		},
 		{
-			name:  "self-referencing struct",
+			name: "self-referencing struct",
 			input: []string{
 				"struct Node { Node next; uint256 value }",
 				"function test(Node n)",
