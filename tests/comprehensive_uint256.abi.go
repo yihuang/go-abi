@@ -5113,7 +5113,7 @@ func (t *UserCreatedEventData) Decode(data []byte) (int, error) {
 type AddressSliceArray3SliceView struct {
 	data    []byte
 	length  int
-	offsets []int // offset for each element
+	offsets []int // absolute offset into data for each element
 }
 
 // DecodeAddressSliceArray3SliceView creates a lazy view of address[][3][]
@@ -5134,45 +5134,25 @@ func DecodeAddressSliceArray3SliceView(data []byte) (*AddressSliceArray3SliceVie
 	}
 
 	offsets := make([]int, length)
-	dynamicOffset := length * 32
+	prev := length*32 - 1
+	maxOff := len(data) - 32
 	for i := 0; i < length; i++ {
-		offset, err := abi.DecodeSize(data[32+i*32:])
+		off, err := abi.DecodeSize(data[32+i*32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		if offset != dynamicOffset {
+		if off <= prev || off > maxOff {
 			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
-		offsets[i] = 32 + offset // Adjust offset to be from start of data
-
-		// Calculate element size
-		var n int
-		// Calculate dynamic array size
-		n = 0
-		arrDynOffset := 96
-		for j := 0; j < 3; j++ {
-			_, err := abi.DecodeSize(data[32+offset:][n:])
-			if err != nil {
-				return nil, 0, err
-			}
-			n += 32
-			var elemN int
-			_, elemN, err = abi.DecodeAddressSlice(data[32+offset:][arrDynOffset:])
-			if err != nil {
-				return nil, 0, err
-			}
-			arrDynOffset += elemN
-		}
-		n = arrDynOffset
-		dynamicOffset += n
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
 	}
 
-	totalSize := 32 + dynamicOffset
 	return &AddressSliceArray3SliceView{
-		data:    data[:totalSize],
+		data:    data,
 		length:  length,
 		offsets: offsets,
-	}, totalSize, nil
+	}, len(data), nil
 }
 
 // Len returns the number of elements
@@ -5185,8 +5165,14 @@ func (v *AddressSliceArray3SliceView) Get(i int) ([3][]common.Address, error) {
 	if i < 0 || i >= v.length {
 		return [3][]common.Address{}, abi.ErrViewIndexOutOfBounds
 	}
-	offset := v.offsets[i]
-	value, _, err := DecodeAddressSliceArray3(v.data[offset:])
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	value, _, err := DecodeAddressSliceArray3(v.data[start:end])
 	return value, err
 }
 
@@ -5205,7 +5191,7 @@ func (v *AddressSliceArray3SliceView) Materialize() ([][3][]common.Address, erro
 type ItemSliceView struct {
 	data    []byte
 	length  int
-	offsets []int // offset for each element
+	offsets []int // absolute offset into data for each element
 }
 
 // DecodeItemSliceView creates a lazy view of (uint32,bytes,bool)[]
@@ -5226,32 +5212,25 @@ func DecodeItemSliceView(data []byte) (*ItemSliceView, int, error) {
 	}
 
 	offsets := make([]int, length)
-	dynamicOffset := length * 32
+	prev := length*32 - 1
+	maxOff := len(data) - 32
 	for i := 0; i < length; i++ {
-		offset, err := abi.DecodeSize(data[32+i*32:])
+		off, err := abi.DecodeSize(data[32+i*32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		if offset != dynamicOffset {
+		if off <= prev || off > maxOff {
 			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
-		offsets[i] = 32 + offset // Adjust offset to be from start of data
-
-		// Calculate element size
-		var n int
-		_, n, err = DecodeItemView(data[32+offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		dynamicOffset += n
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
 	}
 
-	totalSize := 32 + dynamicOffset
 	return &ItemSliceView{
-		data:    data[:totalSize],
+		data:    data,
 		length:  length,
 		offsets: offsets,
-	}, totalSize, nil
+	}, len(data), nil
 }
 
 // Len returns the number of elements
@@ -5264,8 +5243,14 @@ func (v *ItemSliceView) Get(i int) (*ItemView, error) {
 	if i < 0 || i >= v.length {
 		return nil, abi.ErrViewIndexOutOfBounds
 	}
-	offset := v.offsets[i]
-	view, _, err := DecodeItemView(v.data[offset:])
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	view, _, err := DecodeItemView(v.data[start:end])
 	return view, err
 }
 
@@ -5284,7 +5269,7 @@ func (v *ItemSliceView) Materialize() ([]Item, error) {
 type StringSliceSliceView struct {
 	data    []byte
 	length  int
-	offsets []int // offset for each element
+	offsets []int // absolute offset into data for each element
 }
 
 // DecodeStringSliceSliceView creates a lazy view of string[][]
@@ -5305,32 +5290,25 @@ func DecodeStringSliceSliceView(data []byte) (*StringSliceSliceView, int, error)
 	}
 
 	offsets := make([]int, length)
-	dynamicOffset := length * 32
+	prev := length*32 - 1
+	maxOff := len(data) - 32
 	for i := 0; i < length; i++ {
-		offset, err := abi.DecodeSize(data[32+i*32:])
+		off, err := abi.DecodeSize(data[32+i*32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		if offset != dynamicOffset {
+		if off <= prev || off > maxOff {
 			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
-		offsets[i] = 32 + offset // Adjust offset to be from start of data
-
-		// Calculate element size
-		var n int
-		_, n, err = abi.DecodeStringSlice(data[32+offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		dynamicOffset += n
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
 	}
 
-	totalSize := 32 + dynamicOffset
 	return &StringSliceSliceView{
-		data:    data[:totalSize],
+		data:    data,
 		length:  length,
 		offsets: offsets,
-	}, totalSize, nil
+	}, len(data), nil
 }
 
 // Len returns the number of elements
@@ -5343,8 +5321,14 @@ func (v *StringSliceSliceView) Get(i int) ([]string, error) {
 	if i < 0 || i >= v.length {
 		return nil, abi.ErrViewIndexOutOfBounds
 	}
-	offset := v.offsets[i]
-	value, _, err := abi.DecodeStringSlice(v.data[offset:])
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	value, _, err := abi.DecodeStringSlice(v.data[start:end])
 	return value, err
 }
 
@@ -5363,7 +5347,7 @@ func (v *StringSliceSliceView) Materialize() ([][]string, error) {
 type Uint256SliceSliceView struct {
 	data    []byte
 	length  int
-	offsets []int // offset for each element
+	offsets []int // absolute offset into data for each element
 }
 
 // DecodeUint256SliceSliceView creates a lazy view of uint256[][]
@@ -5384,32 +5368,25 @@ func DecodeUint256SliceSliceView(data []byte) (*Uint256SliceSliceView, int, erro
 	}
 
 	offsets := make([]int, length)
-	dynamicOffset := length * 32
+	prev := length*32 - 1
+	maxOff := len(data) - 32
 	for i := 0; i < length; i++ {
-		offset, err := abi.DecodeSize(data[32+i*32:])
+		off, err := abi.DecodeSize(data[32+i*32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		if offset != dynamicOffset {
+		if off <= prev || off > maxOff {
 			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
-		offsets[i] = 32 + offset // Adjust offset to be from start of data
-
-		// Calculate element size
-		var n int
-		_, n, err = abi.DecodeUint256Slice(data[32+offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		dynamicOffset += n
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
 	}
 
-	totalSize := 32 + dynamicOffset
 	return &Uint256SliceSliceView{
-		data:    data[:totalSize],
+		data:    data,
 		length:  length,
 		offsets: offsets,
-	}, totalSize, nil
+	}, len(data), nil
 }
 
 // Len returns the number of elements
@@ -5422,8 +5399,14 @@ func (v *Uint256SliceSliceView) Get(i int) ([]*uint256.Int, error) {
 	if i < 0 || i >= v.length {
 		return nil, abi.ErrViewIndexOutOfBounds
 	}
-	offset := v.offsets[i]
-	value, _, err := abi.DecodeUint256Slice(v.data[offset:])
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	value, _, err := abi.DecodeUint256Slice(v.data[start:end])
 	return value, err
 }
 
@@ -5442,7 +5425,7 @@ func (v *Uint256SliceSliceView) Materialize() ([][]*uint256.Int, error) {
 type User2SliceView struct {
 	data    []byte
 	length  int
-	offsets []int // offset for each element
+	offsets []int // absolute offset into data for each element
 }
 
 // DecodeUser2SliceView creates a lazy view of (uint256,(string,string[],(uint256,string[])))[]
@@ -5463,32 +5446,25 @@ func DecodeUser2SliceView(data []byte) (*User2SliceView, int, error) {
 	}
 
 	offsets := make([]int, length)
-	dynamicOffset := length * 32
+	prev := length*32 - 1
+	maxOff := len(data) - 32
 	for i := 0; i < length; i++ {
-		offset, err := abi.DecodeSize(data[32+i*32:])
+		off, err := abi.DecodeSize(data[32+i*32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		if offset != dynamicOffset {
+		if off <= prev || off > maxOff {
 			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
-		offsets[i] = 32 + offset // Adjust offset to be from start of data
-
-		// Calculate element size
-		var n int
-		_, n, err = DecodeUser2View(data[32+offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		dynamicOffset += n
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
 	}
 
-	totalSize := 32 + dynamicOffset
 	return &User2SliceView{
-		data:    data[:totalSize],
+		data:    data,
 		length:  length,
 		offsets: offsets,
-	}, totalSize, nil
+	}, len(data), nil
 }
 
 // Len returns the number of elements
@@ -5501,8 +5477,14 @@ func (v *User2SliceView) Get(i int) (*User2View, error) {
 	if i < 0 || i >= v.length {
 		return nil, abi.ErrViewIndexOutOfBounds
 	}
-	offset := v.offsets[i]
-	view, _, err := DecodeUser2View(v.data[offset:])
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	view, _, err := DecodeUser2View(v.data[start:end])
 	return view, err
 }
 
@@ -5525,41 +5507,30 @@ type ItemView struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeItemView creates a lazy view of Item from ABI bytes
+// DecodeItemView creates a lazy view of Item.
 func DecodeItemView(data []byte) (*ItemView, int, error) {
 	if len(data) < 96 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 96
+	var offsets [1]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Data
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		length, err := abi.DecodeSize(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		n = 32 + abi.Pad32(length)
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &ItemView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Id returns the uint32 field
@@ -5601,40 +5572,30 @@ type Level1View struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeLevel1View creates a lazy view of Level1 from ABI bytes
+// DecodeLevel1View creates a lazy view of Level1.
 func DecodeLevel1View(data []byte) (*Level1View, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Level1
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeLevel2View(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &Level1View{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Level1 returns the (((uint256,string))) field
@@ -5664,40 +5625,30 @@ type Level2View struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeLevel2View creates a lazy view of Level2 from ABI bytes
+// DecodeLevel2View creates a lazy view of Level2.
 func DecodeLevel2View(data []byte) (*Level2View, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Level2
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeLevel3View(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &Level2View{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Level2 returns the ((uint256,string)) field
@@ -5727,40 +5678,30 @@ type Level3View struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeLevel3View creates a lazy view of Level3 from ABI bytes
+// DecodeLevel3View creates a lazy view of Level3.
 func DecodeLevel3View(data []byte) (*Level3View, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Level3
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeLevel4View(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &Level3View{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Level3 returns the (uint256,string) field
@@ -5790,41 +5731,30 @@ type Level4View struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeLevel4View creates a lazy view of Level4 from ABI bytes
+// DecodeLevel4View creates a lazy view of Level4.
 func DecodeLevel4View(data []byte) (*Level4View, int, error) {
 	if len(data) < 64 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 64
+	var offsets [1]int
+	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Description
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		length, err := abi.DecodeSize(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		n = 32 + abi.Pad32(length)
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &Level4View{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Value returns the uint256 field
@@ -5860,40 +5790,30 @@ type TestComplexDynamicTuplesCallView struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeTestComplexDynamicTuplesCallView creates a lazy view of TestComplexDynamicTuplesCall from ABI bytes
+// DecodeTestComplexDynamicTuplesCallView creates a lazy view of TestComplexDynamicTuplesCall.
 func DecodeTestComplexDynamicTuplesCallView(data []byte) (*TestComplexDynamicTuplesCallView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Users
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeUser2Slice(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &TestComplexDynamicTuplesCallView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Users returns the (uint256,(string,string[],(uint256,string[])))[] field
@@ -5922,7 +5842,7 @@ type TestComplexDynamicTuplesReturnView struct {
 	data []byte
 }
 
-// DecodeTestComplexDynamicTuplesReturnView creates a lazy view of TestComplexDynamicTuplesReturn from ABI bytes
+// DecodeTestComplexDynamicTuplesReturnView creates a lazy view of TestComplexDynamicTuplesReturn.
 func DecodeTestComplexDynamicTuplesReturnView(data []byte) (*TestComplexDynamicTuplesReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -5959,40 +5879,30 @@ type TestDeeplyNestedCallView struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeTestDeeplyNestedCallView creates a lazy view of TestDeeplyNestedCall from ABI bytes
+// DecodeTestDeeplyNestedCallView creates a lazy view of TestDeeplyNestedCall.
 func DecodeTestDeeplyNestedCallView(data []byte) (*TestDeeplyNestedCallView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Data
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeLevel1View(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &TestDeeplyNestedCallView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Data returns the ((((uint256,string)))) field
@@ -6021,7 +5931,7 @@ type TestDeeplyNestedReturnView struct {
 	data []byte
 }
 
-// DecodeTestDeeplyNestedReturnView creates a lazy view of TestDeeplyNestedReturn from ABI bytes
+// DecodeTestDeeplyNestedReturnView creates a lazy view of TestDeeplyNestedReturn.
 func DecodeTestDeeplyNestedReturnView(data []byte) (*TestDeeplyNestedReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6059,7 +5969,7 @@ type TestExternalTupleReturnView struct {
 	data []byte
 }
 
-// DecodeTestExternalTupleReturnView creates a lazy view of TestExternalTupleReturn from ABI bytes
+// DecodeTestExternalTupleReturnView creates a lazy view of TestExternalTupleReturn.
 func DecodeTestExternalTupleReturnView(data []byte) (*TestExternalTupleReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6095,7 +6005,7 @@ type TestFixedArraysCallView struct {
 	data []byte
 }
 
-// DecodeTestFixedArraysCallView creates a lazy view of TestFixedArraysCall from ABI bytes
+// DecodeTestFixedArraysCallView creates a lazy view of TestFixedArraysCall.
 func DecodeTestFixedArraysCallView(data []byte) (*TestFixedArraysCallView, int, error) {
 	if len(data) < 320 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6143,7 +6053,7 @@ type TestFixedArraysReturnView struct {
 	data []byte
 }
 
-// DecodeTestFixedArraysReturnView creates a lazy view of TestFixedArraysReturn from ABI bytes
+// DecodeTestFixedArraysReturnView creates a lazy view of TestFixedArraysReturn.
 func DecodeTestFixedArraysReturnView(data []byte) (*TestFixedArraysReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6179,7 +6089,7 @@ type TestFixedBytesCallView struct {
 	data []byte
 }
 
-// DecodeTestFixedBytesCallView creates a lazy view of TestFixedBytesCall from ABI bytes
+// DecodeTestFixedBytesCallView creates a lazy view of TestFixedBytesCall.
 func DecodeTestFixedBytesCallView(data []byte) (*TestFixedBytesCallView, int, error) {
 	if len(data) < 96 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6227,7 +6137,7 @@ type TestFixedBytesReturnView struct {
 	data []byte
 }
 
-// DecodeTestFixedBytesReturnView creates a lazy view of TestFixedBytesReturn from ABI bytes
+// DecodeTestFixedBytesReturnView creates a lazy view of TestFixedBytesReturn.
 func DecodeTestFixedBytesReturnView(data []byte) (*TestFixedBytesReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6264,58 +6174,42 @@ type TestMixedTypesCallView struct {
 	offsets [2]int // offsets for dynamic fields
 }
 
-// DecodeTestMixedTypesCallView creates a lazy view of TestMixedTypesCall from ABI bytes
+// DecodeTestMixedTypesCallView creates a lazy view of TestMixedTypesCall.
 func DecodeTestMixedTypesCallView(data []byte) (*TestMixedTypesCallView, int, error) {
 	if len(data) < 160 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [2]int
-	)
-	dynamicOffset := 160
+	var offsets [2]int
+	prevOffset := 160 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field DynamicData
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		length, err := abi.DecodeSize(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		n = 32 + abi.Pad32(length)
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
-	// Parse offset for dynamic field Items
-	offset, err = abi.DecodeSize(data[128:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[1] = offset
 	{
-		_, n, err = DecodeItemSlice(data[offset:])
+		off, err := abi.DecodeSize(data[128:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &TestMixedTypesCallView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // FixedData returns the bytes32 field
@@ -6326,7 +6220,7 @@ func (v *TestMixedTypesCallView) FixedData() ([32]byte, error) {
 
 // DynamicData returns the bytes field
 func (v *TestMixedTypesCallView) DynamicData() ([]byte, error) {
-	value, _, err := abi.DecodeBytes(v.data[v.offsets[0]:])
+	value, _, err := abi.DecodeBytes(v.data[v.offsets[0]:v.offsets[1]])
 	return value, err
 }
 
@@ -6368,7 +6262,7 @@ type TestMixedTypesReturnView struct {
 	data []byte
 }
 
-// DecodeTestMixedTypesReturnView creates a lazy view of TestMixedTypesReturn from ABI bytes
+// DecodeTestMixedTypesReturnView creates a lazy view of TestMixedTypesReturn.
 func DecodeTestMixedTypesReturnView(data []byte) (*TestMixedTypesReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6405,85 +6299,65 @@ type TestNestedDynamicArraysCallView struct {
 	offsets [3]int // offsets for dynamic fields
 }
 
-// DecodeTestNestedDynamicArraysCallView creates a lazy view of TestNestedDynamicArraysCall from ABI bytes
+// DecodeTestNestedDynamicArraysCallView creates a lazy view of TestNestedDynamicArraysCall.
 func DecodeTestNestedDynamicArraysCallView(data []byte) (*TestNestedDynamicArraysCallView, int, error) {
 	if len(data) < 96 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [3]int
-	)
-	dynamicOffset := 96
+	var offsets [3]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Matrix
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeUint256SliceSlice(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
-	// Parse offset for dynamic field AddressMatrix
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[1] = offset
 	{
-		_, n, err = DecodeAddressSliceArray3Slice(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
-	// Parse offset for dynamic field DymMatrix
-	offset, err = abi.DecodeSize(data[64:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[2] = offset
 	{
-		_, n, err = DecodeStringSliceSlice(data[offset:])
+		off, err := abi.DecodeSize(data[64:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[2] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &TestNestedDynamicArraysCallView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Matrix returns the uint256[][] field
 func (v *TestNestedDynamicArraysCallView) Matrix() (*Uint256SliceSliceView, error) {
-	view, _, err := DecodeUint256SliceSliceView(v.data[v.offsets[0]:])
+	view, _, err := DecodeUint256SliceSliceView(v.data[v.offsets[0]:v.offsets[1]])
 	return view, err
 }
 
 // AddressMatrix returns the address[][3][] field
 func (v *TestNestedDynamicArraysCallView) AddressMatrix() (*AddressSliceArray3SliceView, error) {
-	view, _, err := DecodeAddressSliceArray3SliceView(v.data[v.offsets[1]:])
+	view, _, err := DecodeAddressSliceArray3SliceView(v.data[v.offsets[1]:v.offsets[2]])
 	return view, err
 }
 
@@ -6513,7 +6387,7 @@ type TestNestedDynamicArraysReturnView struct {
 	data []byte
 }
 
-// DecodeTestNestedDynamicArraysReturnView creates a lazy view of TestNestedDynamicArraysReturn from ABI bytes
+// DecodeTestNestedDynamicArraysReturnView creates a lazy view of TestNestedDynamicArraysReturn.
 func DecodeTestNestedDynamicArraysReturnView(data []byte) (*TestNestedDynamicArraysReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6551,7 +6425,7 @@ type TestNestedStructReturnView struct {
 	data []byte
 }
 
-// DecodeTestNestedStructReturnView creates a lazy view of TestNestedStructReturn from ABI bytes
+// DecodeTestNestedStructReturnView creates a lazy view of TestNestedStructReturn.
 func DecodeTestNestedStructReturnView(data []byte) (*TestNestedStructReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6587,7 +6461,7 @@ type TestNonStandardIntegersCallView struct {
 	data []byte
 }
 
-// DecodeTestNonStandardIntegersCallView creates a lazy view of TestNonStandardIntegersCall from ABI bytes
+// DecodeTestNonStandardIntegersCallView creates a lazy view of TestNonStandardIntegersCall.
 func DecodeTestNonStandardIntegersCallView(data []byte) (*TestNonStandardIntegersCallView, int, error) {
 	if len(data) < 320 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6677,7 +6551,7 @@ type TestNonStandardIntegersReturnView struct {
 	data []byte
 }
 
-// DecodeTestNonStandardIntegersReturnView creates a lazy view of TestNonStandardIntegersReturn from ABI bytes
+// DecodeTestNonStandardIntegersReturnView creates a lazy view of TestNonStandardIntegersReturn.
 func DecodeTestNonStandardIntegersReturnView(data []byte) (*TestNonStandardIntegersReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6713,7 +6587,7 @@ type TestSmallIntegersCallView struct {
 	data []byte
 }
 
-// DecodeTestSmallIntegersCallView creates a lazy view of TestSmallIntegersCall from ABI bytes
+// DecodeTestSmallIntegersCallView creates a lazy view of TestSmallIntegersCall.
 func DecodeTestSmallIntegersCallView(data []byte) (*TestSmallIntegersCallView, int, error) {
 	if len(data) < 320 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6803,7 +6677,7 @@ type TestSmallIntegersReturnView struct {
 	data []byte
 }
 
-// DecodeTestSmallIntegersReturnView creates a lazy view of TestSmallIntegersReturn from ABI bytes
+// DecodeTestSmallIntegersReturnView creates a lazy view of TestSmallIntegersReturn.
 func DecodeTestSmallIntegersReturnView(data []byte) (*TestSmallIntegersReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6840,40 +6714,30 @@ type User2View struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeUser2View creates a lazy view of User2 from ABI bytes
+// DecodeUser2View creates a lazy view of User2.
 func DecodeUser2View(data []byte) (*User2View, int, error) {
 	if len(data) < 64 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 64
+	var offsets [1]int
+	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Profile
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeUserProfileView(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &User2View{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Id returns the uint256 field
@@ -6909,40 +6773,30 @@ type UserMetadata2View struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeUserMetadata2View creates a lazy view of UserMetadata2 from ABI bytes
+// DecodeUserMetadata2View creates a lazy view of UserMetadata2.
 func DecodeUserMetadata2View(data []byte) (*UserMetadata2View, int, error) {
 	if len(data) < 64 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 64
+	var offsets [1]int
+	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Tags
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = abi.DecodeStringSlice(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &UserMetadata2View{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // CreatedAt returns the uint256 field
@@ -6978,86 +6832,65 @@ type UserProfileView struct {
 	offsets [3]int // offsets for dynamic fields
 }
 
-// DecodeUserProfileView creates a lazy view of UserProfile from ABI bytes
+// DecodeUserProfileView creates a lazy view of UserProfile.
 func DecodeUserProfileView(data []byte) (*UserProfileView, int, error) {
 	if len(data) < 96 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [3]int
-	)
-	dynamicOffset := 96
+	var offsets [3]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Name
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		length, err := abi.DecodeSize(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
-		n = 32 + abi.Pad32(length)
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
-	// Parse offset for dynamic field Emails
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[1] = offset
 	{
-		_, n, err = abi.DecodeStringSlice(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
-	// Parse offset for dynamic field Metadata
-	offset, err = abi.DecodeSize(data[64:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[2] = offset
 	{
-		_, n, err = DecodeUserMetadata2View(data[offset:])
+		off, err := abi.DecodeSize(data[64:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[2] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &UserProfileView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Name returns the string field
 func (v *UserProfileView) Name() (string, error) {
-	value, _, err := abi.DecodeString(v.data[v.offsets[0]:])
+	value, _, err := abi.DecodeString(v.data[v.offsets[0]:v.offsets[1]])
 	return value, err
 }
 
 // Emails returns the string[] field
 func (v *UserProfileView) Emails() ([]string, error) {
-	value, _, err := abi.DecodeStringSlice(v.data[v.offsets[1]:])
+	value, _, err := abi.DecodeStringSlice(v.data[v.offsets[1]:v.offsets[2]])
 	return value, err
 }
 

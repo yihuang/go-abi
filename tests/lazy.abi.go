@@ -1061,7 +1061,7 @@ func (t *GetRecordsReturn) PackedDecode(data []byte) (int, error) {
 type RecordSliceView struct {
 	data    []byte
 	length  int
-	offsets []int // offset for each element
+	offsets []int // absolute offset into data for each element
 }
 
 // DecodeRecordSliceView creates a lazy view of (uint32,bytes,bool)[]
@@ -1082,32 +1082,25 @@ func DecodeRecordSliceView(data []byte) (*RecordSliceView, int, error) {
 	}
 
 	offsets := make([]int, length)
-	dynamicOffset := length * 32
+	prev := length*32 - 1
+	maxOff := len(data) - 32
 	for i := 0; i < length; i++ {
-		offset, err := abi.DecodeSize(data[32+i*32:])
+		off, err := abi.DecodeSize(data[32+i*32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		if offset != dynamicOffset {
+		if off <= prev || off > maxOff {
 			return nil, 0, abi.ErrInvalidOffsetForSliceElement
 		}
-		offsets[i] = 32 + offset // Adjust offset to be from start of data
-
-		// Calculate element size
-		var n int
-		_, n, err = DecodeRecordView(data[32+offset:])
-		if err != nil {
-			return nil, 0, err
-		}
-		dynamicOffset += n
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
 	}
 
-	totalSize := 32 + dynamicOffset
 	return &RecordSliceView{
-		data:    data[:totalSize],
+		data:    data,
 		length:  length,
 		offsets: offsets,
-	}, totalSize, nil
+	}, len(data), nil
 }
 
 // Len returns the number of elements
@@ -1120,8 +1113,14 @@ func (v *RecordSliceView) Get(i int) (*RecordView, error) {
 	if i < 0 || i >= v.length {
 		return nil, abi.ErrViewIndexOutOfBounds
 	}
-	offset := v.offsets[i]
-	view, _, err := DecodeRecordView(v.data[offset:])
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	view, _, err := DecodeRecordView(v.data[start:end])
 	return view, err
 }
 
@@ -1142,62 +1141,47 @@ type ContainerView struct {
 	offsets [2]int // offsets for dynamic fields
 }
 
-// DecodeContainerView creates a lazy view of Container from ABI bytes
+// DecodeContainerView creates a lazy view of Container.
 func DecodeContainerView(data []byte) (*ContainerView, int, error) {
 	if len(data) < 64 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [2]int
-	)
-	dynamicOffset := 64
+	var offsets [2]int
+	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Profile
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeProfileView(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
-	// Parse offset for dynamic field Records
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[1] = offset
 	{
-		_, n, err = DecodeRecordSlice(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &ContainerView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Profile returns the (string,uint64,string[]) field
 func (v *ContainerView) Profile() (*ProfileView, error) {
-	view, _, err := DecodeProfileView(v.data[v.offsets[0]:])
+	view, _, err := DecodeProfileView(v.data[v.offsets[0]:v.offsets[1]])
 	return view, err
 }
 
@@ -1228,40 +1212,30 @@ type GetContainerCallView struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeGetContainerCallView creates a lazy view of GetContainerCall from ABI bytes
+// DecodeGetContainerCallView creates a lazy view of GetContainerCall.
 func DecodeGetContainerCallView(data []byte) (*GetContainerCallView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Container
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeContainerView(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &GetContainerCallView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Container returns the ((string,uint64,string[]),(uint32,bytes,bool)[]) field
@@ -1290,7 +1264,7 @@ type GetContainerReturnView struct {
 	data []byte
 }
 
-// DecodeGetContainerReturnView creates a lazy view of GetContainerReturn from ABI bytes
+// DecodeGetContainerReturnView creates a lazy view of GetContainerReturn.
 func DecodeGetContainerReturnView(data []byte) (*GetContainerReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -1327,40 +1301,30 @@ type GetProfileCallView struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeGetProfileCallView creates a lazy view of GetProfileCall from ABI bytes
+// DecodeGetProfileCallView creates a lazy view of GetProfileCall.
 func DecodeGetProfileCallView(data []byte) (*GetProfileCallView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Profile
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeProfileView(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &GetProfileCallView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Profile returns the (string,uint64,string[]) field
@@ -1389,7 +1353,7 @@ type GetProfileReturnView struct {
 	data []byte
 }
 
-// DecodeGetProfileReturnView creates a lazy view of GetProfileReturn from ABI bytes
+// DecodeGetProfileReturnView creates a lazy view of GetProfileReturn.
 func DecodeGetProfileReturnView(data []byte) (*GetProfileReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -1426,40 +1390,30 @@ type GetRecordsCallView struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeGetRecordsCallView creates a lazy view of GetRecordsCall from ABI bytes
+// DecodeGetRecordsCallView creates a lazy view of GetRecordsCall.
 func DecodeGetRecordsCallView(data []byte) (*GetRecordsCallView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 32
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Records
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		_, n, err = DecodeRecordSlice(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &GetRecordsCallView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Records returns the (uint32,bytes,bool)[] field
@@ -1488,7 +1442,7 @@ type GetRecordsReturnView struct {
 	data []byte
 }
 
-// DecodeGetRecordsReturnView creates a lazy view of GetRecordsReturn from ABI bytes
+// DecodeGetRecordsReturnView creates a lazy view of GetRecordsReturn.
 func DecodeGetRecordsReturnView(data []byte) (*GetRecordsReturnView, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -1525,63 +1479,47 @@ type ProfileView struct {
 	offsets [2]int // offsets for dynamic fields
 }
 
-// DecodeProfileView creates a lazy view of Profile from ABI bytes
+// DecodeProfileView creates a lazy view of Profile.
 func DecodeProfileView(data []byte) (*ProfileView, int, error) {
 	if len(data) < 96 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [2]int
-	)
-	dynamicOffset := 96
+	var offsets [2]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Name
-	offset, err = abi.DecodeSize(data[0:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		length, err := abi.DecodeSize(data[offset:])
+		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
 			return nil, 0, err
 		}
-		n = 32 + abi.Pad32(length)
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
-	// Parse offset for dynamic field Tags
-	offset, err = abi.DecodeSize(data[64:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[1] = offset
 	{
-		_, n, err = abi.DecodeStringSlice(data[offset:])
+		off, err := abi.DecodeSize(data[64:])
 		if err != nil {
 			return nil, 0, err
 		}
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &ProfileView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Name returns the string field
 func (v *ProfileView) Name() (string, error) {
-	value, _, err := abi.DecodeString(v.data[v.offsets[0]:])
+	value, _, err := abi.DecodeString(v.data[v.offsets[0]:v.offsets[1]])
 	return value, err
 }
 
@@ -1618,41 +1556,30 @@ type RecordView struct {
 	offsets [1]int // offsets for dynamic fields
 }
 
-// DecodeRecordView creates a lazy view of Record from ABI bytes
+// DecodeRecordView creates a lazy view of Record.
 func DecodeRecordView(data []byte) (*RecordView, int, error) {
 	if len(data) < 96 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	var (
-		err     error
-		offset  int
-		n       int
-		offsets [1]int
-	)
-	dynamicOffset := 96
+	var offsets [1]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
 
-	// Parse offset for dynamic field Data
-	offset, err = abi.DecodeSize(data[32:])
-	if err != nil {
-		return nil, 0, err
-	}
-	if offset != dynamicOffset {
-		return nil, 0, abi.ErrInvalidOffsetForDynamicField
-	}
-	offsets[0] = offset
 	{
-		length, err := abi.DecodeSize(data[offset:])
+		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
 			return nil, 0, err
 		}
-		n = 32 + abi.Pad32(length)
+		if off <= prevOffset || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
 	}
-	dynamicOffset += n
 
 	return &RecordView{
-		data:    data[:dynamicOffset],
+		data:    data,
 		offsets: offsets,
-	}, dynamicOffset, nil
+	}, len(data), nil
 }
 
 // Id returns the uint32 field

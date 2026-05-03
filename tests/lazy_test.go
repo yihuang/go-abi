@@ -138,6 +138,76 @@ func TestLazyViewSliceOversizedLength(t *testing.T) {
 	require.Error(t, err)
 }
 
+// TestLazyViewSliceOversizedElementOffset guards against a signed-int
+// overflow in the slice-view's per-element offset bound check. The previous
+// guard `32+off > len(data)` overflows to a negative value when off is near
+// MaxInt, bypasses validation, stores a negative absolute offset, and panics
+// inside Get with "slice bounds out of range".
+func TestLazyViewSliceOversizedElementOffset(t *testing.T) {
+	// length=2, off0=64 (canonical), off1=MaxInt
+	data := make([]byte, 32+64+32)
+	data[31] = 2  // length = 2
+	data[63] = 64 // first element offset = 64
+	val := uint64(math.MaxInt)
+	for i := 0; i < 8; i++ {
+		data[95-i] = byte(val >> (i * 8))
+	}
+	_, _, err := DecodeRecordSliceView(data)
+	require.Error(t, err)
+}
+
+// TestLazyViewTupleMalformedOffsets exercises the offset-validation paths in
+// Decode<X>View directly: out-of-bounds offset, non-canonical first offset,
+// and non-monotonic offsets must all return an error rather than panic.
+func TestLazyViewTupleMalformedOffsets(t *testing.T) {
+	// Container has two dynamic fields (Profile, Records). The header is
+	// two 32-byte offset slots, so a valid first offset is 64.
+
+	t.Run("FirstOffsetWrong", func(t *testing.T) {
+		// First offset = 32 (less than header size). Must reject.
+		buf := make([]byte, 64)
+		buf[31] = 32
+		_, _, err := DecodeContainerView(buf)
+		require.Error(t, err)
+	})
+
+	t.Run("SecondOffsetNotMonotonic", func(t *testing.T) {
+		// First offset = 64 (valid), second offset = 64 (equal, not strictly
+		// increasing). Must reject.
+		buf := make([]byte, 64)
+		buf[31] = 64
+		buf[63] = 64
+		_, _, err := DecodeContainerView(buf)
+		require.Error(t, err)
+	})
+
+	t.Run("OffsetBeyondData", func(t *testing.T) {
+		// First offset = 64 (valid), second offset = MaxInt. Must reject
+		// without panicking on slice arithmetic.
+		buf := make([]byte, 64)
+		buf[31] = 64
+		val := uint64(math.MaxInt)
+		for i := 0; i < 8; i++ {
+			buf[63-i] = byte(val >> (i * 8))
+		}
+		_, _, err := DecodeContainerView(buf)
+		require.Error(t, err)
+	})
+
+	t.Run("TruncatedAfterValidHeader", func(t *testing.T) {
+		// Header advertises a Profile at offset 64, but the buffer ends at
+		// the header. Construction validates offset is within len(data); a
+		// later getter would surface a deeper error, but the constructor
+		// itself must not panic.
+		buf := make([]byte, 64)
+		buf[31] = 64
+		buf[63] = 65
+		require.NotPanics(t, func() {
+			_, _, _ = DecodeContainerView(buf)
+		})
+	})
+}
+
 func TestLazyViewWithDynamicField(t *testing.T) {
 	// Record has dynamic field (bytes data)
 	record := &Record{

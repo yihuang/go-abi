@@ -21,65 +21,57 @@ func (g *Generator) genViewStruct(s Struct) {
 	g.L("}")
 }
 
-// genViewDecodeFunction generates DecodeXxxView function
+// genViewDecodeFunction emits DecodeXxxView. Construction reads only the
+// dynamic offsets from the header and validates monotonic + in-bounds; no
+// recursion into children. Caller must pass a slice covering exactly the
+// tuple's payload.
 func (g *Generator) genViewDecodeFunction(s Struct) {
 	staticSize := GetTupleSize(s.Types())
 	dynamicCount := countDynamicFields(s)
 
 	g.L("")
-	g.L("// Decode%sView creates a lazy view of %s from ABI bytes", s.Name, s.Name)
+	g.L("// Decode%sView creates a lazy view of %s.", s.Name, s.Name)
 	g.L("func Decode%sView(data []byte) (*%sView, int, error) {", s.Name, s.Name)
 
-	// Validate minimum size
 	g.L("\tif len(data) < %d {", staticSize)
 	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 	g.L("\t}")
 
 	if dynamicCount > 0 {
-		g.L("\tvar (")
-		g.L("\t\terr error")
-		g.L("\t\toffset int")
-		g.L("\t\tn int")
-		g.L("\t\toffsets [%d]int", dynamicCount)
-		g.L("\t)")
-		g.L("\tdynamicOffset := %d", staticSize)
+		g.L("\tvar offsets [%d]int", dynamicCount)
+		g.L("\tprevOffset := %d - 1 // floor for monotonic + in-bounds check", staticSize)
 
-		// Parse and validate offsets for dynamic fields
 		var dynamicIdx int
 		var staticOffset int
 		for _, field := range s.Fields {
 			if !IsDynamicType(*field.Type) {
-				// Static field - just advance offset
 				staticOffset += GetTypeSize(*field.Type)
-			} else {
-				// Dynamic field - parse and validate offset
-				g.L("")
-				g.L("\t// Parse offset for dynamic field %s", field.Name)
-				g.L("\toffset, err = %sDecodeSize(data[%d:])", g.StdPrefix, staticOffset)
-				g.L("\tif err != nil {")
-				g.L("\t\treturn nil, 0, err")
-				g.L("\t}")
-				g.L("\tif offset != dynamicOffset {")
-				g.L("\t\treturn nil, 0, %sErrInvalidOffsetForDynamicField", g.StdPrefix)
-				g.L("\t}")
-				g.L("\toffsets[%d] = offset", dynamicIdx)
-
-				// Calculate size of dynamic field to advance dynamicOffset
-				g.genViewFieldSizeCalc(*field.Type, "data[offset:]", "n")
-				g.L("\tdynamicOffset += n")
-
-				dynamicIdx++
-				staticOffset += 32 // Offset pointer size
+				continue
 			}
+
+			g.L("")
+			g.L("\t{")
+			g.L("\t\toff, err := %sDecodeSize(data[%d:])", g.StdPrefix, staticOffset)
+			g.L("\t\tif err != nil {")
+			g.L("\t\t\treturn nil, 0, err")
+			g.L("\t\t}")
+			g.L("\t\tif off <= prevOffset || off > len(data) {")
+			g.L("\t\t\treturn nil, 0, %sErrInvalidOffsetForDynamicField", g.StdPrefix)
+			g.L("\t\t}")
+			g.L("\t\toffsets[%d] = off", dynamicIdx)
+			g.L("\t\tprevOffset = off")
+			g.L("\t}")
+
+			dynamicIdx++
+			staticOffset += 32
 		}
 
 		g.L("")
 		g.L("\treturn &%sView{", s.Name)
-		g.L("\t\tdata: data[:dynamicOffset],")
+		g.L("\t\tdata: data,")
 		g.L("\t\toffsets: offsets,")
-		g.L("\t}, dynamicOffset, nil")
+		g.L("\t}, len(data), nil")
 	} else {
-		// All-static tuple
 		g.L("\treturn &%sView{", s.Name)
 		g.L("\t\tdata: data[:%d],", staticSize)
 		g.L("\t}, %d, nil", staticSize)
@@ -87,111 +79,15 @@ func (g *Generator) genViewDecodeFunction(s Struct) {
 	g.L("}")
 }
 
-// genViewFieldSizeCalc generates inline size calculation for a dynamic field
-func (g *Generator) genViewFieldSizeCalc(t ethabi.Type, dataRef string, resultVar string) {
-	switch t.T {
-	case ethabi.StringTy, ethabi.BytesTy:
-		g.L("\t{")
-		g.L("\t\tlength, err := %sDecodeSize(%s)", g.StdPrefix, dataRef)
-		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn nil, 0, err")
-		g.L("\t\t}")
-		g.L("\t\t%s = 32 + %sPad32(length)", resultVar, g.StdPrefix)
-		g.L("\t}")
-
-	case ethabi.SliceTy:
-		if !IsDynamicType(*t.Elem) {
-			// Static element slice
-			elemSize := GetTypeSize(*t.Elem)
-			g.L("\t{")
-			g.L("\t\tlength, err := %sDecodeSize(%s)", g.StdPrefix, dataRef)
-			g.L("\t\tif err != nil {")
-			g.L("\t\t\treturn nil, 0, err")
-			g.L("\t\t}")
-			g.L("\t\t%s = 32 + length * %d", resultVar, elemSize)
-			g.L("\t}")
-		} else {
-			// Dynamic element slice - use decode function to get size
-			// This works for both stdlib and custom slice types
-			g.L("\t{")
-			g.L("\t\t_, %s, err = %s", resultVar, g.genDecodeCall(t, dataRef))
-			g.L("\t\tif err != nil {")
-			g.L("\t\t\treturn nil, 0, err")
-			g.L("\t\t}")
-			g.L("\t}")
-		}
-
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			// Dynamic element array - need to calculate each element's size
-			g.L("\t{")
-			g.L("\t\tarrayOffset := 0")
-			g.L("\t\texpectedDynOffset := %d", t.Size*32)
-			g.L("\t\tfor i := 0; i < %d; i++ {", t.Size)
-			g.L("\t\t\telemOff, err := %sDecodeSize(%s[arrayOffset:])", g.StdPrefix, dataRef)
-			g.L("\t\t\tif err != nil {")
-			g.L("\t\t\t\treturn nil, 0, err")
-			g.L("\t\t\t}")
-			g.L("\t\t\tif elemOff != expectedDynOffset {")
-			g.L("\t\t\t\treturn nil, 0, %sErrInvalidOffsetForArrayElement", g.StdPrefix)
-			g.L("\t\t\t}")
-			g.L("\t\t\tarrayOffset += 32")
-			g.L("\t\t\tvar elemSize int")
-			g.genViewFieldSizeCalcInner(*t.Elem, fmt.Sprintf("%s[expectedDynOffset:]", dataRef), "elemSize")
-			g.L("\t\t\texpectedDynOffset += elemSize")
-			g.L("\t\t}")
-			g.L("\t\t%s = expectedDynOffset", resultVar)
-			g.L("\t}")
-		} else {
-			// Static element array
-			g.L("\t%s = %d", resultVar, t.Size*GetTypeSize(*t.Elem))
-		}
-
-	case ethabi.TupleTy:
-		// Nested tuple
-		tupleName := abi.TupleStructName(t)
-		g.L("\t{")
-		g.L("\t\t_, %s, err = Decode%sView(%s)", resultVar, tupleName, dataRef)
-		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn nil, 0, err")
-		g.L("\t\t}")
-		g.L("\t}")
-	}
-}
-
-// genViewFieldSizeCalcInner generates size calculation without extra braces (for use inside loops)
-func (g *Generator) genViewFieldSizeCalcInner(t ethabi.Type, dataRef string, resultVar string) {
-	switch t.T {
-	case ethabi.StringTy, ethabi.BytesTy:
-		g.L("\t\t\tlength, err := %sDecodeSize(%s)", g.StdPrefix, dataRef)
-		g.L("\t\t\tif err != nil {")
-		g.L("\t\t\t\treturn nil, 0, err")
-		g.L("\t\t\t}")
-		g.L("\t\t\t%s = 32 + %sPad32(length)", resultVar, g.StdPrefix)
-
-	case ethabi.SliceTy:
-		// Use the decode function to get size (works for both stdlib and custom types)
-		g.L("\t\t\t_, %s, err = %s", resultVar, g.genDecodeCall(t, dataRef))
-		g.L("\t\t\tif err != nil {")
-		g.L("\t\t\t\treturn nil, 0, err")
-		g.L("\t\t\t}")
-
-	case ethabi.TupleTy:
-		tupleName := abi.TupleStructName(t)
-		g.L("\t\t\t_, %s, err = Decode%sView(%s)", resultVar, tupleName, dataRef)
-		g.L("\t\t\tif err != nil {")
-		g.L("\t\t\t\treturn nil, 0, err")
-		g.L("\t\t\t}")
-	}
-}
-
 // genViewGetters generates getter methods for all fields
 func (g *Generator) genViewGetters(s Struct) {
+	totalDynamic := countDynamicFields(s)
+
 	var dynamicIdx int
 	var staticOffset int
-
 	for _, field := range s.Fields {
-		g.genViewGetter(s.Name, field, staticOffset, dynamicIdx)
+		isLastDynamic := IsDynamicType(*field.Type) && dynamicIdx == totalDynamic-1
+		g.genViewGetter(s.Name, field, staticOffset, dynamicIdx, isLastDynamic)
 
 		if !IsDynamicType(*field.Type) {
 			staticOffset += GetTypeSize(*field.Type)
@@ -202,8 +98,10 @@ func (g *Generator) genViewGetters(s Struct) {
 	}
 }
 
-// genViewGetter generates a single getter method
-func (g *Generator) genViewGetter(structName string, field StructField, staticOffset int, dynamicIdx int) {
+// genViewGetter emits a single getter. Dynamic fields get a sub-slice
+// bounded by the next dynamic offset (or len(data) for the last), so the
+// child decoder doesn't need to re-walk to find its extent.
+func (g *Generator) genViewGetter(structName string, field StructField, staticOffset int, dynamicIdx int, isLastDynamic bool) {
 	returnType := g.viewGetterReturnType(*field.Type)
 
 	g.L("")
@@ -211,20 +109,23 @@ func (g *Generator) genViewGetter(structName string, field StructField, staticOf
 	g.L("func (v *%sView) %s() (%s, error) {", structName, field.Name, returnType)
 
 	if !IsDynamicType(*field.Type) {
-		// Static field - decode from fixed offset in data
 		g.genViewGetterBody(*field.Type, fmt.Sprintf("v.data[%d:]", staticOffset))
 	} else {
-		// Dynamic field - decode from stored offset
-		g.genViewGetterBody(*field.Type, fmt.Sprintf("v.data[v.offsets[%d]:]", dynamicIdx))
+		var dataRef string
+		if isLastDynamic {
+			dataRef = fmt.Sprintf("v.data[v.offsets[%d]:]", dynamicIdx)
+		} else {
+			dataRef = fmt.Sprintf("v.data[v.offsets[%d]:v.offsets[%d]]", dynamicIdx, dynamicIdx+1)
+		}
+		g.genViewGetterBody(*field.Type, dataRef)
 	}
 
 	g.L("}")
 }
 
-// viewGetterReturnType returns the return type for a view getter:
-// *XxxView for tuples, *XxxSliceView for slices of generated types,
-// and the plain Go type for stdlib scalars and slices of them (the
-// stdlib decoder is already cheap, so a view would only add allocs).
+// viewGetterReturnType returns the getter return type. Stdlib scalars and
+// slices of them return plain Go values — wrapping them in a view would
+// only add allocs without saving work.
 func (g *Generator) viewGetterReturnType(t ethabi.Type) string {
 	switch t.T {
 	case ethabi.TupleTy:

@@ -1,8 +1,6 @@
 package generator
 
 import (
-	"fmt"
-
 	ethabi "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/yihuang/go-abi"
 )
@@ -36,7 +34,7 @@ func (g *Generator) genSliceView(t ethabi.Type) {
 	g.L("\tdata []byte")
 	g.L("\tlength int")
 	if hasDynamicElem {
-		g.L("\toffsets []int // offset for each element")
+		g.L("\toffsets []int // absolute offset into data for each element")
 	}
 	g.L("}")
 
@@ -88,7 +86,9 @@ func (g *Generator) sliceViewElemReturnType(t ethabi.Type) string {
 	}
 }
 
-// genSliceViewDecodeFunction generates DecodeXxx function for slice views
+// genSliceViewDecodeFunction emits DecodeXxx for a slice view. Static-elem
+// slices know their size up front; dynamic-elem slices read the offset table
+// and validate monotonic + in-bounds, with no per-element walks.
 func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 	hasDynamicElem := IsDynamicType(*t.Elem)
 
@@ -96,7 +96,6 @@ func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 	g.L("// Decode%s creates a lazy view of %s", typeName, t.String())
 	g.L("func Decode%s(data []byte) (*%s, int, error) {", typeName, typeName)
 
-	// Read length
 	g.L("\tif len(data) < 32 {")
 	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 	g.L("\t}")
@@ -106,10 +105,8 @@ func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 	g.L("\t}")
 
 	if !hasDynamicElem {
-		// Static elements - simple size calculation
 		elemSize := GetTypeSize(*t.Elem)
-		// Reject implausible lengths before arithmetic, otherwise length*N
-		// can overflow int and len(data) < totalSize fails to catch it.
+		// Reject before arithmetic; length*N can overflow int.
 		g.L("\tif length > len(data) || length*%d > len(data)-32 {", elemSize)
 		g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 		g.L("\t}")
@@ -119,125 +116,42 @@ func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 		g.L("\t\tlength: length,")
 		g.L("\t}, totalSize, nil")
 	} else {
-		// Dynamic elements - parse offset table and validate
 		g.L("\tif length == 0 {")
 		g.L("\t\treturn &%s{data: data[:32], length: 0, offsets: nil}, 32, nil", typeName)
 		g.L("\t}")
 		g.L("")
-		// Same overflow guard for the offset table (32 bytes per element).
 		g.L("\tif length > len(data) || length*32 > len(data)-32 {")
 		g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 		g.L("\t}")
 		g.L("")
 		g.L("\toffsets := make([]int, length)")
-		g.L("\tdynamicOffset := length * 32")
+		// maxOff = len(data)-32 (not 32+off vs len(data); the latter overflows
+		// when off is near MaxInt and would bypass validation).
+		g.L("\tprev := length*32 - 1")
+		g.L("\tmaxOff := len(data) - 32")
 		g.L("\tfor i := 0; i < length; i++ {")
-		g.L("\t\toffset, err := %sDecodeSize(data[32 + i*32:])", g.StdPrefix)
+		g.L("\t\toff, err := %sDecodeSize(data[32+i*32:])", g.StdPrefix)
 		g.L("\t\tif err != nil {")
 		g.L("\t\t\treturn nil, 0, err")
 		g.L("\t\t}")
-		g.L("\t\tif offset != dynamicOffset {")
+		g.L("\t\tif off <= prev || off > maxOff {")
 		g.L("\t\t\treturn nil, 0, %sErrInvalidOffsetForSliceElement", g.StdPrefix)
 		g.L("\t\t}")
-		g.L("\t\toffsets[i] = 32 + offset // Adjust offset to be from start of data")
-		g.L("")
-
-		// Calculate element size to advance dynamicOffset
-		g.L("\t\t// Calculate element size")
-		g.L("\t\tvar n int")
-		g.genSliceElemSizeCalc(*t.Elem, "data[32+offset:]")
-		g.L("\t\tdynamicOffset += n")
-
+		g.L("\t\toffsets[i] = 32 + off // absolute offset from start of data")
+		g.L("\t\tprev = off")
 		g.L("\t}")
 		g.L("")
-		g.L("\ttotalSize := 32 + dynamicOffset")
 		g.L("\treturn &%s{", typeName)
-		g.L("\t\tdata: data[:totalSize],")
+		g.L("\t\tdata: data,")
 		g.L("\t\tlength: length,")
 		g.L("\t\toffsets: offsets,")
-		g.L("\t}, totalSize, nil")
+		g.L("\t}, len(data), nil")
 	}
 	g.L("}")
 }
 
-// genSliceElemSizeCalc generates size calculation for a slice element
-func (g *Generator) genSliceElemSizeCalc(t ethabi.Type, dataRef string) {
-	switch t.T {
-	case ethabi.StringTy, ethabi.BytesTy:
-		g.L("\t\tlength, err := %sDecodeSize(%s)", g.StdPrefix, dataRef)
-		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn nil, 0, err")
-		g.L("\t\t}")
-		g.L("\t\tn = 32 + %sPad32(length)", g.StdPrefix)
-
-	case ethabi.SliceTy:
-		// Use the decode function to get size (works for both stdlib and custom types)
-		g.L("\t\t_, n, err = %s", g.genDecodeCall(t, dataRef))
-		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn nil, 0, err")
-		g.L("\t\t}")
-
-	case ethabi.TupleTy:
-		tupleName := abi.TupleStructName(t)
-		g.L("\t\t_, n, err = Decode%sView(%s)", tupleName, dataRef)
-		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn nil, 0, err")
-		g.L("\t\t}")
-
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			// Dynamic array - need to parse
-			g.L("\t\t// Calculate dynamic array size")
-			g.L("\t\tn = 0")
-			g.L("\t\tarrDynOffset := %d", t.Size*32)
-			g.L("\t\tfor j := 0; j < %d; j++ {", t.Size)
-			g.L("\t\t\t_, err := %sDecodeSize(%s[n:])", g.StdPrefix, dataRef)
-			g.L("\t\t\tif err != nil {")
-			g.L("\t\t\t\treturn nil, 0, err")
-			g.L("\t\t\t}")
-			g.L("\t\t\tn += 32")
-			g.L("\t\t\tvar elemN int")
-			// Recursive call for inner element
-			g.genSliceElemSizeCalcInner(*t.Elem, fmt.Sprintf("%s[arrDynOffset:]", dataRef), "elemN")
-			g.L("\t\t\tarrDynOffset += elemN")
-			g.L("\t\t}")
-			g.L("\t\tn = arrDynOffset")
-		} else {
-			g.L("\t\tn = %d", t.Size*GetTypeSize(*t.Elem))
-		}
-	}
-}
-
-// genSliceElemSizeCalcInner generates size calculation for nested elements (different indentation)
-func (g *Generator) genSliceElemSizeCalcInner(t ethabi.Type, dataRef string, resultVar string) {
-	switch t.T {
-	case ethabi.StringTy, ethabi.BytesTy:
-		g.L("\t\t\tlength, err := %sDecodeSize(%s)", g.StdPrefix, dataRef)
-		g.L("\t\t\tif err != nil {")
-		g.L("\t\t\t\treturn nil, 0, err")
-		g.L("\t\t\t}")
-		g.L("\t\t\t%s = 32 + %sPad32(length)", resultVar, g.StdPrefix)
-
-	case ethabi.SliceTy:
-		// Use the decode function to get size (works for both stdlib and custom types)
-		g.L("\t\t\t_, %s, err = %s", resultVar, g.genDecodeCall(t, dataRef))
-		g.L("\t\t\tif err != nil {")
-		g.L("\t\t\t\treturn nil, 0, err")
-		g.L("\t\t\t}")
-
-	case ethabi.TupleTy:
-		tupleName := abi.TupleStructName(t)
-		g.L("\t\t\t_, %s, err = Decode%sView(%s)", resultVar, tupleName, dataRef)
-		g.L("\t\t\tif err != nil {")
-		g.L("\t\t\t\treturn nil, 0, err")
-		g.L("\t\t\t}")
-
-	default:
-		g.L("\t\t\t%s = %d", resultVar, GetTypeSize(t))
-	}
-}
-
-// genSliceViewGet generates the Get(i) method
+// genSliceViewGet emits Get(i). Dynamic-elem slices hand the child decoder
+// a sub-slice bounded by the next element's offset (or len(data) for last).
 func (g *Generator) genSliceViewGet(t ethabi.Type, typeName string, elemType string) {
 	hasDynamicElem := IsDynamicType(*t.Elem)
 	zeroVal := zeroValue(elemType)
@@ -250,14 +164,18 @@ func (g *Generator) genSliceViewGet(t ethabi.Type, typeName string, elemType str
 	g.L("\t}")
 
 	if !hasDynamicElem {
-		// Static elements - calculate offset directly
 		elemSize := GetTypeSize(*t.Elem)
 		g.L("\toffset := 32 + i * %d", elemSize)
 		g.genSliceViewGetBody(*t.Elem, "v.data[offset:]")
 	} else {
-		// Dynamic elements - use pre-parsed offsets
-		g.L("\toffset := v.offsets[i]")
-		g.genSliceViewGetBody(*t.Elem, "v.data[offset:]")
+		g.L("\tstart := v.offsets[i]")
+		g.L("\tvar end int")
+		g.L("\tif i+1 < v.length {")
+		g.L("\t\tend = v.offsets[i+1]")
+		g.L("\t} else {")
+		g.L("\t\tend = len(v.data)")
+		g.L("\t}")
+		g.genSliceViewGetBody(*t.Elem, "v.data[start:end]")
 	}
 
 	g.L("}")
