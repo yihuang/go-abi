@@ -73,4 +73,28 @@ func TestExternalTuples(t *testing.T) {
 	}
 }
 
+func TestFixedSizeArrayOfStaticTuples(t *testing.T) {
+	abiJSON := `[{
+		"type": "function", "name": "example", "inputs": [],
+		"outputs": [{
+			"name": "items", "type": "tuple[20]",
+			"components": [
+				{"name": "amount", "type": "uint256"},
+				{"name": "price",  "type": "uint256"}
+			]
+		}],
+		"stateMutability": "view"
+	}]`
 
+	abiDef, err := abi.JSON(strings.NewReader(abiJSON))
+	if err != nil {
+		t.Fatalf("parse ABI: %v", err)
+	}
+	code, err := NewGenerator().GenerateFromABI(abiDef)
+	if err != nil {
+		t.Fatalf("generate: %v", err)
+	}
+	if !strings.Contains(code, ".Decode(data[") {
+		t.Errorf("expected tuple-array elements to decode via .Decode; got:\n%s", code)
+	}
+}
