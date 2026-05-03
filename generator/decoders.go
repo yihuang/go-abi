@@ -270,7 +270,11 @@ func (g *Generator) genArrayDecoding(t ethabi.Type) {
 		var offset int
 		for i := 0; i < t.Size; i++ {
 			g.L("\t// Element %d", i)
-			g.L("\tresult[%d], _, err = %s", i, g.genDecodeCall(*t.Elem, fmt.Sprintf("data[%d:]", offset)))
+			if t.Elem.T == ethabi.TupleTy {
+				g.L("\t_, err = result[%d].Decode(data[%d:])", i, offset)
+			} else {
+				g.L("\tresult[%d], _, err = %s", i, g.genDecodeCall(*t.Elem, fmt.Sprintf("data[%d:]", offset)))
+			}
 			g.L("\tif err != nil {")
 			g.L("\t\treturn result, 0, err")
 			g.L("\t}")
