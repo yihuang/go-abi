@@ -47,6 +47,11 @@ var ComplexReturnsABI = []string{
 	// Struct with all basic types
 	"struct AllTypes { uint256 u; int256 i; address a; bool b; bytes32 h; bytes d; string s }",
 
+	// Fully static structs (no dynamic fields)
+	"struct StaticPair { address addr; uint256 value }",
+	"struct StaticNested { StaticPair pair; address extra }",
+	"struct StaticMultiArray { StaticPair[2] pairs; uint256[3] counts }",
+
 	// Functions returning nested tuples
 	"function getNestedLevel1() returns (NestedLevel1)",
 	"function getNestedLevel2() returns (NestedLevel2)",
@@ -83,6 +88,14 @@ var ComplexReturnsABI = []string{
 
 	// Array of tuples with nested dynamic elements
 	"function getMatrixStruct() returns (MatrixStruct)",
+
+	// Functions returning fully static tuples and arrays of static elements
+	"function getStaticPair() returns (StaticPair)",
+	"function getStaticPairArray() returns (StaticPair[])",
+	"function getStaticPairFixedArray() returns (StaticPair[3])",
+	"function getStaticNested() returns (StaticNested)",
+	"function getStaticNestedArray() returns (StaticNested[])",
+	"function getStaticMultiArray() returns (StaticMultiArray)",
 
 	// Function returning empty tuple
 	"function getEmptyReturn() returns ()",
@@ -638,6 +651,156 @@ func TestComplexReturnsMatrixStruct(t *testing.T) {
 
 	// Test decoding
 	var decoded GetMatrixStructReturn
+	_, err = decoded.Decode(encoded)
+	require.NoError(t, err)
+	require.Equal(t, args, &decoded)
+}
+
+// =============================================================================
+// Fully Static Tuples and Arrays of Static Elements Tests
+// =============================================================================
+
+func TestComplexReturnsStaticPair(t *testing.T) {
+	args := &GetStaticPairReturn{
+		Field1: StaticPair{
+			Addr:  common.HexToAddress("0x1111111111111111111111111111111111111111"),
+			Value: big.NewInt(42),
+		},
+	}
+
+	encoded, err := args.Encode()
+	require.NoError(t, err)
+
+	goEthEncoded, err := ComplexReturnsABIDef.Methods["getStaticPair"].Outputs.Pack(args.Field1)
+	require.NoError(t, err)
+	require.Equal(t, encoded, goEthEncoded)
+
+	var decoded GetStaticPairReturn
+	_, err = decoded.Decode(encoded)
+	require.NoError(t, err)
+	require.Equal(t, args, &decoded)
+}
+
+func TestComplexReturnsStaticPairDynamicArray(t *testing.T) {
+	// Dynamic array of fully static structs
+	args := &GetStaticPairArrayReturn{
+		Field1: []StaticPair{
+			{Addr: common.HexToAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), Value: big.NewInt(10)},
+			{Addr: common.HexToAddress("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"), Value: big.NewInt(20)},
+			{Addr: common.HexToAddress("0xcccccccccccccccccccccccccccccccccccccccc"), Value: big.NewInt(30)},
+		},
+	}
+
+	encoded, err := args.Encode()
+	require.NoError(t, err)
+
+	goEthEncoded, err := ComplexReturnsABIDef.Methods["getStaticPairArray"].Outputs.Pack(args.Field1)
+	require.NoError(t, err)
+	require.Equal(t, encoded, goEthEncoded)
+
+	var decoded GetStaticPairArrayReturn
+	_, err = decoded.Decode(encoded)
+	require.NoError(t, err)
+	require.Equal(t, args, &decoded)
+}
+
+func TestComplexReturnsStaticPairFixedArray(t *testing.T) {
+	// Fixed-size array of fully static structs
+	args := &GetStaticPairFixedArrayReturn{
+		Field1: [3]StaticPair{
+			{Addr: common.HexToAddress("0x1111111111111111111111111111111111111111"), Value: big.NewInt(1)},
+			{Addr: common.HexToAddress("0x2222222222222222222222222222222222222222"), Value: big.NewInt(2)},
+			{Addr: common.HexToAddress("0x3333333333333333333333333333333333333333"), Value: big.NewInt(3)},
+		},
+	}
+
+	encoded, err := args.Encode()
+	require.NoError(t, err)
+
+	goEthEncoded, err := ComplexReturnsABIDef.Methods["getStaticPairFixedArray"].Outputs.Pack(args.Field1)
+	require.NoError(t, err)
+	require.Equal(t, encoded, goEthEncoded)
+
+	var decoded GetStaticPairFixedArrayReturn
+	_, err = decoded.Decode(encoded)
+	require.NoError(t, err)
+	require.Equal(t, args.Field1, decoded.Field1)
+	require.Equal(t, args, &decoded)
+}
+
+func TestComplexReturnsStaticNested(t *testing.T) {
+	// Fully static nested struct (struct containing struct, all static)
+	args := &GetStaticNestedReturn{
+		Field1: StaticNested{
+			Pair: StaticPair{
+				Addr:  common.HexToAddress("0xdeaddeaddeaddeaddeaddeaddeaddeaddeaddead"),
+				Value: big.NewInt(99),
+			},
+			Extra: common.HexToAddress("0xbeefbeefbeefbeefbeefbeefbeefbeefbeefbeef"),
+		},
+	}
+
+	encoded, err := args.Encode()
+	require.NoError(t, err)
+
+	goEthEncoded, err := ComplexReturnsABIDef.Methods["getStaticNested"].Outputs.Pack(args.Field1)
+	require.NoError(t, err)
+	require.Equal(t, encoded, goEthEncoded)
+
+	var decoded GetStaticNestedReturn
+	_, err = decoded.Decode(encoded)
+	require.NoError(t, err)
+	require.Equal(t, args, &decoded)
+}
+
+func TestComplexReturnsStaticNestedArray(t *testing.T) {
+	// Dynamic array of fully static nested structs
+	args := &GetStaticNestedArrayReturn{
+		Field1: []StaticNested{
+			{
+				Pair:  StaticPair{Addr: common.HexToAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), Value: big.NewInt(11)},
+				Extra: common.HexToAddress("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"),
+			},
+			{
+				Pair:  StaticPair{Addr: common.HexToAddress("0xcccccccccccccccccccccccccccccccccccccccc"), Value: big.NewInt(22)},
+				Extra: common.HexToAddress("0xdddddddddddddddddddddddddddddddddddddddd"),
+			},
+		},
+	}
+
+	encoded, err := args.Encode()
+	require.NoError(t, err)
+
+	goEthEncoded, err := ComplexReturnsABIDef.Methods["getStaticNestedArray"].Outputs.Pack(args.Field1)
+	require.NoError(t, err)
+	require.Equal(t, encoded, goEthEncoded)
+
+	var decoded GetStaticNestedArrayReturn
+	_, err = decoded.Decode(encoded)
+	require.NoError(t, err)
+	require.Equal(t, args, &decoded)
+}
+
+func TestComplexReturnsStaticMultiArray(t *testing.T) {
+	// Struct containing multiple static arrays
+	args := &GetStaticMultiArrayReturn{
+		Field1: StaticMultiArray{
+			Pairs: [2]StaticPair{
+				{Addr: common.HexToAddress("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), Value: big.NewInt(100)},
+				{Addr: common.HexToAddress("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"), Value: big.NewInt(200)},
+			},
+			Counts: [3]*big.Int{big.NewInt(1), big.NewInt(2), big.NewInt(3)},
+		},
+	}
+
+	encoded, err := args.Encode()
+	require.NoError(t, err)
+
+	goEthEncoded, err := ComplexReturnsABIDef.Methods["getStaticMultiArray"].Outputs.Pack(args.Field1)
+	require.NoError(t, err)
+	require.Equal(t, encoded, goEthEncoded)
+
+	var decoded GetStaticMultiArrayReturn
 	_, err = decoded.Decode(encoded)
 	require.NoError(t, err)
 	require.Equal(t, args, &decoded)

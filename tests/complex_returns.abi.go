@@ -47,6 +47,18 @@ var (
 	GetSimpleArraySelector = [4]byte{0x07, 0x1f, 0x03, 0x54}
 	// getSimpleFixedArray()
 	GetSimpleFixedArraySelector = [4]byte{0xc2, 0x0e, 0xb6, 0x16}
+	// getStaticMultiArray()
+	GetStaticMultiArraySelector = [4]byte{0xe3, 0x63, 0x50, 0x40}
+	// getStaticNested()
+	GetStaticNestedSelector = [4]byte{0xbc, 0xb5, 0x42, 0xcf}
+	// getStaticNestedArray()
+	GetStaticNestedArraySelector = [4]byte{0xfb, 0x60, 0x23, 0xad}
+	// getStaticPair()
+	GetStaticPairSelector = [4]byte{0xc4, 0x92, 0x72, 0xaf}
+	// getStaticPairArray()
+	GetStaticPairArraySelector = [4]byte{0x13, 0x6d, 0xc7, 0x69}
+	// getStaticPairFixedArray()
+	GetStaticPairFixedArraySelector = [4]byte{0xfa, 0xb7, 0xea, 0xf0}
 	// getTupleWithArray()
 	GetTupleWithArraySelector = [4]byte{0x61, 0x9a, 0xa8, 0x64}
 	// getTupleWithFixedArray()
@@ -71,6 +83,12 @@ const (
 	GetNestedTupleArrayReturnID = 1092522874
 	GetSimpleArrayID            = 119472980
 	GetSimpleFixedArrayID       = 3255744022
+	GetStaticMultiArrayID       = 3814936640
+	GetStaticNestedID           = 3165995727
+	GetStaticNestedArrayID      = 4217381805
+	GetStaticPairID             = 3297931951
+	GetStaticPairArrayID        = 325961577
+	GetStaticPairFixedArrayID   = 4206357232
 	GetTupleWithArrayID         = 1637525604
 	GetTupleWithFixedArrayID    = 1514901572
 )
@@ -1107,6 +1125,378 @@ func (t *Simple) Decode(data []byte) (int, error) {
 	return dynamicOffset, nil
 }
 
+const StaticMultiArrayStaticSize = 224
+
+var _ abi.Tuple = (*StaticMultiArray)(nil)
+var _ abi.PackedTuple = (*StaticMultiArray)(nil)
+
+// StaticMultiArray represents an ABI tuple
+type StaticMultiArray struct {
+	Pairs  [2]StaticPair
+	Counts [3]*big.Int
+}
+
+// EncodedSize returns the total encoded size of StaticMultiArray
+func (t StaticMultiArray) EncodedSize() int {
+	dynamicSize := 0
+
+	return StaticMultiArrayStaticSize + dynamicSize
+}
+
+// EncodeTo encodes StaticMultiArray to ABI bytes in the provided buffer
+func (value StaticMultiArray) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := StaticMultiArrayStaticSize // Start dynamic data after static section
+	// Field Pairs: (address,uint256)[2]
+	if _, err := ComplexreturnsEncodeStaticPairArray2(value.Pairs, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	// Field Counts: uint256[3]
+	if _, err := ComplexreturnsEncodeUint256Array3(value.Counts, buf[128:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes StaticMultiArray to ABI bytes
+func (value StaticMultiArray) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes StaticMultiArray from ABI bytes in the provided buffer
+func (t *StaticMultiArray) Decode(data []byte) (int, error) {
+	if len(data) < 224 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 224
+	// Decode static field Pairs: (address,uint256)[2]
+	t.Pairs, _, err = ComplexreturnsDecodeStaticPairArray2(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Counts: uint256[3]
+	t.Counts, _, err = ComplexreturnsDecodeUint256Array3(data[128:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of StaticMultiArray
+func (t StaticMultiArray) PackedEncodedSize() int {
+	return 200
+}
+
+// PackedEncodeTo encodes StaticMultiArray to packed ABI bytes in the provided buffer
+func (value StaticMultiArray) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Pairs: (address,uint256)[2]
+	n, err = ComplexreturnsPackedEncodeStaticPairArray2(value.Pairs, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Counts: uint256[3]
+	n, err = ComplexreturnsPackedEncodeUint256Array3(value.Counts, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes StaticMultiArray to packed ABI bytes
+func (value StaticMultiArray) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes StaticMultiArray from packed ABI bytes
+func (t *StaticMultiArray) PackedDecode(data []byte) (int, error) {
+	if len(data) < 200 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Pairs: (address,uint256)[2]
+	t.Pairs, _, err = ComplexreturnsPackedDecodeStaticPairArray2(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Counts: uint256[3]
+	t.Counts, _, err = ComplexreturnsPackedDecodeUint256Array3(data[104:])
+	if err != nil {
+		return 0, err
+	}
+	return 200, nil
+}
+
+const StaticNestedStaticSize = 96
+
+var _ abi.Tuple = (*StaticNested)(nil)
+var _ abi.PackedTuple = (*StaticNested)(nil)
+
+// StaticNested represents an ABI tuple
+type StaticNested struct {
+	Pair  StaticPair
+	Extra common.Address
+}
+
+// EncodedSize returns the total encoded size of StaticNested
+func (t StaticNested) EncodedSize() int {
+	dynamicSize := 0
+
+	return StaticNestedStaticSize + dynamicSize
+}
+
+// EncodeTo encodes StaticNested to ABI bytes in the provided buffer
+func (value StaticNested) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := StaticNestedStaticSize // Start dynamic data after static section
+	// Field Pair: (address,uint256)
+	if _, err := value.Pair.EncodeTo(buf[0:]); err != nil {
+		return 0, err
+	}
+
+	// Field Extra: address
+	if _, err := abi.EncodeAddress(value.Extra, buf[64:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes StaticNested to ABI bytes
+func (value StaticNested) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes StaticNested from ABI bytes in the provided buffer
+func (t *StaticNested) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 96
+	// Decode static field Pair: (address,uint256)
+	_, err = t.Pair.Decode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Extra: address
+	t.Extra, _, err = abi.DecodeAddress(data[64:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of StaticNested
+func (t StaticNested) PackedEncodedSize() int {
+	return 72
+}
+
+// PackedEncodeTo encodes StaticNested to packed ABI bytes in the provided buffer
+func (value StaticNested) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Pair: (address,uint256)
+	n, err = value.Pair.PackedEncodeTo(buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Extra: address
+	n, err = abi.PackedEncodeAddress(value.Extra, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes StaticNested to packed ABI bytes
+func (value StaticNested) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes StaticNested from packed ABI bytes
+func (t *StaticNested) PackedDecode(data []byte) (int, error) {
+	if len(data) < 72 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Pair: (address,uint256)
+	_, err = t.Pair.PackedDecode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Extra: address
+	t.Extra, _, err = abi.PackedDecodeAddress(data[52:])
+	if err != nil {
+		return 0, err
+	}
+	return 72, nil
+}
+
+const StaticPairStaticSize = 64
+
+var _ abi.Tuple = (*StaticPair)(nil)
+var _ abi.PackedTuple = (*StaticPair)(nil)
+
+// StaticPair represents an ABI tuple
+type StaticPair struct {
+	Addr  common.Address
+	Value *big.Int
+}
+
+// EncodedSize returns the total encoded size of StaticPair
+func (t StaticPair) EncodedSize() int {
+	dynamicSize := 0
+
+	return StaticPairStaticSize + dynamicSize
+}
+
+// EncodeTo encodes StaticPair to ABI bytes in the provided buffer
+func (value StaticPair) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := StaticPairStaticSize // Start dynamic data after static section
+	// Field Addr: address
+	if _, err := abi.EncodeAddress(value.Addr, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	// Field Value: uint256
+	if _, err := abi.EncodeUint256(value.Value, buf[32:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes StaticPair to ABI bytes
+func (value StaticPair) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes StaticPair from ABI bytes in the provided buffer
+func (t *StaticPair) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 64
+	// Decode static field Addr: address
+	t.Addr, _, err = abi.DecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode static field Value: uint256
+	t.Value, _, err = abi.DecodeUint256(data[32:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of StaticPair
+func (t StaticPair) PackedEncodedSize() int {
+	return 52
+}
+
+// PackedEncodeTo encodes StaticPair to packed ABI bytes in the provided buffer
+func (value StaticPair) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Addr: address
+	n, err = abi.PackedEncodeAddress(value.Addr, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	// Field Value: uint256
+	n, err = abi.PackedEncodeUint256(value.Value, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes StaticPair to packed ABI bytes
+func (value StaticPair) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes StaticPair from packed ABI bytes
+func (t *StaticPair) PackedDecode(data []byte) (int, error) {
+	if len(data) < 52 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Addr: address
+	t.Addr, _, err = abi.PackedDecodeAddress(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	// Decode field Value: uint256
+	t.Value, _, err = abi.PackedDecodeUint256(data[20:])
+	if err != nil {
+		return 0, err
+	}
+	return 52, nil
+}
+
 const Tuple51d5079bStaticSize = 64
 
 var _ abi.Tuple = (*Tuple51d5079b)(nil)
@@ -1661,6 +2051,73 @@ func ComplexreturnsEncodeSimpleSliceSlice(value [][]Simple, buf []byte) (int, er
 	return dynamicOffset + 32, nil
 }
 
+// ComplexreturnsEncodeStaticNestedSlice encodes ((address,uint256),address)[] to ABI bytes
+func ComplexreturnsEncodeStaticNestedSlice(value []StaticNested, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := elem.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
+// ComplexreturnsEncodeStaticPairArray2 encodes (address,uint256)[2] to ABI bytes
+func ComplexreturnsEncodeStaticPairArray2(value [2]StaticPair, buf []byte) (int, error) {
+	// Encode fixed-size array with static elements
+	if _, err := value[0].EncodeTo(buf[0:]); err != nil {
+		return 0, err
+	}
+	if _, err := value[1].EncodeTo(buf[64:]); err != nil {
+		return 0, err
+	}
+
+	return 128, nil
+}
+
+// ComplexreturnsEncodeStaticPairArray3 encodes (address,uint256)[3] to ABI bytes
+func ComplexreturnsEncodeStaticPairArray3(value [3]StaticPair, buf []byte) (int, error) {
+	// Encode fixed-size array with static elements
+	if _, err := value[0].EncodeTo(buf[0:]); err != nil {
+		return 0, err
+	}
+	if _, err := value[1].EncodeTo(buf[64:]); err != nil {
+		return 0, err
+	}
+	if _, err := value[2].EncodeTo(buf[128:]); err != nil {
+		return 0, err
+	}
+
+	return 192, nil
+}
+
+// ComplexreturnsEncodeStaticPairSlice encodes (address,uint256)[] to ABI bytes
+func ComplexreturnsEncodeStaticPairSlice(value []StaticPair, buf []byte) (int, error) {
+	// Encode length
+	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
+	buf = buf[32:]
+
+	// Encode elements with static types
+	var offset int
+	for _, elem := range value {
+		n, err := elem.EncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+
+	return offset + 32, nil
+}
+
 // ComplexreturnsEncodeTupleWithArraySlice encodes (uint256,uint256[])[] to ABI bytes
 func ComplexreturnsEncodeTupleWithArraySlice(value []TupleWithArray, buf []byte) (int, error) {
 	// Encode length
@@ -1743,6 +2200,18 @@ func ComplexreturnsSizeSimpleSliceSlice(value [][]Simple) int {
 	for _, elem := range value {
 		size += ComplexreturnsSizeSimpleSlice(elem)
 	}
+	return size
+}
+
+// ComplexreturnsSizeStaticNestedSlice returns the encoded size of ((address,uint256),address)[]
+func ComplexreturnsSizeStaticNestedSlice(value []StaticNested) int {
+	size := 32 + 96*len(value) // length + static elements
+	return size
+}
+
+// ComplexreturnsSizeStaticPairSlice returns the encoded size of (address,uint256)[]
+func ComplexreturnsSizeStaticPairSlice(value []StaticPair) int {
+	size := 32 + 64*len(value) // length + static elements
 	return size
 }
 
@@ -1941,6 +2410,117 @@ func ComplexreturnsDecodeSimpleSliceSlice(data []byte) ([][]Simple, int, error) 
 	return result, dynamicOffset + 32, nil
 }
 
+// ComplexreturnsDecodeStaticNestedSlice decodes ((address,uint256),address)[] from ABI bytes
+func ComplexreturnsDecodeStaticNestedSlice(data []byte) ([]StaticNested, int, error) {
+	// Decode length
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	length, err := abi.DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
+	data = data[32:]
+	if length > len(data) || length*96 > len(data) {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]StaticNested, length)
+	for i := 0; i < length; i++ {
+		n, err = result[i].Decode(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
+// ComplexreturnsDecodeStaticPairArray2 decodes (address,uint256)[2] from ABI bytes
+func ComplexreturnsDecodeStaticPairArray2(data []byte) ([2]StaticPair, int, error) {
+	// Decode fixed-size array with static elements
+	var (
+		result [2]StaticPair
+		err    error
+	)
+	if len(data) < 128 {
+		return result, 0, io.ErrUnexpectedEOF
+	}
+	// Element 0
+	_, err = result[0].Decode(data[0:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 1
+	_, err = result[1].Decode(data[64:])
+	if err != nil {
+		return result, 0, err
+	}
+	return result, 128, nil
+}
+
+// ComplexreturnsDecodeStaticPairArray3 decodes (address,uint256)[3] from ABI bytes
+func ComplexreturnsDecodeStaticPairArray3(data []byte) ([3]StaticPair, int, error) {
+	// Decode fixed-size array with static elements
+	var (
+		result [3]StaticPair
+		err    error
+	)
+	if len(data) < 192 {
+		return result, 0, io.ErrUnexpectedEOF
+	}
+	// Element 0
+	_, err = result[0].Decode(data[0:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 1
+	_, err = result[1].Decode(data[64:])
+	if err != nil {
+		return result, 0, err
+	}
+	// Element 2
+	_, err = result[2].Decode(data[128:])
+	if err != nil {
+		return result, 0, err
+	}
+	return result, 192, nil
+}
+
+// ComplexreturnsDecodeStaticPairSlice decodes (address,uint256)[] from ABI bytes
+func ComplexreturnsDecodeStaticPairSlice(data []byte) ([]StaticPair, int, error) {
+	// Decode length
+	if len(data) < 32 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	length, err := abi.DecodeSize(data)
+	if err != nil {
+		return nil, 0, err
+	}
+	data = data[32:]
+	if length > len(data) || length*64 > len(data) {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		n      int
+		offset int
+	)
+	// Decode elements with static types
+	result := make([]StaticPair, length)
+	for i := 0; i < length; i++ {
+		n, err = result[i].Decode(data[offset:])
+		if err != nil {
+			return nil, 0, err
+		}
+		offset += n
+	}
+	return result, offset + 32, nil
+}
+
 // ComplexreturnsDecodeTupleWithArraySlice decodes (uint256,uint256[])[] from ABI bytes
 func ComplexreturnsDecodeTupleWithArraySlice(data []byte) ([]TupleWithArray, int, error) {
 	// Decode length
@@ -2009,6 +2589,40 @@ func ComplexreturnsDecodeUint256Array3(data []byte) ([3]*big.Int, int, error) {
 	return result, 96, nil
 }
 
+// ComplexreturnsPackedEncodeStaticPairArray2 encodes (address,uint256)[2] to packed ABI bytes (no padding)
+func ComplexreturnsPackedEncodeStaticPairArray2(value [2]StaticPair, buf []byte) (int, error) {
+	if len(buf) < 104 {
+		return 0, io.ErrShortBuffer
+	}
+	// Encode fixed-size array elements sequentially (no padding)
+	var offset int
+	for i := 0; i < 2; i++ {
+		n, err := value[i].PackedEncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return 104, nil
+}
+
+// ComplexreturnsPackedEncodeStaticPairArray3 encodes (address,uint256)[3] to packed ABI bytes (no padding)
+func ComplexreturnsPackedEncodeStaticPairArray3(value [3]StaticPair, buf []byte) (int, error) {
+	if len(buf) < 156 {
+		return 0, io.ErrShortBuffer
+	}
+	// Encode fixed-size array elements sequentially (no padding)
+	var offset int
+	for i := 0; i < 3; i++ {
+		n, err := value[i].PackedEncodeTo(buf[offset:])
+		if err != nil {
+			return 0, err
+		}
+		offset += n
+	}
+	return 156, nil
+}
+
 // ComplexreturnsPackedEncodeUint256Array3 encodes uint256[3] to packed ABI bytes (no padding)
 func ComplexreturnsPackedEncodeUint256Array3(value [3]*big.Int, buf []byte) (int, error) {
 	if len(buf) < 96 {
@@ -2024,6 +2638,48 @@ func ComplexreturnsPackedEncodeUint256Array3(value [3]*big.Int, buf []byte) (int
 		offset += n
 	}
 	return 96, nil
+}
+
+// ComplexreturnsPackedDecodeStaticPairArray2 decodes (address,uint256)[2] from packed ABI bytes (no padding)
+func ComplexreturnsPackedDecodeStaticPairArray2(data []byte) ([2]StaticPair, int, error) {
+	if len(data) < 104 {
+		return [2]StaticPair{}, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		result [2]StaticPair
+		offset int
+		n      int
+		err    error
+	)
+	for i := 0; i < 2; i++ {
+		n, err = result[i].PackedDecode(data[offset:])
+		if err != nil {
+			return result, 0, err
+		}
+		offset += n
+	}
+	return result, 104, nil
+}
+
+// ComplexreturnsPackedDecodeStaticPairArray3 decodes (address,uint256)[3] from packed ABI bytes (no padding)
+func ComplexreturnsPackedDecodeStaticPairArray3(data []byte) ([3]StaticPair, int, error) {
+	if len(data) < 156 {
+		return [3]StaticPair{}, 0, io.ErrUnexpectedEOF
+	}
+	var (
+		result [3]StaticPair
+		offset int
+		n      int
+		err    error
+	)
+	for i := 0; i < 3; i++ {
+		n, err = result[i].PackedDecode(data[offset:])
+		if err != nil {
+			return result, 0, err
+		}
+		offset += n
+	}
+	return result, 156, nil
 }
 
 // ComplexreturnsPackedDecodeUint256Array3 decodes uint256[3] from packed ABI bytes (no padding)
@@ -3856,6 +4512,784 @@ func (t *GetSimpleFixedArrayReturn) Decode(data []byte) (int, error) {
 		dynamicOffset += n
 	}
 	return dynamicOffset, nil
+}
+
+var _ abi.Method = (*GetStaticMultiArrayCall)(nil)
+
+// GetStaticMultiArrayCall represents the input arguments for getStaticMultiArray function
+type GetStaticMultiArrayCall struct {
+	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t GetStaticMultiArrayCall) GetMethodName() string {
+	return "getStaticMultiArray"
+}
+
+// GetMethodID returns the function id
+func (t GetStaticMultiArrayCall) GetMethodID() uint32 {
+	return GetStaticMultiArrayID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetStaticMultiArrayCall) GetMethodSelector() [4]byte {
+	return GetStaticMultiArraySelector
+}
+
+// EncodeWithSelector encodes getStaticMultiArray arguments to ABI bytes including function selector
+func (t GetStaticMultiArrayCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetStaticMultiArraySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewGetStaticMultiArrayCall constructs a new GetStaticMultiArrayCall
+func NewGetStaticMultiArrayCall() *GetStaticMultiArrayCall {
+	return &GetStaticMultiArrayCall{}
+}
+
+const GetStaticMultiArrayReturnStaticSize = 224
+
+var _ abi.Tuple = (*GetStaticMultiArrayReturn)(nil)
+var _ abi.PackedTuple = (*GetStaticMultiArrayReturn)(nil)
+
+// GetStaticMultiArrayReturn represents an ABI tuple
+type GetStaticMultiArrayReturn struct {
+	Field1 StaticMultiArray
+}
+
+// EncodedSize returns the total encoded size of GetStaticMultiArrayReturn
+func (t GetStaticMultiArrayReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return GetStaticMultiArrayReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes GetStaticMultiArrayReturn to ABI bytes in the provided buffer
+func (value GetStaticMultiArrayReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := GetStaticMultiArrayReturnStaticSize // Start dynamic data after static section
+	// Field Field1: ((address,uint256)[2],uint256[3])
+	if _, err := value.Field1.EncodeTo(buf[0:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes GetStaticMultiArrayReturn to ABI bytes
+func (value GetStaticMultiArrayReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes GetStaticMultiArrayReturn from ABI bytes in the provided buffer
+func (t *GetStaticMultiArrayReturn) Decode(data []byte) (int, error) {
+	if len(data) < 224 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 224
+	// Decode static field Field1: ((address,uint256)[2],uint256[3])
+	_, err = t.Field1.Decode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of GetStaticMultiArrayReturn
+func (t GetStaticMultiArrayReturn) PackedEncodedSize() int {
+	return 200
+}
+
+// PackedEncodeTo encodes GetStaticMultiArrayReturn to packed ABI bytes in the provided buffer
+func (value GetStaticMultiArrayReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: ((address,uint256)[2],uint256[3])
+	n, err = value.Field1.PackedEncodeTo(buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes GetStaticMultiArrayReturn to packed ABI bytes
+func (value GetStaticMultiArrayReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes GetStaticMultiArrayReturn from packed ABI bytes
+func (t *GetStaticMultiArrayReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 200 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: ((address,uint256)[2],uint256[3])
+	_, err = t.Field1.PackedDecode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 200, nil
+}
+
+var _ abi.Method = (*GetStaticNestedCall)(nil)
+
+// GetStaticNestedCall represents the input arguments for getStaticNested function
+type GetStaticNestedCall struct {
+	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t GetStaticNestedCall) GetMethodName() string {
+	return "getStaticNested"
+}
+
+// GetMethodID returns the function id
+func (t GetStaticNestedCall) GetMethodID() uint32 {
+	return GetStaticNestedID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetStaticNestedCall) GetMethodSelector() [4]byte {
+	return GetStaticNestedSelector
+}
+
+// EncodeWithSelector encodes getStaticNested arguments to ABI bytes including function selector
+func (t GetStaticNestedCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetStaticNestedSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewGetStaticNestedCall constructs a new GetStaticNestedCall
+func NewGetStaticNestedCall() *GetStaticNestedCall {
+	return &GetStaticNestedCall{}
+}
+
+const GetStaticNestedReturnStaticSize = 96
+
+var _ abi.Tuple = (*GetStaticNestedReturn)(nil)
+var _ abi.PackedTuple = (*GetStaticNestedReturn)(nil)
+
+// GetStaticNestedReturn represents an ABI tuple
+type GetStaticNestedReturn struct {
+	Field1 StaticNested
+}
+
+// EncodedSize returns the total encoded size of GetStaticNestedReturn
+func (t GetStaticNestedReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return GetStaticNestedReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes GetStaticNestedReturn to ABI bytes in the provided buffer
+func (value GetStaticNestedReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := GetStaticNestedReturnStaticSize // Start dynamic data after static section
+	// Field Field1: ((address,uint256),address)
+	if _, err := value.Field1.EncodeTo(buf[0:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes GetStaticNestedReturn to ABI bytes
+func (value GetStaticNestedReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes GetStaticNestedReturn from ABI bytes in the provided buffer
+func (t *GetStaticNestedReturn) Decode(data []byte) (int, error) {
+	if len(data) < 96 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 96
+	// Decode static field Field1: ((address,uint256),address)
+	_, err = t.Field1.Decode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of GetStaticNestedReturn
+func (t GetStaticNestedReturn) PackedEncodedSize() int {
+	return 72
+}
+
+// PackedEncodeTo encodes GetStaticNestedReturn to packed ABI bytes in the provided buffer
+func (value GetStaticNestedReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: ((address,uint256),address)
+	n, err = value.Field1.PackedEncodeTo(buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes GetStaticNestedReturn to packed ABI bytes
+func (value GetStaticNestedReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes GetStaticNestedReturn from packed ABI bytes
+func (t *GetStaticNestedReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 72 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: ((address,uint256),address)
+	_, err = t.Field1.PackedDecode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 72, nil
+}
+
+var _ abi.Method = (*GetStaticNestedArrayCall)(nil)
+
+// GetStaticNestedArrayCall represents the input arguments for getStaticNestedArray function
+type GetStaticNestedArrayCall struct {
+	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t GetStaticNestedArrayCall) GetMethodName() string {
+	return "getStaticNestedArray"
+}
+
+// GetMethodID returns the function id
+func (t GetStaticNestedArrayCall) GetMethodID() uint32 {
+	return GetStaticNestedArrayID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetStaticNestedArrayCall) GetMethodSelector() [4]byte {
+	return GetStaticNestedArraySelector
+}
+
+// EncodeWithSelector encodes getStaticNestedArray arguments to ABI bytes including function selector
+func (t GetStaticNestedArrayCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetStaticNestedArraySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewGetStaticNestedArrayCall constructs a new GetStaticNestedArrayCall
+func NewGetStaticNestedArrayCall() *GetStaticNestedArrayCall {
+	return &GetStaticNestedArrayCall{}
+}
+
+const GetStaticNestedArrayReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetStaticNestedArrayReturn)(nil)
+
+// GetStaticNestedArrayReturn represents an ABI tuple
+type GetStaticNestedArrayReturn struct {
+	Field1 []StaticNested
+}
+
+// EncodedSize returns the total encoded size of GetStaticNestedArrayReturn
+func (t GetStaticNestedArrayReturn) EncodedSize() int {
+	dynamicSize := 0
+	dynamicSize += ComplexreturnsSizeStaticNestedSlice(t.Field1)
+
+	return GetStaticNestedArrayReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes GetStaticNestedArrayReturn to ABI bytes in the provided buffer
+func (value GetStaticNestedArrayReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := GetStaticNestedArrayReturnStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: ((address,uint256),address)[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = ComplexreturnsEncodeStaticNestedSlice(value.Field1, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes GetStaticNestedArrayReturn to ABI bytes
+func (value GetStaticNestedArrayReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes GetStaticNestedArrayReturn from ABI bytes in the provided buffer
+func (t *GetStaticNestedArrayReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err    error
+		n      int
+		offset int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
+	{
+		offset, err = abi.DecodeSize(data[0:])
+		if err != nil {
+			return 0, err
+		}
+		if offset != dynamicOffset {
+			return 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		t.Field1, n, err = ComplexreturnsDecodeStaticNestedSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
+}
+
+var _ abi.Method = (*GetStaticPairCall)(nil)
+
+// GetStaticPairCall represents the input arguments for getStaticPair function
+type GetStaticPairCall struct {
+	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t GetStaticPairCall) GetMethodName() string {
+	return "getStaticPair"
+}
+
+// GetMethodID returns the function id
+func (t GetStaticPairCall) GetMethodID() uint32 {
+	return GetStaticPairID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetStaticPairCall) GetMethodSelector() [4]byte {
+	return GetStaticPairSelector
+}
+
+// EncodeWithSelector encodes getStaticPair arguments to ABI bytes including function selector
+func (t GetStaticPairCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetStaticPairSelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewGetStaticPairCall constructs a new GetStaticPairCall
+func NewGetStaticPairCall() *GetStaticPairCall {
+	return &GetStaticPairCall{}
+}
+
+const GetStaticPairReturnStaticSize = 64
+
+var _ abi.Tuple = (*GetStaticPairReturn)(nil)
+var _ abi.PackedTuple = (*GetStaticPairReturn)(nil)
+
+// GetStaticPairReturn represents an ABI tuple
+type GetStaticPairReturn struct {
+	Field1 StaticPair
+}
+
+// EncodedSize returns the total encoded size of GetStaticPairReturn
+func (t GetStaticPairReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return GetStaticPairReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes GetStaticPairReturn to ABI bytes in the provided buffer
+func (value GetStaticPairReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := GetStaticPairReturnStaticSize // Start dynamic data after static section
+	// Field Field1: (address,uint256)
+	if _, err := value.Field1.EncodeTo(buf[0:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes GetStaticPairReturn to ABI bytes
+func (value GetStaticPairReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes GetStaticPairReturn from ABI bytes in the provided buffer
+func (t *GetStaticPairReturn) Decode(data []byte) (int, error) {
+	if len(data) < 64 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 64
+	// Decode static field Field1: (address,uint256)
+	_, err = t.Field1.Decode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of GetStaticPairReturn
+func (t GetStaticPairReturn) PackedEncodedSize() int {
+	return 52
+}
+
+// PackedEncodeTo encodes GetStaticPairReturn to packed ABI bytes in the provided buffer
+func (value GetStaticPairReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: (address,uint256)
+	n, err = value.Field1.PackedEncodeTo(buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes GetStaticPairReturn to packed ABI bytes
+func (value GetStaticPairReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes GetStaticPairReturn from packed ABI bytes
+func (t *GetStaticPairReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 52 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: (address,uint256)
+	_, err = t.Field1.PackedDecode(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 52, nil
+}
+
+var _ abi.Method = (*GetStaticPairArrayCall)(nil)
+
+// GetStaticPairArrayCall represents the input arguments for getStaticPairArray function
+type GetStaticPairArrayCall struct {
+	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t GetStaticPairArrayCall) GetMethodName() string {
+	return "getStaticPairArray"
+}
+
+// GetMethodID returns the function id
+func (t GetStaticPairArrayCall) GetMethodID() uint32 {
+	return GetStaticPairArrayID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetStaticPairArrayCall) GetMethodSelector() [4]byte {
+	return GetStaticPairArraySelector
+}
+
+// EncodeWithSelector encodes getStaticPairArray arguments to ABI bytes including function selector
+func (t GetStaticPairArrayCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetStaticPairArraySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewGetStaticPairArrayCall constructs a new GetStaticPairArrayCall
+func NewGetStaticPairArrayCall() *GetStaticPairArrayCall {
+	return &GetStaticPairArrayCall{}
+}
+
+const GetStaticPairArrayReturnStaticSize = 32
+
+var _ abi.Tuple = (*GetStaticPairArrayReturn)(nil)
+
+// GetStaticPairArrayReturn represents an ABI tuple
+type GetStaticPairArrayReturn struct {
+	Field1 []StaticPair
+}
+
+// EncodedSize returns the total encoded size of GetStaticPairArrayReturn
+func (t GetStaticPairArrayReturn) EncodedSize() int {
+	dynamicSize := 0
+	dynamicSize += ComplexreturnsSizeStaticPairSlice(t.Field1)
+
+	return GetStaticPairArrayReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes GetStaticPairArrayReturn to ABI bytes in the provided buffer
+func (value GetStaticPairArrayReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := GetStaticPairArrayReturnStaticSize // Start dynamic data after static section
+	var (
+		err error
+		n   int
+	)
+	// Field Field1: (address,uint256)[]
+	// Encode offset pointer
+	binary.BigEndian.PutUint64(buf[0+24:0+32], uint64(dynamicOffset))
+	// Encode dynamic data
+	n, err = ComplexreturnsEncodeStaticPairSlice(value.Field1, buf[dynamicOffset:])
+	if err != nil {
+		return 0, err
+	}
+	dynamicOffset += n
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes GetStaticPairArrayReturn to ABI bytes
+func (value GetStaticPairArrayReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes GetStaticPairArrayReturn from ABI bytes in the provided buffer
+func (t *GetStaticPairArrayReturn) Decode(data []byte) (int, error) {
+	if len(data) < 32 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err    error
+		n      int
+		offset int
+	)
+	dynamicOffset := 32
+	// Decode dynamic field Field1
+	{
+		offset, err = abi.DecodeSize(data[0:])
+		if err != nil {
+			return 0, err
+		}
+		if offset != dynamicOffset {
+			return 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		t.Field1, n, err = ComplexreturnsDecodeStaticPairSlice(data[dynamicOffset:])
+		if err != nil {
+			return 0, err
+		}
+		dynamicOffset += n
+	}
+	return dynamicOffset, nil
+}
+
+var _ abi.Method = (*GetStaticPairFixedArrayCall)(nil)
+
+// GetStaticPairFixedArrayCall represents the input arguments for getStaticPairFixedArray function
+type GetStaticPairFixedArrayCall struct {
+	abi.EmptyTuple
+}
+
+// GetMethodName returns the function name
+func (t GetStaticPairFixedArrayCall) GetMethodName() string {
+	return "getStaticPairFixedArray"
+}
+
+// GetMethodID returns the function id
+func (t GetStaticPairFixedArrayCall) GetMethodID() uint32 {
+	return GetStaticPairFixedArrayID
+}
+
+// GetMethodSelector returns the function selector
+func (t GetStaticPairFixedArrayCall) GetMethodSelector() [4]byte {
+	return GetStaticPairFixedArraySelector
+}
+
+// EncodeWithSelector encodes getStaticPairFixedArray arguments to ABI bytes including function selector
+func (t GetStaticPairFixedArrayCall) EncodeWithSelector() ([]byte, error) {
+	result := make([]byte, 4+t.EncodedSize())
+	copy(result[:4], GetStaticPairFixedArraySelector[:])
+	if _, err := t.EncodeTo(result[4:]); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewGetStaticPairFixedArrayCall constructs a new GetStaticPairFixedArrayCall
+func NewGetStaticPairFixedArrayCall() *GetStaticPairFixedArrayCall {
+	return &GetStaticPairFixedArrayCall{}
+}
+
+const GetStaticPairFixedArrayReturnStaticSize = 192
+
+var _ abi.Tuple = (*GetStaticPairFixedArrayReturn)(nil)
+var _ abi.PackedTuple = (*GetStaticPairFixedArrayReturn)(nil)
+
+// GetStaticPairFixedArrayReturn represents an ABI tuple
+type GetStaticPairFixedArrayReturn struct {
+	Field1 [3]StaticPair
+}
+
+// EncodedSize returns the total encoded size of GetStaticPairFixedArrayReturn
+func (t GetStaticPairFixedArrayReturn) EncodedSize() int {
+	dynamicSize := 0
+
+	return GetStaticPairFixedArrayReturnStaticSize + dynamicSize
+}
+
+// EncodeTo encodes GetStaticPairFixedArrayReturn to ABI bytes in the provided buffer
+func (value GetStaticPairFixedArrayReturn) EncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields
+	dynamicOffset := GetStaticPairFixedArrayReturnStaticSize // Start dynamic data after static section
+	// Field Field1: (address,uint256)[3]
+	if _, err := ComplexreturnsEncodeStaticPairArray3(value.Field1, buf[0:]); err != nil {
+		return 0, err
+	}
+
+	return dynamicOffset, nil
+}
+
+// Encode encodes GetStaticPairFixedArrayReturn to ABI bytes
+func (value GetStaticPairFixedArrayReturn) Encode() ([]byte, error) {
+	buf := make([]byte, value.EncodedSize())
+	if _, err := value.EncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// Decode decodes GetStaticPairFixedArrayReturn from ABI bytes in the provided buffer
+func (t *GetStaticPairFixedArrayReturn) Decode(data []byte) (int, error) {
+	if len(data) < 192 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var (
+		err error
+	)
+	dynamicOffset := 192
+	// Decode static field Field1: (address,uint256)[3]
+	t.Field1, _, err = ComplexreturnsDecodeStaticPairArray3(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return dynamicOffset, nil
+}
+
+// PackedEncodedSize returns the packed encoded size of GetStaticPairFixedArrayReturn
+func (t GetStaticPairFixedArrayReturn) PackedEncodedSize() int {
+	return 156
+}
+
+// PackedEncodeTo encodes GetStaticPairFixedArrayReturn to packed ABI bytes in the provided buffer
+func (value GetStaticPairFixedArrayReturn) PackedEncodeTo(buf []byte) (int, error) {
+	// Encode tuple fields sequentially (packed, no dynamic section)
+	var (
+		offset int
+		n      int
+		err    error
+	)
+	// Field Field1: (address,uint256)[3]
+	n, err = ComplexreturnsPackedEncodeStaticPairArray3(value.Field1, buf[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += n
+
+	return offset, nil
+}
+
+// PackedEncode encodes GetStaticPairFixedArrayReturn to packed ABI bytes
+func (value GetStaticPairFixedArrayReturn) PackedEncode() ([]byte, error) {
+	buf := make([]byte, value.PackedEncodedSize())
+	if _, err := value.PackedEncodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+// PackedDecode decodes GetStaticPairFixedArrayReturn from packed ABI bytes
+func (t *GetStaticPairFixedArrayReturn) PackedDecode(data []byte) (int, error) {
+	if len(data) < 156 {
+		return 0, io.ErrUnexpectedEOF
+	}
+	var err error
+	// Decode field Field1: (address,uint256)[3]
+	t.Field1, _, err = ComplexreturnsPackedDecodeStaticPairArray3(data[0:])
+	if err != nil {
+		return 0, err
+	}
+	return 156, nil
 }
 
 var _ abi.Method = (*GetTupleWithArrayCall)(nil)
