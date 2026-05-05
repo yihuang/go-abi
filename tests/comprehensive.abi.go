@@ -5160,9 +5160,9 @@ func (v *AddressSliceArray3SliceView) Len() int {
 }
 
 // Get returns element at index i
-func (v *AddressSliceArray3SliceView) Get(i int) ([3][]common.Address, error) {
+func (v *AddressSliceArray3SliceView) Get(i int) (*AddressSliceArray3View, error) {
 	if i < 0 || i >= v.length {
-		return [3][]common.Address{}, abi.ErrViewIndexOutOfBounds
+		return nil, abi.ErrViewIndexOutOfBounds
 	}
 	start := v.offsets[i]
 	var end int
@@ -5171,8 +5171,8 @@ func (v *AddressSliceArray3SliceView) Get(i int) ([3][]common.Address, error) {
 	} else {
 		end = len(v.data)
 	}
-	value, _, err := DecodeAddressSliceArray3(v.data[start:end])
-	return value, err
+	view, _, err := DecodeAddressSliceArray3View(v.data[start:end])
+	return view, err
 }
 
 // Raw returns the underlying encoded bytes
@@ -5495,6 +5495,69 @@ func (v *User2SliceView) Raw() []byte {
 // Materialize fully decodes all elements into a slice
 func (v *User2SliceView) Materialize() ([]User2, error) {
 	result, _, err := DecodeUser2Slice(v.data)
+	return result, err
+}
+
+// AddressSliceArray3View provides lazy indexed access to address[][3]
+type AddressSliceArray3View struct {
+	data    []byte
+	offsets [3]int
+}
+
+// DecodeAddressSliceArray3View creates a lazy view of address[][3]
+func DecodeAddressSliceArray3View(data []byte) (*AddressSliceArray3View, int, error) {
+	if len(data) < 96 {
+		return nil, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [3]int
+	prev := 96 - 1 // floor: first offset must be >= N*32
+	for i := 0; i < 3; i++ {
+		off, err := abi.DecodeSize(data[i*32:])
+		if err != nil {
+			return nil, 0, err
+		}
+		if off <= prev || off > len(data) {
+			return nil, 0, abi.ErrInvalidOffsetForArrayElement
+		}
+		offsets[i] = off
+		prev = off
+	}
+
+	return &AddressSliceArray3View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Len returns the number of elements
+func (v *AddressSliceArray3View) Len() int {
+	return 3
+}
+
+// Get returns element at index i
+func (v *AddressSliceArray3View) Get(i int) ([]common.Address, error) {
+	if i < 0 || i >= 3 {
+		return nil, abi.ErrViewIndexOutOfBounds
+	}
+	start := v.offsets[i]
+	var end int
+	if i+1 < 3 {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	value, _, err := abi.DecodeAddressSlice(v.data[start:end])
+	return value, err
+}
+
+// Raw returns the underlying encoded bytes
+func (v *AddressSliceArray3View) Raw() []byte {
+	return v.data
+}
+
+// Materialize fully decodes all elements into an array
+func (v *AddressSliceArray3View) Materialize() ([3][]common.Address, error) {
+	result, _, err := DecodeAddressSliceArray3(v.data)
 	return result, err
 }
 

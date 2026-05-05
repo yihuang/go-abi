@@ -81,6 +81,11 @@ func (g *Generator) sliceViewElemReturnType(t ethabi.Type) string {
 			return g.abiTypeToGoType(t)
 		}
 		return "*" + sliceViewTypeName(t) // e.g., "*ItemSliceView"
+	case ethabi.ArrayTy:
+		if IsDynamicType(*t.Elem) {
+			return "*" + arrayViewTypeName(t)
+		}
+		return g.abiTypeToGoType(t)
 	default:
 		return g.abiTypeToGoType(t)
 	}
@@ -200,6 +205,15 @@ func (g *Generator) genSliceViewGetBody(t ethabi.Type, dataRef string) {
 			viewTypeName := sliceViewTypeName(t)
 			g.L("\tview, _, err := Decode%s(%s)", viewTypeName, dataRef)
 			g.L("\treturn view, err")
+		}
+
+	case ethabi.ArrayTy:
+		if IsDynamicType(*t.Elem) {
+			g.L("\tview, _, err := Decode%s(%s)", arrayViewTypeName(t), dataRef)
+			g.L("\treturn view, err")
+		} else {
+			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
+			g.L("\treturn value, err")
 		}
 
 	default:

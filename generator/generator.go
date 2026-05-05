@@ -178,8 +178,9 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 
 	// Generate lazy decoding View types if enabled
 	if g.Options.GenerateLazy {
-		// Generate SliceView types first (they may be referenced by tuple views)
+		// Generate SliceView and ArrayView types first (referenced by tuple views)
 		g.genAllSliceViews(abiDef)
+		g.genAllArrayViews(abiDef)
 
 		// Generate View types for all tuples
 		g.genAllViews(abiDef)
