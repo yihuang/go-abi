@@ -79,6 +79,10 @@ func (g *Generator) L(format string, args ...any) {
 
 // GenerateFromABI generates Go code from ABI JSON using standalone functions
 func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
+	if err := validateABI(abiDef); err != nil {
+		return "", err
+	}
+
 	// Write build tag
 	if g.Options.BuildTag != "" {
 		g.L("//go:build %s", g.Options.BuildTag)
@@ -194,9 +198,7 @@ func (g *Generator) collectAllTypes(methods []ethabi.Method) []ethabi.Type {
 		// Recursively collect nested types
 		switch t.T {
 		case ethabi.SliceTy, ethabi.ArrayTy:
-			if t.Elem != nil {
-				collectTypes(*t.Elem)
-			}
+			collectTypes(*t.Elem)
 		case ethabi.TupleTy:
 			for _, elem := range t.TupleElems {
 				collectTypes(*elem)
