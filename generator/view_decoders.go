@@ -273,9 +273,7 @@ func (g *Generator) genAllViews(abiDef ethabi.ABI) {
 		// Recurse into other composite types
 		switch t.T {
 		case ethabi.SliceTy, ethabi.ArrayTy:
-			if t.Elem != nil {
-				collectTuples(*t.Elem)
-			}
+			collectTuples(*t.Elem)
 		}
 	}
 

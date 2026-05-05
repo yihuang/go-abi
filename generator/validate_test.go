@@ -8,8 +8,8 @@ import (
 )
 
 func TestValidateABI_RejectsMalformed(t *testing.T) {
-	nilSlice := ethabi.Type{T: ethabi.SliceTy}                // Elem nil
-	nilArray := ethabi.Type{T: ethabi.ArrayTy, Size: 3}       // Elem nil
+	nilSlice := ethabi.Type{T: ethabi.SliceTy}          // Elem nil
+	nilArray := ethabi.Type{T: ethabi.ArrayTy, Size: 3} // Elem nil
 	sliceOfNilSlice := ethabi.Type{T: ethabi.SliceTy, Elem: &nilSlice}
 	tupleWithNilField := ethabi.Type{T: ethabi.TupleTy, TupleElems: []*ethabi.Type{nil}}
 	tupleWithNilSliceField := ethabi.Type{T: ethabi.TupleTy, TupleElems: []*ethabi.Type{&nilSlice}}
@@ -63,7 +63,7 @@ func TestValidateABI_RejectsMalformed(t *testing.T) {
 }
 
 func TestValidateABI_AcceptsWellFormed(t *testing.T) {
-	abiDef, err := ethabi.JSON(strings.NewReader(`[
+	abiDef := mustParseABI(t, `[
 		{"name":"foo","type":"function","inputs":[{"name":"v","type":"uint256[]"}],"outputs":[]},
 		{"name":"bar","type":"function","inputs":[{"name":"a","type":"address[3][]"}],"outputs":[{"name":"b","type":"bool"}]},
 		{
@@ -78,10 +78,7 @@ func TestValidateABI_AcceptsWellFormed(t *testing.T) {
 			"outputs":[]
 		},
 		{"name":"Evt","type":"event","inputs":[{"name":"x","type":"bytes"}]}
-	]`))
-	if err != nil {
-		t.Fatalf("parse ABI: %v", err)
-	}
+	]`)
 	if err := validateABI(abiDef); err != nil {
 		t.Fatalf("validateABI: %v", err)
 	}

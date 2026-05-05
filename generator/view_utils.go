@@ -34,9 +34,7 @@ func collectSliceTypes(abiDef ethabi.ABI) []ethabi.Type {
 		// Recurse into nested types
 		switch t.T {
 		case ethabi.SliceTy, ethabi.ArrayTy:
-			if t.Elem != nil {
-				collectSlices(*t.Elem)
-			}
+			collectSlices(*t.Elem)
 		case ethabi.TupleTy:
 			for _, elem := range t.TupleElems {
 				collectSlices(*elem)
@@ -105,9 +103,7 @@ func typeReferencesExternalTuple(t ethabi.Type, externalTuples map[string]string
 			}
 		}
 	case ethabi.SliceTy, ethabi.ArrayTy:
-		if t.Elem != nil {
-			return typeReferencesExternalTuple(*t.Elem, externalTuples)
-		}
+		return typeReferencesExternalTuple(*t.Elem, externalTuples)
 	}
 	return false
 }

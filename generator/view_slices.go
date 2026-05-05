@@ -227,7 +227,7 @@ func (g *Generator) genAllSliceViews(abiDef ethabi.ABI) {
 	sliceTypes := collectSliceTypes(abiDef)
 	for _, sliceType := range sliceTypes {
 		// Skip slice types whose element type references external tuples
-		if sliceType.Elem != nil && typeReferencesExternalTuple(*sliceType.Elem, g.Options.ExternalTuples) {
+		if typeReferencesExternalTuple(*sliceType.Elem, g.Options.ExternalTuples) {
 			continue
 		}
 		g.genSliceView(sliceType)
