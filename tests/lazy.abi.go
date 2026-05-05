@@ -1065,20 +1065,20 @@ type RecordSliceView struct {
 }
 
 // DecodeRecordSliceView creates a lazy view of (uint32,bytes,bool)[]
-func DecodeRecordSliceView(data []byte) (*RecordSliceView, int, error) {
+func DecodeRecordSliceView(data []byte) (RecordSliceView, int, error) {
 	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return RecordSliceView{}, 0, io.ErrUnexpectedEOF
 	}
 	length, err := abi.DecodeSize(data)
 	if err != nil {
-		return nil, 0, err
+		return RecordSliceView{}, 0, err
 	}
 	if length == 0 {
-		return &RecordSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
+		return RecordSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
 	}
 
 	if length > len(data) || length*32 > len(data)-32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return RecordSliceView{}, 0, io.ErrUnexpectedEOF
 	}
 
 	offsets := make([]int, length)
@@ -1087,16 +1087,16 @@ func DecodeRecordSliceView(data []byte) (*RecordSliceView, int, error) {
 	for i := 0; i < length; i++ {
 		off, err := abi.DecodeSize(data[32+i*32:])
 		if err != nil {
-			return nil, 0, err
+			return RecordSliceView{}, 0, err
 		}
 		if off <= prev || off > maxOff {
-			return nil, 0, abi.ErrInvalidOffsetForSliceElement
+			return RecordSliceView{}, 0, abi.ErrInvalidOffsetForSliceElement
 		}
 		offsets[i] = 32 + off // absolute offset from start of data
 		prev = off
 	}
 
-	return &RecordSliceView{
+	return RecordSliceView{
 		data:    data,
 		length:  length,
 		offsets: offsets,
@@ -1104,14 +1104,14 @@ func DecodeRecordSliceView(data []byte) (*RecordSliceView, int, error) {
 }
 
 // Len returns the number of elements
-func (v *RecordSliceView) Len() int {
+func (v RecordSliceView) Len() int {
 	return v.length
 }
 
 // Get returns element at index i
-func (v *RecordSliceView) Get(i int) (*RecordView, error) {
+func (v RecordSliceView) Get(i int) (RecordView, error) {
 	if i < 0 || i >= v.length {
-		return nil, abi.ErrViewIndexOutOfBounds
+		return RecordView{}, abi.ErrViewIndexOutOfBounds
 	}
 	start := v.offsets[i]
 	var end int
@@ -1125,12 +1125,12 @@ func (v *RecordSliceView) Get(i int) (*RecordView, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *RecordSliceView) Raw() []byte {
+func (v RecordSliceView) Raw() []byte {
 	return v.data
 }
 
 // Materialize fully decodes all elements into a slice
-func (v *RecordSliceView) Materialize() ([]Record, error) {
+func (v RecordSliceView) Materialize() ([]Record, error) {
 	result, _, err := DecodeRecordSlice(v.data)
 	return result, err
 }
@@ -1142,9 +1142,9 @@ type ContainerView struct {
 }
 
 // DecodeContainerView creates a lazy view of Container.
-func DecodeContainerView(data []byte) (*ContainerView, int, error) {
+func DecodeContainerView(data []byte) (ContainerView, int, error) {
 	if len(data) < 64 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return ContainerView{}, 0, io.ErrUnexpectedEOF
 	}
 	var offsets [2]int
 	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
@@ -1152,10 +1152,10 @@ func DecodeContainerView(data []byte) (*ContainerView, int, error) {
 	{
 		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
-			return nil, 0, err
+			return ContainerView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return ContainerView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[0] = off
 		prevOffset = off
@@ -1164,35 +1164,35 @@ func DecodeContainerView(data []byte) (*ContainerView, int, error) {
 	{
 		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
-			return nil, 0, err
+			return ContainerView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return ContainerView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[1] = off
 		prevOffset = off
 	}
 
-	return &ContainerView{
+	return ContainerView{
 		data:    data,
 		offsets: offsets,
 	}, len(data), nil
 }
 
 // Profile returns the (string,uint64,string[]) field
-func (v *ContainerView) Profile() (*ProfileView, error) {
+func (v ContainerView) Profile() (ProfileView, error) {
 	view, _, err := DecodeProfileView(v.data[v.offsets[0]:v.offsets[1]])
 	return view, err
 }
 
 // Records returns the (uint32,bytes,bool)[] field
-func (v *ContainerView) Records() (*RecordSliceView, error) {
+func (v ContainerView) Records() (RecordSliceView, error) {
 	view, _, err := DecodeRecordSliceView(v.data[v.offsets[1]:])
 	return view, err
 }
 
 // Materialize fully decodes the view into Container
-func (v *ContainerView) Materialize() (*Container, error) {
+func (v ContainerView) Materialize() (*Container, error) {
 	result := &Container{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1202,7 +1202,7 @@ func (v *ContainerView) Materialize() (*Container, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *ContainerView) Raw() []byte {
+func (v ContainerView) Raw() []byte {
 	return v.data
 }
 
@@ -1213,9 +1213,9 @@ type GetContainerCallView struct {
 }
 
 // DecodeGetContainerCallView creates a lazy view of GetContainerCall.
-func DecodeGetContainerCallView(data []byte) (*GetContainerCallView, int, error) {
+func DecodeGetContainerCallView(data []byte) (GetContainerCallView, int, error) {
 	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return GetContainerCallView{}, 0, io.ErrUnexpectedEOF
 	}
 	var offsets [1]int
 	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
@@ -1223,29 +1223,29 @@ func DecodeGetContainerCallView(data []byte) (*GetContainerCallView, int, error)
 	{
 		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
-			return nil, 0, err
+			return GetContainerCallView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return GetContainerCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[0] = off
 		prevOffset = off
 	}
 
-	return &GetContainerCallView{
+	return GetContainerCallView{
 		data:    data,
 		offsets: offsets,
 	}, len(data), nil
 }
 
 // Container returns the ((string,uint64,string[]),(uint32,bytes,bool)[]) field
-func (v *GetContainerCallView) Container() (*ContainerView, error) {
+func (v GetContainerCallView) Container() (ContainerView, error) {
 	view, _, err := DecodeContainerView(v.data[v.offsets[0]:])
 	return view, err
 }
 
 // Materialize fully decodes the view into GetContainerCall
-func (v *GetContainerCallView) Materialize() (*GetContainerCall, error) {
+func (v GetContainerCallView) Materialize() (*GetContainerCall, error) {
 	result := &GetContainerCall{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1255,7 +1255,7 @@ func (v *GetContainerCallView) Materialize() (*GetContainerCall, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *GetContainerCallView) Raw() []byte {
+func (v GetContainerCallView) Raw() []byte {
 	return v.data
 }
 
@@ -1265,23 +1265,23 @@ type GetContainerReturnView struct {
 }
 
 // DecodeGetContainerReturnView creates a lazy view of GetContainerReturn.
-func DecodeGetContainerReturnView(data []byte) (*GetContainerReturnView, int, error) {
+func DecodeGetContainerReturnView(data []byte) (GetContainerReturnView, int, error) {
 	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return GetContainerReturnView{}, 0, io.ErrUnexpectedEOF
 	}
-	return &GetContainerReturnView{
+	return GetContainerReturnView{
 		data: data[:32],
 	}, 32, nil
 }
 
 // Field1 returns the bool field
-func (v *GetContainerReturnView) Field1() (bool, error) {
+func (v GetContainerReturnView) Field1() (bool, error) {
 	value, _, err := abi.DecodeBool(v.data[0:])
 	return value, err
 }
 
 // Materialize fully decodes the view into GetContainerReturn
-func (v *GetContainerReturnView) Materialize() (*GetContainerReturn, error) {
+func (v GetContainerReturnView) Materialize() (*GetContainerReturn, error) {
 	result := &GetContainerReturn{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1291,7 +1291,7 @@ func (v *GetContainerReturnView) Materialize() (*GetContainerReturn, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *GetContainerReturnView) Raw() []byte {
+func (v GetContainerReturnView) Raw() []byte {
 	return v.data
 }
 
@@ -1302,9 +1302,9 @@ type GetProfileCallView struct {
 }
 
 // DecodeGetProfileCallView creates a lazy view of GetProfileCall.
-func DecodeGetProfileCallView(data []byte) (*GetProfileCallView, int, error) {
+func DecodeGetProfileCallView(data []byte) (GetProfileCallView, int, error) {
 	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return GetProfileCallView{}, 0, io.ErrUnexpectedEOF
 	}
 	var offsets [1]int
 	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
@@ -1312,29 +1312,29 @@ func DecodeGetProfileCallView(data []byte) (*GetProfileCallView, int, error) {
 	{
 		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
-			return nil, 0, err
+			return GetProfileCallView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return GetProfileCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[0] = off
 		prevOffset = off
 	}
 
-	return &GetProfileCallView{
+	return GetProfileCallView{
 		data:    data,
 		offsets: offsets,
 	}, len(data), nil
 }
 
 // Profile returns the (string,uint64,string[]) field
-func (v *GetProfileCallView) Profile() (*ProfileView, error) {
+func (v GetProfileCallView) Profile() (ProfileView, error) {
 	view, _, err := DecodeProfileView(v.data[v.offsets[0]:])
 	return view, err
 }
 
 // Materialize fully decodes the view into GetProfileCall
-func (v *GetProfileCallView) Materialize() (*GetProfileCall, error) {
+func (v GetProfileCallView) Materialize() (*GetProfileCall, error) {
 	result := &GetProfileCall{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1344,7 +1344,7 @@ func (v *GetProfileCallView) Materialize() (*GetProfileCall, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *GetProfileCallView) Raw() []byte {
+func (v GetProfileCallView) Raw() []byte {
 	return v.data
 }
 
@@ -1354,23 +1354,23 @@ type GetProfileReturnView struct {
 }
 
 // DecodeGetProfileReturnView creates a lazy view of GetProfileReturn.
-func DecodeGetProfileReturnView(data []byte) (*GetProfileReturnView, int, error) {
+func DecodeGetProfileReturnView(data []byte) (GetProfileReturnView, int, error) {
 	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return GetProfileReturnView{}, 0, io.ErrUnexpectedEOF
 	}
-	return &GetProfileReturnView{
+	return GetProfileReturnView{
 		data: data[:32],
 	}, 32, nil
 }
 
 // Field1 returns the bool field
-func (v *GetProfileReturnView) Field1() (bool, error) {
+func (v GetProfileReturnView) Field1() (bool, error) {
 	value, _, err := abi.DecodeBool(v.data[0:])
 	return value, err
 }
 
 // Materialize fully decodes the view into GetProfileReturn
-func (v *GetProfileReturnView) Materialize() (*GetProfileReturn, error) {
+func (v GetProfileReturnView) Materialize() (*GetProfileReturn, error) {
 	result := &GetProfileReturn{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1380,7 +1380,7 @@ func (v *GetProfileReturnView) Materialize() (*GetProfileReturn, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *GetProfileReturnView) Raw() []byte {
+func (v GetProfileReturnView) Raw() []byte {
 	return v.data
 }
 
@@ -1391,9 +1391,9 @@ type GetRecordsCallView struct {
 }
 
 // DecodeGetRecordsCallView creates a lazy view of GetRecordsCall.
-func DecodeGetRecordsCallView(data []byte) (*GetRecordsCallView, int, error) {
+func DecodeGetRecordsCallView(data []byte) (GetRecordsCallView, int, error) {
 	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return GetRecordsCallView{}, 0, io.ErrUnexpectedEOF
 	}
 	var offsets [1]int
 	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
@@ -1401,29 +1401,29 @@ func DecodeGetRecordsCallView(data []byte) (*GetRecordsCallView, int, error) {
 	{
 		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
-			return nil, 0, err
+			return GetRecordsCallView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return GetRecordsCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[0] = off
 		prevOffset = off
 	}
 
-	return &GetRecordsCallView{
+	return GetRecordsCallView{
 		data:    data,
 		offsets: offsets,
 	}, len(data), nil
 }
 
 // Records returns the (uint32,bytes,bool)[] field
-func (v *GetRecordsCallView) Records() (*RecordSliceView, error) {
+func (v GetRecordsCallView) Records() (RecordSliceView, error) {
 	view, _, err := DecodeRecordSliceView(v.data[v.offsets[0]:])
 	return view, err
 }
 
 // Materialize fully decodes the view into GetRecordsCall
-func (v *GetRecordsCallView) Materialize() (*GetRecordsCall, error) {
+func (v GetRecordsCallView) Materialize() (*GetRecordsCall, error) {
 	result := &GetRecordsCall{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1433,7 +1433,7 @@ func (v *GetRecordsCallView) Materialize() (*GetRecordsCall, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *GetRecordsCallView) Raw() []byte {
+func (v GetRecordsCallView) Raw() []byte {
 	return v.data
 }
 
@@ -1443,23 +1443,23 @@ type GetRecordsReturnView struct {
 }
 
 // DecodeGetRecordsReturnView creates a lazy view of GetRecordsReturn.
-func DecodeGetRecordsReturnView(data []byte) (*GetRecordsReturnView, int, error) {
+func DecodeGetRecordsReturnView(data []byte) (GetRecordsReturnView, int, error) {
 	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return GetRecordsReturnView{}, 0, io.ErrUnexpectedEOF
 	}
-	return &GetRecordsReturnView{
+	return GetRecordsReturnView{
 		data: data[:32],
 	}, 32, nil
 }
 
 // Field1 returns the uint256 field
-func (v *GetRecordsReturnView) Field1() (*big.Int, error) {
+func (v GetRecordsReturnView) Field1() (*big.Int, error) {
 	value, _, err := abi.DecodeUint256(v.data[0:])
 	return value, err
 }
 
 // Materialize fully decodes the view into GetRecordsReturn
-func (v *GetRecordsReturnView) Materialize() (*GetRecordsReturn, error) {
+func (v GetRecordsReturnView) Materialize() (*GetRecordsReturn, error) {
 	result := &GetRecordsReturn{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1469,7 +1469,7 @@ func (v *GetRecordsReturnView) Materialize() (*GetRecordsReturn, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *GetRecordsReturnView) Raw() []byte {
+func (v GetRecordsReturnView) Raw() []byte {
 	return v.data
 }
 
@@ -1480,9 +1480,9 @@ type ProfileView struct {
 }
 
 // DecodeProfileView creates a lazy view of Profile.
-func DecodeProfileView(data []byte) (*ProfileView, int, error) {
+func DecodeProfileView(data []byte) (ProfileView, int, error) {
 	if len(data) < 96 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return ProfileView{}, 0, io.ErrUnexpectedEOF
 	}
 	var offsets [2]int
 	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
@@ -1490,10 +1490,10 @@ func DecodeProfileView(data []byte) (*ProfileView, int, error) {
 	{
 		off, err := abi.DecodeSize(data[0:])
 		if err != nil {
-			return nil, 0, err
+			return ProfileView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return ProfileView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[0] = off
 		prevOffset = off
@@ -1502,41 +1502,41 @@ func DecodeProfileView(data []byte) (*ProfileView, int, error) {
 	{
 		off, err := abi.DecodeSize(data[64:])
 		if err != nil {
-			return nil, 0, err
+			return ProfileView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return ProfileView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[1] = off
 		prevOffset = off
 	}
 
-	return &ProfileView{
+	return ProfileView{
 		data:    data,
 		offsets: offsets,
 	}, len(data), nil
 }
 
 // Name returns the string field
-func (v *ProfileView) Name() (string, error) {
+func (v ProfileView) Name() (string, error) {
 	value, _, err := abi.DecodeString(v.data[v.offsets[0]:v.offsets[1]])
 	return value, err
 }
 
 // Age returns the uint64 field
-func (v *ProfileView) Age() (uint64, error) {
+func (v ProfileView) Age() (uint64, error) {
 	value, _, err := abi.DecodeUint64(v.data[32:])
 	return value, err
 }
 
 // Tags returns the string[] field
-func (v *ProfileView) Tags() ([]string, error) {
+func (v ProfileView) Tags() ([]string, error) {
 	value, _, err := abi.DecodeStringSlice(v.data[v.offsets[1]:])
 	return value, err
 }
 
 // Materialize fully decodes the view into Profile
-func (v *ProfileView) Materialize() (*Profile, error) {
+func (v ProfileView) Materialize() (*Profile, error) {
 	result := &Profile{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1546,7 +1546,7 @@ func (v *ProfileView) Materialize() (*Profile, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *ProfileView) Raw() []byte {
+func (v ProfileView) Raw() []byte {
 	return v.data
 }
 
@@ -1557,9 +1557,9 @@ type RecordView struct {
 }
 
 // DecodeRecordView creates a lazy view of Record.
-func DecodeRecordView(data []byte) (*RecordView, int, error) {
+func DecodeRecordView(data []byte) (RecordView, int, error) {
 	if len(data) < 96 {
-		return nil, 0, io.ErrUnexpectedEOF
+		return RecordView{}, 0, io.ErrUnexpectedEOF
 	}
 	var offsets [1]int
 	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
@@ -1567,41 +1567,41 @@ func DecodeRecordView(data []byte) (*RecordView, int, error) {
 	{
 		off, err := abi.DecodeSize(data[32:])
 		if err != nil {
-			return nil, 0, err
+			return RecordView{}, 0, err
 		}
 		if off <= prevOffset || off > len(data) {
-			return nil, 0, abi.ErrInvalidOffsetForDynamicField
+			return RecordView{}, 0, abi.ErrInvalidOffsetForDynamicField
 		}
 		offsets[0] = off
 		prevOffset = off
 	}
 
-	return &RecordView{
+	return RecordView{
 		data:    data,
 		offsets: offsets,
 	}, len(data), nil
 }
 
 // Id returns the uint32 field
-func (v *RecordView) Id() (uint32, error) {
+func (v RecordView) Id() (uint32, error) {
 	value, _, err := abi.DecodeUint32(v.data[0:])
 	return value, err
 }
 
 // Data returns the bytes field
-func (v *RecordView) Data() ([]byte, error) {
+func (v RecordView) Data() ([]byte, error) {
 	value, _, err := abi.DecodeBytes(v.data[v.offsets[0]:])
 	return value, err
 }
 
 // Active returns the bool field
-func (v *RecordView) Active() (bool, error) {
+func (v RecordView) Active() (bool, error) {
 	value, _, err := abi.DecodeBool(v.data[64:])
 	return value, err
 }
 
 // Materialize fully decodes the view into Record
-func (v *RecordView) Materialize() (*Record, error) {
+func (v RecordView) Materialize() (*Record, error) {
 	result := &Record{}
 	_, err := result.Decode(v.data)
 	if err != nil {
@@ -1611,6 +1611,6 @@ func (v *RecordView) Materialize() (*Record, error) {
 }
 
 // Raw returns the underlying encoded bytes
-func (v *RecordView) Raw() []byte {
+func (v RecordView) Raw() []byte {
 	return v.data
 }

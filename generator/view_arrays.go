@@ -37,7 +37,7 @@ func (g *Generator) genArrayView(t ethabi.Type) {
 
 	g.L("")
 	g.L("// Len returns the number of elements")
-	g.L("func (v *%s) Len() int {", typeName)
+	g.L("func (v %s) Len() int {", typeName)
 	g.L("\treturn %d", n)
 	g.L("}")
 
@@ -45,14 +45,14 @@ func (g *Generator) genArrayView(t ethabi.Type) {
 
 	g.L("")
 	g.L("// Raw returns the underlying encoded bytes")
-	g.L("func (v *%s) Raw() []byte {", typeName)
+	g.L("func (v %s) Raw() []byte {", typeName)
 	g.L("\treturn v.data")
 	g.L("}")
 
 	baseElemType := g.abiTypeToGoType(*t.Elem)
 	g.L("")
 	g.L("// Materialize fully decodes all elements into an array")
-	g.L("func (v *%s) Materialize() ([%d]%s, error) {", typeName, n, baseElemType)
+	g.L("func (v %s) Materialize() ([%d]%s, error) {", typeName, n, baseElemType)
 	g.L("\tresult, _, err := %s", g.genDecodeCall(t, "v.data"))
 	g.L("\treturn result, err")
 	g.L("}")
@@ -62,16 +62,16 @@ func (g *Generator) genArrayView(t ethabi.Type) {
 func (g *Generator) arrayViewElemReturnType(t ethabi.Type) string {
 	switch t.T {
 	case ethabi.TupleTy:
-		return "*" + abi.TupleStructName(t) + "View"
+		return abi.TupleStructName(t) + "View"
 	case ethabi.SliceTy:
 		typeID := abi.GenTypeIdentifier(t)
 		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
 			return g.abiTypeToGoType(t)
 		}
-		return "*" + sliceViewTypeName(t)
+		return sliceViewTypeName(t)
 	case ethabi.ArrayTy:
 		if IsDynamicType(*t.Elem) {
-			return "*" + arrayViewTypeName(t)
+			return arrayViewTypeName(t)
 		}
 		return g.abiTypeToGoType(t)
 	default:
@@ -88,10 +88,10 @@ func (g *Generator) genArrayViewDecodeFunction(t ethabi.Type, typeName string) {
 
 	g.L("")
 	g.L("// Decode%s creates a lazy view of %s", typeName, t.String())
-	g.L("func Decode%s(data []byte) (*%s, int, error) {", typeName, typeName)
+	g.L("func Decode%s(data []byte) (%s, int, error) {", typeName, typeName)
 
 	g.L("\tif len(data) < %d {", n*32)
-	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+	g.L("\t\treturn %s{}, 0, io.ErrUnexpectedEOF", typeName)
 	g.L("\t}")
 
 	g.L("\tvar offsets [%d]int", n)
@@ -99,17 +99,17 @@ func (g *Generator) genArrayViewDecodeFunction(t ethabi.Type, typeName string) {
 	g.L("\tfor i := 0; i < %d; i++ {", n)
 	g.L("\t\toff, err := %sDecodeSize(data[i*32:])", g.StdPrefix)
 	g.L("\t\tif err != nil {")
-	g.L("\t\t\treturn nil, 0, err")
+	g.L("\t\t\treturn %s{}, 0, err", typeName)
 	g.L("\t\t}")
 	g.L("\t\tif off <= prev || off > len(data) {")
-	g.L("\t\t\treturn nil, 0, %sErrInvalidOffsetForArrayElement", g.StdPrefix)
+	g.L("\t\t\treturn %s{}, 0, %sErrInvalidOffsetForArrayElement", typeName, g.StdPrefix)
 	g.L("\t\t}")
 	g.L("\t\toffsets[i] = off")
 	g.L("\t\tprev = off")
 	g.L("\t}")
 
 	g.L("")
-	g.L("\treturn &%s{", typeName)
+	g.L("\treturn %s{", typeName)
 	g.L("\t\tdata: data,")
 	g.L("\t\toffsets: offsets,")
 	g.L("\t}, len(data), nil")
@@ -124,7 +124,7 @@ func (g *Generator) genArrayViewGet(t ethabi.Type, typeName string, elemType str
 
 	g.L("")
 	g.L("// Get returns element at index i")
-	g.L("func (v *%s) Get(i int) (%s, error) {", typeName, elemType)
+	g.L("func (v %s) Get(i int) (%s, error) {", typeName, elemType)
 	g.L("\tif i < 0 || i >= %d {", n)
 	g.L("\t\treturn %s, %sErrViewIndexOutOfBounds", zeroVal, g.StdPrefix)
 	g.L("\t}")

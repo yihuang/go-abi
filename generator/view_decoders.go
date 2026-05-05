@@ -24,17 +24,18 @@ func (g *Generator) genViewStruct(s Struct) {
 // genViewDecodeFunction emits DecodeXxxView. Construction reads only the
 // dynamic offsets from the header and validates monotonic + in-bounds; no
 // recursion into children. Caller must pass a slice covering exactly the
-// tuple's payload.
+// tuple's payload. Views are returned by value so leaf-access chains
+// don't allocate per level.
 func (g *Generator) genViewDecodeFunction(s Struct) {
 	staticSize := GetTupleSize(s.Types())
 	dynamicCount := countDynamicFields(s)
 
 	g.L("")
 	g.L("// Decode%sView creates a lazy view of %s.", s.Name, s.Name)
-	g.L("func Decode%sView(data []byte) (*%sView, int, error) {", s.Name, s.Name)
+	g.L("func Decode%sView(data []byte) (%sView, int, error) {", s.Name, s.Name)
 
 	g.L("\tif len(data) < %d {", staticSize)
-	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+	g.L("\t\treturn %sView{}, 0, io.ErrUnexpectedEOF", s.Name)
 	g.L("\t}")
 
 	if dynamicCount > 0 {
@@ -53,10 +54,10 @@ func (g *Generator) genViewDecodeFunction(s Struct) {
 			g.L("\t{")
 			g.L("\t\toff, err := %sDecodeSize(data[%d:])", g.StdPrefix, staticOffset)
 			g.L("\t\tif err != nil {")
-			g.L("\t\t\treturn nil, 0, err")
+			g.L("\t\t\treturn %sView{}, 0, err", s.Name)
 			g.L("\t\t}")
 			g.L("\t\tif off <= prevOffset || off > len(data) {")
-			g.L("\t\t\treturn nil, 0, %sErrInvalidOffsetForDynamicField", g.StdPrefix)
+			g.L("\t\t\treturn %sView{}, 0, %sErrInvalidOffsetForDynamicField", s.Name, g.StdPrefix)
 			g.L("\t\t}")
 			g.L("\t\toffsets[%d] = off", dynamicIdx)
 			g.L("\t\tprevOffset = off")
@@ -67,12 +68,12 @@ func (g *Generator) genViewDecodeFunction(s Struct) {
 		}
 
 		g.L("")
-		g.L("\treturn &%sView{", s.Name)
+		g.L("\treturn %sView{", s.Name)
 		g.L("\t\tdata: data,")
 		g.L("\t\toffsets: offsets,")
 		g.L("\t}, len(data), nil")
 	} else {
-		g.L("\treturn &%sView{", s.Name)
+		g.L("\treturn %sView{", s.Name)
 		g.L("\t\tdata: data[:%d],", staticSize)
 		g.L("\t}, %d, nil", staticSize)
 	}
@@ -106,7 +107,7 @@ func (g *Generator) genViewGetter(structName string, field StructField, staticOf
 
 	g.L("")
 	g.L("// %s returns the %s field", field.Name, field.Type.String())
-	g.L("func (v *%sView) %s() (%s, error) {", structName, field.Name, returnType)
+	g.L("func (v %sView) %s() (%s, error) {", structName, field.Name, returnType)
 
 	if !IsDynamicType(*field.Type) {
 		g.genViewGetterBody(*field.Type, fmt.Sprintf("v.data[%d:]", staticOffset))
@@ -129,16 +130,16 @@ func (g *Generator) genViewGetter(structName string, field StructField, staticOf
 func (g *Generator) viewGetterReturnType(t ethabi.Type) string {
 	switch t.T {
 	case ethabi.TupleTy:
-		return "*" + abi.TupleStructName(t) + "View"
+		return abi.TupleStructName(t) + "View"
 	case ethabi.SliceTy:
 		typeID := abi.GenTypeIdentifier(t)
 		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
 			return g.abiTypeToGoType(t)
 		}
-		return "*" + sliceViewTypeName(t) // e.g., "*ItemSliceView"
+		return sliceViewTypeName(t) // e.g., "ItemSliceView"
 	case ethabi.ArrayTy:
 		if IsDynamicType(*t.Elem) {
-			return "*" + arrayViewTypeName(t)
+			return arrayViewTypeName(t)
 		}
 		return g.abiTypeToGoType(t)
 	default:
@@ -186,7 +187,7 @@ func (g *Generator) genViewGetterBody(t ethabi.Type, dataRef string) {
 func (g *Generator) genViewMaterialize(s Struct) {
 	g.L("")
 	g.L("// Materialize fully decodes the view into %s", s.Name)
-	g.L("func (v *%sView) Materialize() (*%s, error) {", s.Name, s.Name)
+	g.L("func (v %sView) Materialize() (*%s, error) {", s.Name, s.Name)
 	g.L("\tresult := &%s{}", s.Name)
 	g.L("\t_, err := result.Decode(v.data)")
 	g.L("\tif err != nil {")
@@ -200,7 +201,7 @@ func (g *Generator) genViewMaterialize(s Struct) {
 func (g *Generator) genViewRaw(s Struct) {
 	g.L("")
 	g.L("// Raw returns the underlying encoded bytes")
-	g.L("func (v *%sView) Raw() []byte {", s.Name)
+	g.L("func (v %sView) Raw() []byte {", s.Name)
 	g.L("\treturn v.data")
 	g.L("}")
 }

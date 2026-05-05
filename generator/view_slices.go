@@ -44,7 +44,7 @@ func (g *Generator) genSliceView(t ethabi.Type) {
 	// Generate Len() method
 	g.L("")
 	g.L("// Len returns the number of elements")
-	g.L("func (v *%s) Len() int {", typeName)
+	g.L("func (v %s) Len() int {", typeName)
 	g.L("\treturn v.length")
 	g.L("}")
 
@@ -54,7 +54,7 @@ func (g *Generator) genSliceView(t ethabi.Type) {
 	// Generate Raw() method
 	g.L("")
 	g.L("// Raw returns the underlying encoded bytes")
-	g.L("func (v *%s) Raw() []byte {", typeName)
+	g.L("func (v %s) Raw() []byte {", typeName)
 	g.L("\treturn v.data")
 	g.L("}")
 
@@ -62,7 +62,7 @@ func (g *Generator) genSliceView(t ethabi.Type) {
 	baseElemType := g.abiTypeToGoType(*t.Elem)
 	g.L("")
 	g.L("// Materialize fully decodes all elements into a slice")
-	g.L("func (v *%s) Materialize() ([]%s, error) {", typeName, baseElemType)
+	g.L("func (v %s) Materialize() ([]%s, error) {", typeName, baseElemType)
 	g.L("\tresult, _, err := %s", g.genDecodeCall(t, "v.data"))
 	g.L("\treturn result, err")
 	g.L("}")
@@ -72,7 +72,7 @@ func (g *Generator) genSliceView(t ethabi.Type) {
 func (g *Generator) sliceViewElemReturnType(t ethabi.Type) string {
 	switch t.T {
 	case ethabi.TupleTy:
-		return "*" + abi.TupleStructName(t) + "View"
+		return abi.TupleStructName(t) + "View"
 	case ethabi.SliceTy:
 		// If the slice type is a stdlib type (and we're not in stdlib mode),
 		// return the regular Go type instead of the view type
@@ -80,10 +80,10 @@ func (g *Generator) sliceViewElemReturnType(t ethabi.Type) string {
 		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
 			return g.abiTypeToGoType(t)
 		}
-		return "*" + sliceViewTypeName(t) // e.g., "*ItemSliceView"
+		return sliceViewTypeName(t) // e.g., "ItemSliceView"
 	case ethabi.ArrayTy:
 		if IsDynamicType(*t.Elem) {
-			return "*" + arrayViewTypeName(t)
+			return arrayViewTypeName(t)
 		}
 		return g.abiTypeToGoType(t)
 	default:
@@ -99,34 +99,34 @@ func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 
 	g.L("")
 	g.L("// Decode%s creates a lazy view of %s", typeName, t.String())
-	g.L("func Decode%s(data []byte) (*%s, int, error) {", typeName, typeName)
+	g.L("func Decode%s(data []byte) (%s, int, error) {", typeName, typeName)
 
 	g.L("\tif len(data) < 32 {")
-	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+	g.L("\t\treturn %s{}, 0, io.ErrUnexpectedEOF", typeName)
 	g.L("\t}")
 	g.L("\tlength, err := %sDecodeSize(data)", g.StdPrefix)
 	g.L("\tif err != nil {")
-	g.L("\t\treturn nil, 0, err")
+	g.L("\t\treturn %s{}, 0, err", typeName)
 	g.L("\t}")
 
 	if !hasDynamicElem {
 		elemSize := GetTypeSize(*t.Elem)
 		// Reject before arithmetic; length*N can overflow int.
 		g.L("\tif length > len(data) || length*%d > len(data)-32 {", elemSize)
-		g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+		g.L("\t\treturn %s{}, 0, io.ErrUnexpectedEOF", typeName)
 		g.L("\t}")
 		g.L("\ttotalSize := 32 + length * %d", elemSize)
-		g.L("\treturn &%s{", typeName)
+		g.L("\treturn %s{", typeName)
 		g.L("\t\tdata: data[:totalSize],")
 		g.L("\t\tlength: length,")
 		g.L("\t}, totalSize, nil")
 	} else {
 		g.L("\tif length == 0 {")
-		g.L("\t\treturn &%s{data: data[:32], length: 0, offsets: nil}, 32, nil", typeName)
+		g.L("\t\treturn %s{data: data[:32], length: 0, offsets: nil}, 32, nil", typeName)
 		g.L("\t}")
 		g.L("")
 		g.L("\tif length > len(data) || length*32 > len(data)-32 {")
-		g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+		g.L("\t\treturn %s{}, 0, io.ErrUnexpectedEOF", typeName)
 		g.L("\t}")
 		g.L("")
 		g.L("\toffsets := make([]int, length)")
@@ -137,16 +137,16 @@ func (g *Generator) genSliceViewDecodeFunction(t ethabi.Type, typeName string) {
 		g.L("\tfor i := 0; i < length; i++ {")
 		g.L("\t\toff, err := %sDecodeSize(data[32+i*32:])", g.StdPrefix)
 		g.L("\t\tif err != nil {")
-		g.L("\t\t\treturn nil, 0, err")
+		g.L("\t\t\treturn %s{}, 0, err", typeName)
 		g.L("\t\t}")
 		g.L("\t\tif off <= prev || off > maxOff {")
-		g.L("\t\t\treturn nil, 0, %sErrInvalidOffsetForSliceElement", g.StdPrefix)
+		g.L("\t\t\treturn %s{}, 0, %sErrInvalidOffsetForSliceElement", typeName, g.StdPrefix)
 		g.L("\t\t}")
 		g.L("\t\toffsets[i] = 32 + off // absolute offset from start of data")
 		g.L("\t\tprev = off")
 		g.L("\t}")
 		g.L("")
-		g.L("\treturn &%s{", typeName)
+		g.L("\treturn %s{", typeName)
 		g.L("\t\tdata: data,")
 		g.L("\t\tlength: length,")
 		g.L("\t\toffsets: offsets,")
@@ -163,7 +163,7 @@ func (g *Generator) genSliceViewGet(t ethabi.Type, typeName string, elemType str
 
 	g.L("")
 	g.L("// Get returns element at index i")
-	g.L("func (v *%s) Get(i int) (%s, error) {", typeName, elemType)
+	g.L("func (v %s) Get(i int) (%s, error) {", typeName, elemType)
 	g.L("\tif i < 0 || i >= v.length {")
 	g.L("\t\treturn %s, %sErrViewIndexOutOfBounds", zeroVal, g.StdPrefix)
 	g.L("\t}")
