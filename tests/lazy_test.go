@@ -138,6 +138,21 @@ func TestLazyViewSliceOversizedLength(t *testing.T) {
 	require.Error(t, err)
 }
 
+// TestLazyViewMaterializeToNilDst guards against the easy nil-deref panic
+// path: MaterializeTo writes into dst directly, so a nil dst must be
+// rejected with an explicit error rather than panicking.
+func TestLazyViewMaterializeToNilDst(t *testing.T) {
+	profile := &Profile{Name: "Alice", Age: 30, Tags: []string{"dev"}}
+	encoded, err := profile.Encode()
+	require.NoError(t, err)
+
+	view, _, err := DecodeProfileView(encoded)
+	require.NoError(t, err)
+
+	var dst *Profile // nil
+	require.Error(t, view.MaterializeTo(dst))
+}
+
 // TestLazyViewSliceOversizedElementOffset guards against a signed-int
 // overflow in the slice-view's per-element offset bound check. The previous
 // guard `32+off > len(data)` overflows to a negative value when off is near

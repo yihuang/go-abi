@@ -1191,11 +1191,29 @@ func (v ContainerView) Records() (RecordSliceView, error) {
 	return view, err
 }
 
-// Materialize fully decodes the view into Container
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v ContainerView) MaterializeTo(dst *Container) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if _, err = dst.Profile.Decode(v.data[v.offsets[0]:v.offsets[1]]); err != nil {
+		return err
+	}
+	if dst.Records, _, err = DecodeRecordSlice(v.data[v.offsets[1]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Container. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v ContainerView) Materialize() (*Container, error) {
 	result := &Container{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1244,11 +1262,26 @@ func (v GetContainerCallView) Container() (ContainerView, error) {
 	return view, err
 }
 
-// Materialize fully decodes the view into GetContainerCall
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v GetContainerCallView) MaterializeTo(dst *GetContainerCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if _, err = dst.Container.Decode(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new GetContainerCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v GetContainerCallView) Materialize() (*GetContainerCall, error) {
 	result := &GetContainerCall{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1280,11 +1313,26 @@ func (v GetContainerReturnView) Field1() (bool, error) {
 	return value, err
 }
 
-// Materialize fully decodes the view into GetContainerReturn
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v GetContainerReturnView) MaterializeTo(dst *GetContainerReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new GetContainerReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v GetContainerReturnView) Materialize() (*GetContainerReturn, error) {
 	result := &GetContainerReturn{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1333,11 +1381,26 @@ func (v GetProfileCallView) Profile() (ProfileView, error) {
 	return view, err
 }
 
-// Materialize fully decodes the view into GetProfileCall
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v GetProfileCallView) MaterializeTo(dst *GetProfileCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if _, err = dst.Profile.Decode(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new GetProfileCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v GetProfileCallView) Materialize() (*GetProfileCall, error) {
 	result := &GetProfileCall{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1369,11 +1432,26 @@ func (v GetProfileReturnView) Field1() (bool, error) {
 	return value, err
 }
 
-// Materialize fully decodes the view into GetProfileReturn
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v GetProfileReturnView) MaterializeTo(dst *GetProfileReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new GetProfileReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v GetProfileReturnView) Materialize() (*GetProfileReturn, error) {
 	result := &GetProfileReturn{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1422,11 +1500,26 @@ func (v GetRecordsCallView) Records() (RecordSliceView, error) {
 	return view, err
 }
 
-// Materialize fully decodes the view into GetRecordsCall
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v GetRecordsCallView) MaterializeTo(dst *GetRecordsCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Records, _, err = DecodeRecordSlice(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new GetRecordsCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v GetRecordsCallView) Materialize() (*GetRecordsCall, error) {
 	result := &GetRecordsCall{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1458,11 +1551,26 @@ func (v GetRecordsReturnView) Field1() (*big.Int, error) {
 	return value, err
 }
 
-// Materialize fully decodes the view into GetRecordsReturn
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v GetRecordsReturnView) MaterializeTo(dst *GetRecordsReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeUint256(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new GetRecordsReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v GetRecordsReturnView) Materialize() (*GetRecordsReturn, error) {
 	result := &GetRecordsReturn{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1535,11 +1643,32 @@ func (v ProfileView) Tags() ([]string, error) {
 	return value, err
 }
 
-// Materialize fully decodes the view into Profile
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v ProfileView) MaterializeTo(dst *Profile) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Name, _, err = abi.DecodeString(v.data[v.offsets[0]:v.offsets[1]]); err != nil {
+		return err
+	}
+	if dst.Age, _, err = abi.DecodeUint64(v.data[32:]); err != nil {
+		return err
+	}
+	if dst.Tags, _, err = abi.DecodeStringSlice(v.data[v.offsets[1]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Profile. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v ProfileView) Materialize() (*Profile, error) {
 	result := &Profile{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -1600,11 +1729,32 @@ func (v RecordView) Active() (bool, error) {
 	return value, err
 }
 
-// Materialize fully decodes the view into Record
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v RecordView) MaterializeTo(dst *Record) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Id, _, err = abi.DecodeUint32(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.Data, _, err = abi.DecodeBytes(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	if dst.Active, _, err = abi.DecodeBool(v.data[64:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Record. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
 func (v RecordView) Materialize() (*Record, error) {
 	result := &Record{}
-	_, err := result.Decode(v.data)
-	if err != nil {
+	if err := v.MaterializeTo(result); err != nil {
 		return nil, err
 	}
 	return result, nil
