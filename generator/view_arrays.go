@@ -23,7 +23,7 @@ func (g *Generator) genArrayView(t ethabi.Type) {
 	}
 
 	typeName := arrayViewTypeName(t)
-	elemType := g.arrayViewElemReturnType(*t.Elem)
+	elemType := g.viewElemReturnType(*t.Elem)
 	n := t.Size
 
 	g.L("")
@@ -56,27 +56,6 @@ func (g *Generator) genArrayView(t ethabi.Type) {
 	g.L("\tresult, _, err := %s", g.genDecodeCall(t, "v.data"))
 	g.L("\treturn result, err")
 	g.L("}")
-}
-
-// arrayViewElemReturnType returns the return type for Get(i).
-func (g *Generator) arrayViewElemReturnType(t ethabi.Type) string {
-	switch t.T {
-	case ethabi.TupleTy:
-		return abi.TupleStructName(t) + "View"
-	case ethabi.SliceTy:
-		typeID := abi.GenTypeIdentifier(t)
-		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
-			return g.abiTypeToGoType(t)
-		}
-		return sliceViewTypeName(t)
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			return arrayViewTypeName(t)
-		}
-		return g.abiTypeToGoType(t)
-	default:
-		return g.abiTypeToGoType(t)
-	}
 }
 
 // genArrayViewDecodeFunction emits DecodeXxx for an array view. Reads the
@@ -135,81 +114,15 @@ func (g *Generator) genArrayViewGet(t ethabi.Type, typeName string, elemType str
 	g.L("\t} else {")
 	g.L("\t\tend = len(v.data)")
 	g.L("\t}")
-	g.genArrayViewGetBody(*t.Elem, "v.data[start:end]")
+	g.genViewGetBody(*t.Elem, "v.data[start:end]")
 	g.L("}")
-}
-
-// genArrayViewGetBody emits the body of Get for one element.
-func (g *Generator) genArrayViewGetBody(t ethabi.Type, dataRef string) {
-	switch t.T {
-	case ethabi.TupleTy:
-		tupleName := abi.TupleStructName(t)
-		g.L("\tview, _, err := Decode%sView(%s)", tupleName, dataRef)
-		g.L("\treturn view, err")
-	case ethabi.SliceTy:
-		typeID := abi.GenTypeIdentifier(t)
-		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
-			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-			g.L("\treturn value, err")
-		} else {
-			g.L("\tview, _, err := Decode%s(%s)", sliceViewTypeName(t), dataRef)
-			g.L("\treturn view, err")
-		}
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			g.L("\tview, _, err := Decode%s(%s)", arrayViewTypeName(t), dataRef)
-			g.L("\treturn view, err")
-		} else {
-			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-			g.L("\treturn value, err")
-		}
-	default:
-		g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-		g.L("\treturn value, err")
-	}
 }
 
 // collectArrayViewTypes collects fixed-size arrays with dynamic elements.
 func collectArrayViewTypes(abiDef ethabi.ABI) []ethabi.Type {
-	typeSet := make(map[string]ethabi.Type)
-
-	var visit func(t ethabi.Type)
-	visit = func(t ethabi.Type) {
-		if t.T == ethabi.ArrayTy && IsDynamicType(*t.Elem) {
-			id := abi.GenTypeIdentifier(t)
-			if _, ok := typeSet[id]; !ok {
-				typeSet[id] = t
-			}
-		}
-		switch t.T {
-		case ethabi.SliceTy, ethabi.ArrayTy:
-			visit(*t.Elem)
-		case ethabi.TupleTy:
-			for _, elem := range t.TupleElems {
-				visit(*elem)
-			}
-		}
-	}
-
-	for _, method := range abiDef.Methods {
-		for _, in := range method.Inputs {
-			visit(in.Type)
-		}
-		for _, out := range method.Outputs {
-			visit(out.Type)
-		}
-	}
-	for _, event := range abiDef.Events {
-		for _, in := range event.Inputs {
-			visit(in.Type)
-		}
-	}
-
-	result := make([]ethabi.Type, 0, len(typeSet))
-	for _, name := range SortedMapKeys(typeSet) {
-		result = append(result, typeSet[name])
-	}
-	return result
+	return collectTypesIf(abiDef, func(t ethabi.Type) bool {
+		return t.T == ethabi.ArrayTy && IsDynamicType(*t.Elem)
+	})
 }
 
 // genAllArrayViews emits ArrayView types for all dynamic-element fixed arrays.

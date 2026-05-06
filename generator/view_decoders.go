@@ -103,14 +103,14 @@ func (g *Generator) genViewGetters(s Struct) {
 // bounded by the next dynamic offset (or len(data) for the last), so the
 // child decoder doesn't need to re-walk to find its extent.
 func (g *Generator) genViewGetter(structName string, field StructField, staticOffset int, dynamicIdx int, isLastDynamic bool) {
-	returnType := g.viewGetterReturnType(*field.Type)
+	returnType := g.viewElemReturnType(*field.Type)
 
 	g.L("")
 	g.L("// %s returns the %s field", field.Name, field.Type.String())
 	g.L("func (v %sView) %s() (%s, error) {", structName, field.Name, returnType)
 
 	if !IsDynamicType(*field.Type) {
-		g.genViewGetterBody(*field.Type, fmt.Sprintf("v.data[%d:]", staticOffset))
+		g.genViewGetBody(*field.Type, fmt.Sprintf("v.data[%d:]", staticOffset))
 	} else {
 		var dataRef string
 		if isLastDynamic {
@@ -118,69 +118,10 @@ func (g *Generator) genViewGetter(structName string, field StructField, staticOf
 		} else {
 			dataRef = fmt.Sprintf("v.data[v.offsets[%d]:v.offsets[%d]]", dynamicIdx, dynamicIdx+1)
 		}
-		g.genViewGetterBody(*field.Type, dataRef)
+		g.genViewGetBody(*field.Type, dataRef)
 	}
 
 	g.L("}")
-}
-
-// viewGetterReturnType returns the getter return type. Stdlib scalars and
-// slices of them return plain Go values — wrapping them in a view would
-// only add allocs without saving work.
-func (g *Generator) viewGetterReturnType(t ethabi.Type) string {
-	switch t.T {
-	case ethabi.TupleTy:
-		return abi.TupleStructName(t) + "View"
-	case ethabi.SliceTy:
-		typeID := abi.GenTypeIdentifier(t)
-		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
-			return g.abiTypeToGoType(t)
-		}
-		return sliceViewTypeName(t) // e.g., "ItemSliceView"
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			return arrayViewTypeName(t)
-		}
-		return g.abiTypeToGoType(t)
-	default:
-		return g.abiTypeToGoType(t)
-	}
-}
-
-// genViewGetterBody generates the body of a getter method
-func (g *Generator) genViewGetterBody(t ethabi.Type, dataRef string) {
-	switch t.T {
-	case ethabi.TupleTy:
-		tupleName := abi.TupleStructName(t)
-		g.L("\tview, _, err := Decode%sView(%s)", tupleName, dataRef)
-		g.L("\treturn view, err")
-
-	case ethabi.SliceTy:
-		// If the slice type is a stdlib type (and we're not in stdlib mode),
-		// decode directly instead of using the view
-		typeID := abi.GenTypeIdentifier(t)
-		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
-			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-			g.L("\treturn value, err")
-		} else {
-			viewTypeName := sliceViewTypeName(t)
-			g.L("\tview, _, err := Decode%s(%s)", viewTypeName, dataRef)
-			g.L("\treturn view, err")
-		}
-
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			g.L("\tview, _, err := Decode%s(%s)", arrayViewTypeName(t), dataRef)
-			g.L("\treturn view, err")
-		} else {
-			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-			g.L("\treturn value, err")
-		}
-
-	default:
-		g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-		g.L("\treturn value, err")
-	}
 }
 
 // genViewMaterialize emits MaterializeTo (per-field decode that reuses the
@@ -253,56 +194,31 @@ func (g *Generator) genViewRaw(s Struct) {
 
 // genAllViews generates all View types for tuples
 func (g *Generator) genAllViews(abiDef ethabi.ABI) {
-	// Collect all tuple types
 	tupleTypes := make(map[string]Struct)
 
-	var collectTuples func(t ethabi.Type)
-	collectTuples = func(t ethabi.Type) {
-		if t.T == ethabi.TupleTy {
-			name := abi.TupleStructName(t)
-			if _, exists := tupleTypes[name]; !exists {
-				if _, isExternal := g.Options.ExternalTuples[name]; !isExternal {
-					tupleTypes[name] = StructFromTuple(t)
-				}
-			}
-			// Recurse into tuple fields
-			for _, elem := range t.TupleElems {
-				collectTuples(*elem)
-			}
+	walkAbiTypes(abiDef, func(t ethabi.Type) {
+		if t.T != ethabi.TupleTy {
+			return
 		}
-		// Recurse into other composite types
-		switch t.T {
-		case ethabi.SliceTy, ethabi.ArrayTy:
-			collectTuples(*t.Elem)
+		name := abi.TupleStructName(t)
+		if _, exists := tupleTypes[name]; exists {
+			return
 		}
-	}
+		if _, isExternal := g.Options.ExternalTuples[name]; isExternal {
+			return
+		}
+		tupleTypes[name] = StructFromTuple(t)
+	})
 
-	// Collect from all methods - both the input tuple types and generate Call/Return views
+	// Add the Call/Return structs for each method.
 	for _, method := range abiDef.Methods {
-		for _, input := range method.Inputs {
-			collectTuples(input.Type)
-		}
-		for _, output := range method.Outputs {
-			collectTuples(output.Type)
-		}
-
-		// Also add the Call and Return structs themselves
 		if len(method.Inputs) > 0 {
 			callName := fmt.Sprintf("%sCall", Title.String(method.Name))
-			callStruct := StructFromArguments(callName, method.Inputs)
-			tupleTypes[callName] = callStruct
+			tupleTypes[callName] = StructFromArguments(callName, method.Inputs)
 		}
 		if len(method.Outputs) > 0 {
 			returnName := fmt.Sprintf("%sReturn", Title.String(method.Name))
-			returnStruct := StructFromArguments(returnName, method.Outputs)
-			tupleTypes[returnName] = returnStruct
-		}
-	}
-
-	// Collect from all events
-	for _, event := range abiDef.Events {
-		for _, input := range event.Inputs {
-			collectTuples(input.Type)
+			tupleTypes[returnName] = StructFromArguments(returnName, method.Outputs)
 		}
 	}
 

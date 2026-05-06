@@ -20,51 +20,115 @@ func countDynamicFields(s Struct) int {
 
 // collectSliceTypes collects all unique slice types from an ABI for view generation
 func collectSliceTypes(abiDef ethabi.ABI) []ethabi.Type {
-	typeSet := make(map[string]ethabi.Type)
+	return collectTypesIf(abiDef, func(t ethabi.Type) bool { return t.T == ethabi.SliceTy })
+}
 
-	var collectSlices func(t ethabi.Type)
-	collectSlices = func(t ethabi.Type) {
-		if t.T == ethabi.SliceTy {
-			typeID := abi.GenTypeIdentifier(t)
-			if _, exists := typeSet[typeID]; !exists {
-				typeSet[typeID] = t
-			}
+// collectTypesIf returns the unique types in abiDef matching pred, keyed by
+// GenTypeIdentifier and emitted in deterministic (sorted) order.
+func collectTypesIf(abiDef ethabi.ABI, pred func(ethabi.Type) bool) []ethabi.Type {
+	seen := make(map[string]ethabi.Type)
+	walkAbiTypes(abiDef, func(t ethabi.Type) {
+		if !pred(t) {
+			return
 		}
+		id := abi.GenTypeIdentifier(t)
+		if _, ok := seen[id]; !ok {
+			seen[id] = t
+		}
+	})
+	out := make([]ethabi.Type, 0, len(seen))
+	for _, k := range SortedMapKeys(seen) {
+		out = append(out, seen[k])
+	}
+	return out
+}
 
-		// Recurse into nested types
+// walkAbiTypes calls visit on every type appearing in the ABI's method
+// inputs/outputs and event inputs, recursing into Slice/Array/Tuple children.
+func walkAbiTypes(abiDef ethabi.ABI, visit func(ethabi.Type)) {
+	var walk func(t ethabi.Type)
+	walk = func(t ethabi.Type) {
+		visit(t)
 		switch t.T {
 		case ethabi.SliceTy, ethabi.ArrayTy:
-			collectSlices(*t.Elem)
+			walk(*t.Elem)
 		case ethabi.TupleTy:
 			for _, elem := range t.TupleElems {
-				collectSlices(*elem)
+				walk(*elem)
 			}
 		}
 	}
-
-	// Collect from all method inputs and outputs
-	for _, method := range abiDef.Methods {
-		for _, input := range method.Inputs {
-			collectSlices(input.Type)
+	for _, m := range abiDef.Methods {
+		for _, in := range m.Inputs {
+			walk(in.Type)
 		}
-		for _, output := range method.Outputs {
-			collectSlices(output.Type)
+		for _, out := range m.Outputs {
+			walk(out.Type)
 		}
 	}
-
-	// Collect from all events
-	for _, event := range abiDef.Events {
-		for _, input := range event.Inputs {
-			collectSlices(input.Type)
+	for _, e := range abiDef.Events {
+		for _, in := range e.Inputs {
+			walk(in.Type)
 		}
 	}
+}
 
-	// Convert to sorted slice for deterministic output
-	result := make([]ethabi.Type, 0, len(typeSet))
-	for _, name := range SortedMapKeys(typeSet) {
-		result = append(result, typeSet[name])
+// viewElemReturnType is the Go return type for a value extracted from a view
+// (a tuple field getter, or Get(i) on a slice/array view). Tuples become
+// XxxView, slices become XxxSliceView (unless they're stdlib types in non-
+// stdlib builds, which return their plain Go type to avoid duplicate decls),
+// dynamic-elem fixed arrays become XxxArrayNView, and everything else returns
+// its plain Go type.
+func (g *Generator) viewElemReturnType(t ethabi.Type) string {
+	switch t.T {
+	case ethabi.TupleTy:
+		return abi.TupleStructName(t) + "View"
+	case ethabi.SliceTy:
+		typeID := abi.GenTypeIdentifier(t)
+		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
+			return g.abiTypeToGoType(t)
+		}
+		return sliceViewTypeName(t)
+	case ethabi.ArrayTy:
+		if IsDynamicType(*t.Elem) {
+			return arrayViewTypeName(t)
+		}
+		return g.abiTypeToGoType(t)
+	default:
+		return g.abiTypeToGoType(t)
 	}
-	return result
+}
+
+// genViewGetBody emits the body of a tuple-view getter or a slice/array-view
+// Get method for one element at dataRef. Mirrors viewElemReturnType: composite
+// types whose return is a view get DecodeXxxView; everything else falls back
+// to the materializing decoder.
+func (g *Generator) genViewGetBody(t ethabi.Type, dataRef string) {
+	switch t.T {
+	case ethabi.TupleTy:
+		g.L("\tview, _, err := Decode%sView(%s)", abi.TupleStructName(t), dataRef)
+		g.L("\treturn view, err")
+	case ethabi.SliceTy:
+		typeID := abi.GenTypeIdentifier(t)
+		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
+			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
+			g.L("\treturn value, err")
+		} else {
+			g.L("\tview, _, err := Decode%s(%s)", sliceViewTypeName(t), dataRef)
+			g.L("\treturn view, err")
+		}
+	case ethabi.ArrayTy:
+		if IsDynamicType(*t.Elem) {
+			g.L("\tview, _, err := Decode%s(%s)", arrayViewTypeName(t), dataRef)
+			g.L("\treturn view, err")
+		} else {
+			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
+			g.L("\treturn value, err")
+		}
+	default:
+		g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
+		g.L("\treturn value, err")
+	}
 }
 
 // zeroValue returns the zero value literal for a Go type

@@ -25,7 +25,7 @@ func (g *Generator) genSliceView(t ethabi.Type) {
 	}
 
 	typeName := sliceViewTypeName(t) // e.g., "ItemSliceView" for []Item
-	elemType := g.sliceViewElemReturnType(*t.Elem)
+	elemType := g.viewElemReturnType(*t.Elem)
 	hasDynamicElem := IsDynamicType(*t.Elem)
 
 	g.L("")
@@ -66,29 +66,6 @@ func (g *Generator) genSliceView(t ethabi.Type) {
 	g.L("\tresult, _, err := %s", g.genDecodeCall(t, "v.data"))
 	g.L("\treturn result, err")
 	g.L("}")
-}
-
-// sliceViewElemReturnType returns the return type for Get(i)
-func (g *Generator) sliceViewElemReturnType(t ethabi.Type) string {
-	switch t.T {
-	case ethabi.TupleTy:
-		return abi.TupleStructName(t) + "View"
-	case ethabi.SliceTy:
-		// If the slice type is a stdlib type (and we're not in stdlib mode),
-		// return the regular Go type instead of the view type
-		typeID := abi.GenTypeIdentifier(t)
-		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
-			return g.abiTypeToGoType(t)
-		}
-		return sliceViewTypeName(t) // e.g., "ItemSliceView"
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			return arrayViewTypeName(t)
-		}
-		return g.abiTypeToGoType(t)
-	default:
-		return g.abiTypeToGoType(t)
-	}
 }
 
 // genSliceViewDecodeFunction emits DecodeXxx for a slice view. Static-elem
@@ -171,7 +148,7 @@ func (g *Generator) genSliceViewGet(t ethabi.Type, typeName string, elemType str
 	if !hasDynamicElem {
 		elemSize := GetTypeSize(*t.Elem)
 		g.L("\toffset := 32 + i * %d", elemSize)
-		g.genSliceViewGetBody(*t.Elem, "v.data[offset:]")
+		g.genViewGetBody(*t.Elem, "v.data[offset:]")
 	} else {
 		g.L("\tstart := v.offsets[i]")
 		g.L("\tvar end int")
@@ -180,46 +157,10 @@ func (g *Generator) genSliceViewGet(t ethabi.Type, typeName string, elemType str
 		g.L("\t} else {")
 		g.L("\t\tend = len(v.data)")
 		g.L("\t}")
-		g.genSliceViewGetBody(*t.Elem, "v.data[start:end]")
+		g.genViewGetBody(*t.Elem, "v.data[start:end]")
 	}
 
 	g.L("}")
-}
-
-// genSliceViewGetBody generates the body of Get method
-func (g *Generator) genSliceViewGetBody(t ethabi.Type, dataRef string) {
-	switch t.T {
-	case ethabi.TupleTy:
-		tupleName := abi.TupleStructName(t)
-		g.L("\tview, _, err := Decode%sView(%s)", tupleName, dataRef)
-		g.L("\treturn view, err")
-
-	case ethabi.SliceTy:
-		// If the slice type is a stdlib type (and we're not in stdlib mode),
-		// decode directly instead of using the view
-		typeID := abi.GenTypeIdentifier(t)
-		if !g.Options.Stdlib && abi.IsStdlibType(typeID) {
-			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-			g.L("\treturn value, err")
-		} else {
-			viewTypeName := sliceViewTypeName(t)
-			g.L("\tview, _, err := Decode%s(%s)", viewTypeName, dataRef)
-			g.L("\treturn view, err")
-		}
-
-	case ethabi.ArrayTy:
-		if IsDynamicType(*t.Elem) {
-			g.L("\tview, _, err := Decode%s(%s)", arrayViewTypeName(t), dataRef)
-			g.L("\treturn view, err")
-		} else {
-			g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-			g.L("\treturn value, err")
-		}
-
-	default:
-		g.L("\tvalue, _, err := %s", g.genDecodeCall(t, dataRef))
-		g.L("\treturn value, err")
-	}
 }
 
 // genAllSliceViews generates SliceView types for all slice types
