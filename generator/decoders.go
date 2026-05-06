@@ -23,7 +23,7 @@ func (g *Generator) genUint256Decoding() {
 	g.L("\tif len(data) < 32 {")
 	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
 	g.L("\t}")
-	g.L("\tresult := new(uint256.Int)")
+	g.L("\tresult := new(Uint256)")
 	g.L("\tresult.SetBytes32(data[:32])")
 	g.L("\treturn result, 32, nil")
 }
@@ -434,7 +434,7 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 // genPackedLargeUintDecoding generates packed decoding for large unsigned integers using uint256.Int
 func (g *Generator) genPackedLargeUintDecoding(t ethabi.Type) {
 	byteSize := t.Size / 8
-	g.L("\tresult := new(uint256.Int)")
+	g.L("\tresult := new(Uint256)")
 	if byteSize == 32 {
 		g.L("\tresult.SetBytes32(data[:32])")
 	} else {

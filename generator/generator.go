@@ -59,13 +59,6 @@ func NewGenerator(opts ...Option) *Generator {
 		stdPrefix = "abi."
 	}
 
-	// Add uint256 import only when generating the abi pkg's own stdlib (its
-	// runtime helpers need to construct uint256.Int directly). User-facing
-	// generated code references *abi.Uint256, never the concrete type.
-	if opt.UseUint256 && opt.Stdlib {
-		defaultImports = append(defaultImports, ImportSpec{Path: "github.com/holiman/uint256"})
-	}
-
 	return &Generator{
 		Options:   *opt,
 		Imports:   append(defaultImports, opt.ExtraImports...),
