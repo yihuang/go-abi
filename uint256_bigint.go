@@ -25,7 +25,10 @@ func WriteUint256(value *Uint256, buf []byte) error {
 }
 
 // ReadUint256 reads a 32-byte big-endian unsigned integer from data[:32].
-// Caller must ensure len(data) >= 32.
-func ReadUint256(data []byte) *Uint256 {
-	return new(Uint256).SetBytes(data[:32])
+// Returns io.ErrUnexpectedEOF if data is shorter than 32 bytes.
+func ReadUint256(data []byte) (*Uint256, error) {
+	if len(data) < 32 {
+		return nil, io.ErrUnexpectedEOF
+	}
+	return new(Uint256).SetBytes(data[:32]), nil
 }

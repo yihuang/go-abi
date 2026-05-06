@@ -20,10 +20,11 @@ func (g *Generator) genIntDecoding(t ethabi.Type) {
 
 // genUint256Decoding generates decoding for unsigned 256-bit integers
 func (g *Generator) genUint256Decoding() {
-	g.L("\tif len(data) < 32 {")
-	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+	g.L("\tresult, err := %sReadUint256(data)", g.StdPrefix)
+	g.L("\tif err != nil {")
+	g.L("\t\treturn nil, 0, err")
 	g.L("\t}")
-	g.L("\treturn %sReadUint256(data), 32, nil", g.StdPrefix)
+	g.L("\treturn result, 32, nil")
 }
 
 // genSmallIntDecoding generates optimized decoding for small integer types
@@ -426,7 +427,11 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 func (g *Generator) genPackedLargeUintDecoding(t ethabi.Type) {
 	byteSize := t.Size / 8
 	if byteSize == 32 {
-		g.L("\treturn %sReadUint256(data), 32, nil", g.StdPrefix)
+		g.L("\tresult, err := %sReadUint256(data)", g.StdPrefix)
+		g.L("\tif err != nil {")
+		g.L("\t\treturn nil, 0, err")
+		g.L("\t}")
+		g.L("\treturn result, 32, nil")
 		return
 	}
 	g.L("\tresult := new(%sUint256).SetBytes(data[:%d])", g.StdPrefix, byteSize)

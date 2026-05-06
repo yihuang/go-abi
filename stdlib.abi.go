@@ -6267,10 +6267,11 @@ func DecodeStringSlice(data []byte) ([]string, int, error) {
 
 // DecodeUint104 decodes uint104 from ABI bytes
 func DecodeUint104(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint104Slice decodes uint104[] from ABI bytes
@@ -6305,10 +6306,11 @@ func DecodeUint104Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint112 decodes uint112 from ABI bytes
 func DecodeUint112(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint112Slice decodes uint112[] from ABI bytes
@@ -6343,10 +6345,11 @@ func DecodeUint112Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint120 decodes uint120 from ABI bytes
 func DecodeUint120(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint120Slice decodes uint120[] from ABI bytes
@@ -6381,10 +6384,11 @@ func DecodeUint120Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint128 decodes uint128 from ABI bytes
 func DecodeUint128(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint128Slice decodes uint128[] from ABI bytes
@@ -6419,10 +6423,11 @@ func DecodeUint128Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint136 decodes uint136 from ABI bytes
 func DecodeUint136(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint136Slice decodes uint136[] from ABI bytes
@@ -6457,10 +6462,11 @@ func DecodeUint136Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint144 decodes uint144 from ABI bytes
 func DecodeUint144(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint144Slice decodes uint144[] from ABI bytes
@@ -6495,10 +6501,11 @@ func DecodeUint144Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint152 decodes uint152 from ABI bytes
 func DecodeUint152(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint152Slice decodes uint152[] from ABI bytes
@@ -6542,10 +6549,11 @@ func DecodeUint16(data []byte) (uint16, int, error) {
 
 // DecodeUint160 decodes uint160 from ABI bytes
 func DecodeUint160(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint160Slice decodes uint160[] from ABI bytes
@@ -6580,10 +6588,11 @@ func DecodeUint160Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint168 decodes uint168 from ABI bytes
 func DecodeUint168(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint168Slice decodes uint168[] from ABI bytes
@@ -6648,10 +6657,11 @@ func DecodeUint16Slice(data []byte) ([]uint16, int, error) {
 
 // DecodeUint176 decodes uint176 from ABI bytes
 func DecodeUint176(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint176Slice decodes uint176[] from ABI bytes
@@ -6686,10 +6696,11 @@ func DecodeUint176Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint184 decodes uint184 from ABI bytes
 func DecodeUint184(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint184Slice decodes uint184[] from ABI bytes
@@ -6724,10 +6735,11 @@ func DecodeUint184Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint192 decodes uint192 from ABI bytes
 func DecodeUint192(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint192Slice decodes uint192[] from ABI bytes
@@ -6762,10 +6774,11 @@ func DecodeUint192Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint200 decodes uint200 from ABI bytes
 func DecodeUint200(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint200Slice decodes uint200[] from ABI bytes
@@ -6800,10 +6813,11 @@ func DecodeUint200Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint208 decodes uint208 from ABI bytes
 func DecodeUint208(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint208Slice decodes uint208[] from ABI bytes
@@ -6838,10 +6852,11 @@ func DecodeUint208Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint216 decodes uint216 from ABI bytes
 func DecodeUint216(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint216Slice decodes uint216[] from ABI bytes
@@ -6876,10 +6891,11 @@ func DecodeUint216Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint224 decodes uint224 from ABI bytes
 func DecodeUint224(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint224Slice decodes uint224[] from ABI bytes
@@ -6914,10 +6930,11 @@ func DecodeUint224Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint232 decodes uint232 from ABI bytes
 func DecodeUint232(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint232Slice decodes uint232[] from ABI bytes
@@ -6961,10 +6978,11 @@ func DecodeUint24(data []byte) (uint32, int, error) {
 
 // DecodeUint240 decodes uint240 from ABI bytes
 func DecodeUint240(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint240Slice decodes uint240[] from ABI bytes
@@ -6999,10 +7017,11 @@ func DecodeUint240Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint248 decodes uint248 from ABI bytes
 func DecodeUint248(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint248Slice decodes uint248[] from ABI bytes
@@ -7067,10 +7086,11 @@ func DecodeUint24Slice(data []byte) ([]uint32, int, error) {
 
 // DecodeUint256 decodes uint256 from ABI bytes
 func DecodeUint256(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint256Slice decodes uint256[] from ABI bytes
@@ -7300,10 +7320,11 @@ func DecodeUint64Slice(data []byte) ([]uint64, int, error) {
 
 // DecodeUint72 decodes uint72 from ABI bytes
 func DecodeUint72(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint72Slice decodes uint72[] from ABI bytes
@@ -7347,10 +7368,11 @@ func DecodeUint8(data []byte) (uint8, int, error) {
 
 // DecodeUint80 decodes uint80 from ABI bytes
 func DecodeUint80(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint80Slice decodes uint80[] from ABI bytes
@@ -7385,10 +7407,11 @@ func DecodeUint80Slice(data []byte) ([]*Uint256, int, error) {
 
 // DecodeUint88 decodes uint88 from ABI bytes
 func DecodeUint88(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint88Slice decodes uint88[] from ABI bytes
@@ -7453,10 +7476,11 @@ func DecodeUint8Slice(data []byte) ([]uint8, int, error) {
 
 // DecodeUint96 decodes uint96 from ABI bytes
 func DecodeUint96(data []byte) (*Uint256, int, error) {
-	if len(data) < 32 {
-		return nil, 0, io.ErrUnexpectedEOF
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
 	}
-	return ReadUint256(data), 32, nil
+	return result, 32, nil
 }
 
 // DecodeUint96Slice decodes uint96[] from ABI bytes
@@ -9669,7 +9693,11 @@ func PackedDecodeUint256(data []byte) (*Uint256, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
-	return ReadUint256(data), 32, nil
+	result, err := ReadUint256(data)
+	if err != nil {
+		return nil, 0, err
+	}
+	return result, 32, nil
 }
 
 // PackedDecodeUint32 decodes uint32 from packed ABI bytes (no padding)
