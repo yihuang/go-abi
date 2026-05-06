@@ -456,3 +456,14 @@ func TestDecodeDynamicMalformedLength(t *testing.T) {
 		})
 	}
 }
+
+func TestWriteUint256ShortBuffer(t *testing.T) {
+	val := new(Uint256)
+	short := make([]byte, 16)
+	err := WriteUint256(val, short)
+	require.Error(t, err)
+	require.True(t, errors.Is(err, io.ErrShortBuffer))
+
+	buf := make([]byte, 32)
+	require.NoError(t, WriteUint256(val, buf))
+}

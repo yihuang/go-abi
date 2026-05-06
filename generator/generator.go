@@ -59,11 +59,6 @@ func NewGenerator(opts ...Option) *Generator {
 		stdPrefix = "abi."
 	}
 
-	// Add uint256 import if using holiman/uint256
-	if opt.UseUint256 {
-		defaultImports = append(defaultImports, ImportSpec{Path: "github.com/holiman/uint256"})
-	}
-
 	return &Generator{
 		Options:   *opt,
 		Imports:   append(defaultImports, opt.ExtraImports...),
@@ -86,12 +81,6 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 	// Write build tag
 	if g.Options.BuildTag != "" {
 		g.L("//go:build %s", g.Options.BuildTag)
-		g.L("")
-	} else if g.Options.UseUint256 {
-		g.L("//go:build uint256")
-		g.L("")
-	} else {
-		g.L("//go:build !uint256")
 		g.L("")
 	}
 
@@ -798,10 +787,11 @@ func (g *Generator) abiTypeToGoType(abiType ethabi.Type) string {
 			return "uint32"
 		} else if abiType.Size <= 64 {
 			return "uint64"
-		} else if g.Options.UseUint256 {
-			return "*uint256.Int"
 		} else {
-			return "*big.Int"
+			// Emit the *Uint256 alias (defined in abi pkg, tag-gated to *big.Int
+			// or *uint256.Int). Lets generated code be byte-identical between
+			// the two builds.
+			return "*" + g.StdPrefix + "Uint256"
 		}
 	case ethabi.IntTy:
 		// Use the closest native Go type that fits to avoid big.Int allocations

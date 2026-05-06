@@ -16,7 +16,6 @@ import (
 )
 
 //go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive.abi.go --external-tuples User=User -lazy
-//go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive_uint256.abi.go --external-tuples User=User -buildtag=uint256 -uint256 -lazy
 
 // ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
 var ComprehensiveTestABI = []string{
