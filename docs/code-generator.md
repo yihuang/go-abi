@@ -354,7 +354,8 @@ func (p Person) EncodedSize() int {
 ### Integers
 
 - **uint8-uint64**: Native Go types for efficiency
-- **uint256/int256**: `*big.Int` with helper functions
+- **uint256 (and unsigned >64-bit)**: `*abi.Uint256` — a build-tag-gated alias resolving to `*big.Int` by default and `*uint256.Int` under `-tags uint256`
+- **int256 (and signed >64-bit)**: `*big.Int` (no signed alternative)
 - **Small integers (<64 bits)**: Native types where possible
 
 ### Arrays

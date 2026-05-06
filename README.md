@@ -104,7 +104,7 @@ The generator maps Solidity types to Go types as follows:
 | `int[24,32]` | `int32` |
 | `uint[40,48,56,64]` | `uint64` |
 | `int[40,48,56,64]` | `int64` |
-| `uint[64+]` | `*big.Int` |
+| `uint[64+]` | `*abi.Uint256` (alias: `*big.Int` default, `*uint256.Int` under `-tags uint256`) |
 | `int[64+]` | `*big.Int` |
 | `bool` | `bool` |
 | `string` | `string` |

@@ -19,7 +19,7 @@ func TestStdlibUint256NoConcreteRef(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	code, err := NewGenerator(Stdlib(true), UseUint256(true)).GenerateFromABI(abiDef)
+	code, err := NewGenerator(Stdlib(true)).GenerateFromABI(abiDef)
 	if err != nil {
 		t.Fatal(err)
 	}
