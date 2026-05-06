@@ -11,20 +11,19 @@ func (g *Generator) genIntDecoding(t ethabi.Type) {
 	// Optimize small integer types to avoid big.Int overhead
 	if t.Size <= 64 {
 		g.genSmallIntDecoding(t)
-	} else if t.T == ethabi.UintTy && g.Options.UseUint256 {
+	} else if t.T == ethabi.UintTy {
 		g.genUint256Decoding()
 	} else {
 		g.genBigIntDecoding(t)
 	}
 }
 
-// genUint256Decoding generates decoding for holiman/uint256.Int types
+// genUint256Decoding generates decoding for unsigned 256-bit integers
 func (g *Generator) genUint256Decoding() {
-	g.L("\tif len(data) < 32 {")
-	g.L("\t\treturn nil, 0, io.ErrUnexpectedEOF")
+	g.L("\tresult, err := %sReadUint256(data)", g.StdPrefix)
+	g.L("\tif err != nil {")
+	g.L("\t\treturn nil, 0, err")
 	g.L("\t}")
-	g.L("\tresult := new(uint256.Int)")
-	g.L("\tresult.SetBytes32(data[:32])")
 	g.L("\treturn result, 32, nil")
 }
 
@@ -404,42 +403,38 @@ func (g *Generator) genPackedIntDecoding(t ethabi.Type) {
 		}
 	} else {
 		// For sizes > 8 bytes
-		if t.T == ethabi.UintTy && g.Options.UseUint256 {
-			// Use uint256.Int for large unsigned integers when enabled
+		if t.T == ethabi.UintTy {
 			g.genPackedLargeUintDecoding(t)
 			return
 		}
-		// Use big.Int
-		if t.T == ethabi.IntTy {
-			// DecodeBigInt expects 32 bytes; sign-extend packed bytes to 32
-			g.L("\tvar buf [32]byte")
-			g.L("\tif data[0]&0x80 != 0 {")
-			g.L("\t\tfor i := 0; i < 32-%d; i++ {", byteSize)
-			g.L("\t\t\tbuf[i] = 0xFF")
-			g.L("\t\t}")
-			g.L("\t}")
-			g.L("\tcopy(buf[32-%d:], data[:%d])", byteSize, byteSize)
-			g.L("\tresult, err := %sDecodeBigInt(buf[:], true)", g.StdPrefix)
-			g.L("\tif err != nil {")
-			g.L("\t\treturn nil, 0, err")
-			g.L("\t}")
-			g.L("\treturn result, %d, nil", byteSize)
-		} else {
-			g.L("\tresult := new(big.Int).SetBytes(data[:%d])", byteSize)
-			g.L("\treturn result, %d, nil", byteSize)
-		}
+		// Signed: sign-extend packed bytes to 32, then DecodeBigInt
+		g.L("\tvar buf [32]byte")
+		g.L("\tif data[0]&0x80 != 0 {")
+		g.L("\t\tfor i := 0; i < 32-%d; i++ {", byteSize)
+		g.L("\t\t\tbuf[i] = 0xFF")
+		g.L("\t\t}")
+		g.L("\t}")
+		g.L("\tcopy(buf[32-%d:], data[:%d])", byteSize, byteSize)
+		g.L("\tresult, err := %sDecodeBigInt(buf[:], true)", g.StdPrefix)
+		g.L("\tif err != nil {")
+		g.L("\t\treturn nil, 0, err")
+		g.L("\t}")
+		g.L("\treturn result, %d, nil", byteSize)
 	}
 }
 
-// genPackedLargeUintDecoding generates packed decoding for large unsigned integers using uint256.Int
+// genPackedLargeUintDecoding generates packed decoding for large unsigned integers
 func (g *Generator) genPackedLargeUintDecoding(t ethabi.Type) {
 	byteSize := t.Size / 8
-	g.L("\tresult := new(uint256.Int)")
 	if byteSize == 32 {
-		g.L("\tresult.SetBytes32(data[:32])")
-	} else {
-		g.L("\tresult.SetBytes(data[:%d])", byteSize)
+		g.L("\tresult, err := %sReadUint256(data)", g.StdPrefix)
+		g.L("\tif err != nil {")
+		g.L("\t\treturn nil, 0, err")
+		g.L("\t}")
+		g.L("\treturn result, 32, nil")
+		return
 	}
+	g.L("\tresult := new(%sUint256).SetBytes(data[:%d])", g.StdPrefix, byteSize)
 	g.L("\treturn result, %d, nil", byteSize)
 }
 

@@ -12,16 +12,18 @@ func (g *Generator) genIntEncoding(t ethabi.Type) {
 	// Optimize small integer types to avoid big.Int overhead
 	if t.Size <= 64 {
 		g.genSmallIntEncoding(t)
-	} else if t.T == ethabi.UintTy && g.Options.UseUint256 {
+	} else if t.T == ethabi.UintTy {
 		g.genUint256Encoding()
 	} else {
 		g.genBigIntEncoding(t)
 	}
 }
 
-// genUint256Encoding generates encoding for holiman/uint256.Int types
+// genUint256Encoding generates encoding for unsigned 256-bit integers
 func (g *Generator) genUint256Encoding() {
-	g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
+	g.L("\tif err := %sWriteUint256(value, buf[:32]); err != nil {", g.StdPrefix)
+	g.L("\t\treturn 0, err")
+	g.L("\t}")
 	g.L("\treturn 32, nil")
 }
 
@@ -321,18 +323,13 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 		}
 	} else {
 		// For sizes > 8 bytes
-		if t.T == ethabi.UintTy && g.Options.UseUint256 {
-			// Use uint256.Int for large unsigned integers when enabled
+		if t.T == ethabi.UintTy {
 			g.genPackedLargeUintEncoding(t)
 			return
 		}
-		// Use big.Int via temp buffer (EncodeBigInt always expects 32 bytes)
+		// Signed: encode via 32-byte temp buf, copy low byteSize bytes.
 		g.L("\tvar tmp [32]byte")
-		signed := "false"
-		if t.T == ethabi.IntTy {
-			signed = "true"
-		}
-		g.L("\tif err := %sEncodeBigInt(value, tmp[:], %s); err != nil {", g.StdPrefix, signed)
+		g.L("\tif err := %sEncodeBigInt(value, tmp[:], true); err != nil {", g.StdPrefix)
 		g.L("\t\treturn 0, err")
 		g.L("\t}")
 		g.L("\tcopy(buf[:%d], tmp[%d:])", byteSize, 32-byteSize)
@@ -341,16 +338,18 @@ func (g *Generator) genPackedIntEncoding(t ethabi.Type) {
 	g.L("\treturn %d, nil", byteSize)
 }
 
-// genPackedLargeUintEncoding generates packed encoding for large unsigned integers using uint256.Int
+// genPackedLargeUintEncoding generates packed encoding for large unsigned integers
 func (g *Generator) genPackedLargeUintEncoding(t ethabi.Type) {
 	byteSize := t.Size / 8
 	if byteSize == 32 {
-		// Full 32 bytes - use WriteToArray32
-		g.L("\tvalue.WriteToArray32((*[32]byte)(buf[:32]))")
+		g.L("\tif err := %sWriteUint256(value, buf[:32]); err != nil {", g.StdPrefix)
+		g.L("\t\treturn 0, err")
+		g.L("\t}")
 	} else {
-		// For smaller sizes, write to temp array and copy relevant bytes
 		g.L("\tvar tmp [32]byte")
-		g.L("\tvalue.WriteToArray32(&tmp)")
+		g.L("\tif err := %sWriteUint256(value, tmp[:]); err != nil {", g.StdPrefix)
+		g.L("\t\treturn 0, err")
+		g.L("\t}")
 		g.L("\tcopy(buf[:%d], tmp[%d:])", byteSize, 32-byteSize)
 	}
 	g.L("\treturn %d, nil", byteSize)
