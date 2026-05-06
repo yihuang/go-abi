@@ -1857,7 +1857,7 @@ func EncodeStringSlice(value []string, buf []byte) (int, error) {
 }
 
 // EncodeUint104 encodes uint104 to ABI bytes
-func EncodeUint104(value *big.Int, buf []byte) (int, error) {
+func EncodeUint104(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -1865,7 +1865,7 @@ func EncodeUint104(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint104Slice encodes uint104[] to ABI bytes
-func EncodeUint104Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint104Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -1884,7 +1884,7 @@ func EncodeUint104Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint112 encodes uint112 to ABI bytes
-func EncodeUint112(value *big.Int, buf []byte) (int, error) {
+func EncodeUint112(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -1892,7 +1892,7 @@ func EncodeUint112(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint112Slice encodes uint112[] to ABI bytes
-func EncodeUint112Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint112Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -1911,7 +1911,7 @@ func EncodeUint112Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint120 encodes uint120 to ABI bytes
-func EncodeUint120(value *big.Int, buf []byte) (int, error) {
+func EncodeUint120(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -1919,7 +1919,7 @@ func EncodeUint120(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint120Slice encodes uint120[] to ABI bytes
-func EncodeUint120Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint120Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -1938,7 +1938,7 @@ func EncodeUint120Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint128 encodes uint128 to ABI bytes
-func EncodeUint128(value *big.Int, buf []byte) (int, error) {
+func EncodeUint128(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -1946,7 +1946,7 @@ func EncodeUint128(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint128Slice encodes uint128[] to ABI bytes
-func EncodeUint128Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint128Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -1965,7 +1965,7 @@ func EncodeUint128Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint136 encodes uint136 to ABI bytes
-func EncodeUint136(value *big.Int, buf []byte) (int, error) {
+func EncodeUint136(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -1973,7 +1973,7 @@ func EncodeUint136(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint136Slice encodes uint136[] to ABI bytes
-func EncodeUint136Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint136Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -1992,7 +1992,7 @@ func EncodeUint136Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint144 encodes uint144 to ABI bytes
-func EncodeUint144(value *big.Int, buf []byte) (int, error) {
+func EncodeUint144(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2000,7 +2000,7 @@ func EncodeUint144(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint144Slice encodes uint144[] to ABI bytes
-func EncodeUint144Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint144Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2019,7 +2019,7 @@ func EncodeUint144Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint152 encodes uint152 to ABI bytes
-func EncodeUint152(value *big.Int, buf []byte) (int, error) {
+func EncodeUint152(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2027,7 +2027,7 @@ func EncodeUint152(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint152Slice encodes uint152[] to ABI bytes
-func EncodeUint152Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint152Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2052,7 +2052,7 @@ func EncodeUint16(value uint16, buf []byte) (int, error) {
 }
 
 // EncodeUint160 encodes uint160 to ABI bytes
-func EncodeUint160(value *big.Int, buf []byte) (int, error) {
+func EncodeUint160(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2060,7 +2060,7 @@ func EncodeUint160(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint160Slice encodes uint160[] to ABI bytes
-func EncodeUint160Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint160Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2079,7 +2079,7 @@ func EncodeUint160Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint168 encodes uint168 to ABI bytes
-func EncodeUint168(value *big.Int, buf []byte) (int, error) {
+func EncodeUint168(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2087,7 +2087,7 @@ func EncodeUint168(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint168Slice encodes uint168[] to ABI bytes
-func EncodeUint168Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint168Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2125,7 +2125,7 @@ func EncodeUint16Slice(value []uint16, buf []byte) (int, error) {
 }
 
 // EncodeUint176 encodes uint176 to ABI bytes
-func EncodeUint176(value *big.Int, buf []byte) (int, error) {
+func EncodeUint176(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2133,7 +2133,7 @@ func EncodeUint176(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint176Slice encodes uint176[] to ABI bytes
-func EncodeUint176Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint176Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2152,7 +2152,7 @@ func EncodeUint176Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint184 encodes uint184 to ABI bytes
-func EncodeUint184(value *big.Int, buf []byte) (int, error) {
+func EncodeUint184(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2160,7 +2160,7 @@ func EncodeUint184(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint184Slice encodes uint184[] to ABI bytes
-func EncodeUint184Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint184Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2179,7 +2179,7 @@ func EncodeUint184Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint192 encodes uint192 to ABI bytes
-func EncodeUint192(value *big.Int, buf []byte) (int, error) {
+func EncodeUint192(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2187,7 +2187,7 @@ func EncodeUint192(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint192Slice encodes uint192[] to ABI bytes
-func EncodeUint192Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint192Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2206,7 +2206,7 @@ func EncodeUint192Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint200 encodes uint200 to ABI bytes
-func EncodeUint200(value *big.Int, buf []byte) (int, error) {
+func EncodeUint200(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2214,7 +2214,7 @@ func EncodeUint200(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint200Slice encodes uint200[] to ABI bytes
-func EncodeUint200Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint200Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2233,7 +2233,7 @@ func EncodeUint200Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint208 encodes uint208 to ABI bytes
-func EncodeUint208(value *big.Int, buf []byte) (int, error) {
+func EncodeUint208(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2241,7 +2241,7 @@ func EncodeUint208(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint208Slice encodes uint208[] to ABI bytes
-func EncodeUint208Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint208Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2260,7 +2260,7 @@ func EncodeUint208Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint216 encodes uint216 to ABI bytes
-func EncodeUint216(value *big.Int, buf []byte) (int, error) {
+func EncodeUint216(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2268,7 +2268,7 @@ func EncodeUint216(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint216Slice encodes uint216[] to ABI bytes
-func EncodeUint216Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint216Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2287,7 +2287,7 @@ func EncodeUint216Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint224 encodes uint224 to ABI bytes
-func EncodeUint224(value *big.Int, buf []byte) (int, error) {
+func EncodeUint224(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2295,7 +2295,7 @@ func EncodeUint224(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint224Slice encodes uint224[] to ABI bytes
-func EncodeUint224Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint224Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2314,7 +2314,7 @@ func EncodeUint224Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint232 encodes uint232 to ABI bytes
-func EncodeUint232(value *big.Int, buf []byte) (int, error) {
+func EncodeUint232(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2322,7 +2322,7 @@ func EncodeUint232(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint232Slice encodes uint232[] to ABI bytes
-func EncodeUint232Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint232Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2347,7 +2347,7 @@ func EncodeUint24(value uint32, buf []byte) (int, error) {
 }
 
 // EncodeUint240 encodes uint240 to ABI bytes
-func EncodeUint240(value *big.Int, buf []byte) (int, error) {
+func EncodeUint240(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2355,7 +2355,7 @@ func EncodeUint240(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint240Slice encodes uint240[] to ABI bytes
-func EncodeUint240Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint240Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2374,7 +2374,7 @@ func EncodeUint240Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint248 encodes uint248 to ABI bytes
-func EncodeUint248(value *big.Int, buf []byte) (int, error) {
+func EncodeUint248(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2382,7 +2382,7 @@ func EncodeUint248(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint248Slice encodes uint248[] to ABI bytes
-func EncodeUint248Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint248Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2420,7 +2420,7 @@ func EncodeUint24Slice(value []uint32, buf []byte) (int, error) {
 }
 
 // EncodeUint256 encodes uint256 to ABI bytes
-func EncodeUint256(value *big.Int, buf []byte) (int, error) {
+func EncodeUint256(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2428,7 +2428,7 @@ func EncodeUint256(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint256Slice encodes uint256[] to ABI bytes
-func EncodeUint256Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint256Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2572,7 +2572,7 @@ func EncodeUint64Slice(value []uint64, buf []byte) (int, error) {
 }
 
 // EncodeUint72 encodes uint72 to ABI bytes
-func EncodeUint72(value *big.Int, buf []byte) (int, error) {
+func EncodeUint72(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2580,7 +2580,7 @@ func EncodeUint72(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint72Slice encodes uint72[] to ABI bytes
-func EncodeUint72Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint72Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2605,7 +2605,7 @@ func EncodeUint8(value uint8, buf []byte) (int, error) {
 }
 
 // EncodeUint80 encodes uint80 to ABI bytes
-func EncodeUint80(value *big.Int, buf []byte) (int, error) {
+func EncodeUint80(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2613,7 +2613,7 @@ func EncodeUint80(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint80Slice encodes uint80[] to ABI bytes
-func EncodeUint80Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint80Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2632,7 +2632,7 @@ func EncodeUint80Slice(value []*big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint88 encodes uint88 to ABI bytes
-func EncodeUint88(value *big.Int, buf []byte) (int, error) {
+func EncodeUint88(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2640,7 +2640,7 @@ func EncodeUint88(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint88Slice encodes uint88[] to ABI bytes
-func EncodeUint88Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint88Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -2678,7 +2678,7 @@ func EncodeUint8Slice(value []uint8, buf []byte) (int, error) {
 }
 
 // EncodeUint96 encodes uint96 to ABI bytes
-func EncodeUint96(value *big.Int, buf []byte) (int, error) {
+func EncodeUint96(value *Uint256, buf []byte) (int, error) {
 	if err := EncodeBigInt(value, buf[:32], false); err != nil {
 		return 0, err
 	}
@@ -2686,7 +2686,7 @@ func EncodeUint96(value *big.Int, buf []byte) (int, error) {
 }
 
 // EncodeUint96Slice encodes uint96[] to ABI bytes
-func EncodeUint96Slice(value []*big.Int, buf []byte) (int, error) {
+func EncodeUint96Slice(value []*Uint256, buf []byte) (int, error) {
 	// Encode length
 	binary.BigEndian.PutUint64(buf[24:32], uint64(len(value)))
 	buf = buf[32:]
@@ -3131,55 +3131,55 @@ func SizeStringSlice(value []string) int {
 }
 
 // SizeUint104Slice returns the encoded size of uint104[]
-func SizeUint104Slice(value []*big.Int) int {
+func SizeUint104Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint112Slice returns the encoded size of uint112[]
-func SizeUint112Slice(value []*big.Int) int {
+func SizeUint112Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint120Slice returns the encoded size of uint120[]
-func SizeUint120Slice(value []*big.Int) int {
+func SizeUint120Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint128Slice returns the encoded size of uint128[]
-func SizeUint128Slice(value []*big.Int) int {
+func SizeUint128Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint136Slice returns the encoded size of uint136[]
-func SizeUint136Slice(value []*big.Int) int {
+func SizeUint136Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint144Slice returns the encoded size of uint144[]
-func SizeUint144Slice(value []*big.Int) int {
+func SizeUint144Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint152Slice returns the encoded size of uint152[]
-func SizeUint152Slice(value []*big.Int) int {
+func SizeUint152Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint160Slice returns the encoded size of uint160[]
-func SizeUint160Slice(value []*big.Int) int {
+func SizeUint160Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint168Slice returns the encoded size of uint168[]
-func SizeUint168Slice(value []*big.Int) int {
+func SizeUint168Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
@@ -3191,61 +3191,61 @@ func SizeUint16Slice(value []uint16) int {
 }
 
 // SizeUint176Slice returns the encoded size of uint176[]
-func SizeUint176Slice(value []*big.Int) int {
+func SizeUint176Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint184Slice returns the encoded size of uint184[]
-func SizeUint184Slice(value []*big.Int) int {
+func SizeUint184Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint192Slice returns the encoded size of uint192[]
-func SizeUint192Slice(value []*big.Int) int {
+func SizeUint192Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint200Slice returns the encoded size of uint200[]
-func SizeUint200Slice(value []*big.Int) int {
+func SizeUint200Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint208Slice returns the encoded size of uint208[]
-func SizeUint208Slice(value []*big.Int) int {
+func SizeUint208Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint216Slice returns the encoded size of uint216[]
-func SizeUint216Slice(value []*big.Int) int {
+func SizeUint216Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint224Slice returns the encoded size of uint224[]
-func SizeUint224Slice(value []*big.Int) int {
+func SizeUint224Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint232Slice returns the encoded size of uint232[]
-func SizeUint232Slice(value []*big.Int) int {
+func SizeUint232Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint240Slice returns the encoded size of uint240[]
-func SizeUint240Slice(value []*big.Int) int {
+func SizeUint240Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint248Slice returns the encoded size of uint248[]
-func SizeUint248Slice(value []*big.Int) int {
+func SizeUint248Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
@@ -3257,7 +3257,7 @@ func SizeUint24Slice(value []uint32) int {
 }
 
 // SizeUint256Slice returns the encoded size of uint256[]
-func SizeUint256Slice(value []*big.Int) int {
+func SizeUint256Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
@@ -3293,19 +3293,19 @@ func SizeUint64Slice(value []uint64) int {
 }
 
 // SizeUint72Slice returns the encoded size of uint72[]
-func SizeUint72Slice(value []*big.Int) int {
+func SizeUint72Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint80Slice returns the encoded size of uint80[]
-func SizeUint80Slice(value []*big.Int) int {
+func SizeUint80Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
 
 // SizeUint88Slice returns the encoded size of uint88[]
-func SizeUint88Slice(value []*big.Int) int {
+func SizeUint88Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
@@ -3317,7 +3317,7 @@ func SizeUint8Slice(value []uint8) int {
 }
 
 // SizeUint96Slice returns the encoded size of uint96[]
-func SizeUint96Slice(value []*big.Int) int {
+func SizeUint96Slice(value []*Uint256) int {
 	size := 32 + 32*len(value) // length + static elements
 	return size
 }
@@ -6268,7 +6268,7 @@ func DecodeStringSlice(data []byte) ([]string, int, error) {
 }
 
 // DecodeUint104 decodes uint104 from ABI bytes
-func DecodeUint104(data []byte) (*big.Int, int, error) {
+func DecodeUint104(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6277,7 +6277,7 @@ func DecodeUint104(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint104Slice decodes uint104[] from ABI bytes
-func DecodeUint104Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint104Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6295,7 +6295,7 @@ func DecodeUint104Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint104(data[offset:])
 		if err != nil {
@@ -6307,7 +6307,7 @@ func DecodeUint104Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint112 decodes uint112 from ABI bytes
-func DecodeUint112(data []byte) (*big.Int, int, error) {
+func DecodeUint112(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6316,7 +6316,7 @@ func DecodeUint112(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint112Slice decodes uint112[] from ABI bytes
-func DecodeUint112Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint112Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6334,7 +6334,7 @@ func DecodeUint112Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint112(data[offset:])
 		if err != nil {
@@ -6346,7 +6346,7 @@ func DecodeUint112Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint120 decodes uint120 from ABI bytes
-func DecodeUint120(data []byte) (*big.Int, int, error) {
+func DecodeUint120(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6355,7 +6355,7 @@ func DecodeUint120(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint120Slice decodes uint120[] from ABI bytes
-func DecodeUint120Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint120Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6373,7 +6373,7 @@ func DecodeUint120Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint120(data[offset:])
 		if err != nil {
@@ -6385,7 +6385,7 @@ func DecodeUint120Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint128 decodes uint128 from ABI bytes
-func DecodeUint128(data []byte) (*big.Int, int, error) {
+func DecodeUint128(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6394,7 +6394,7 @@ func DecodeUint128(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint128Slice decodes uint128[] from ABI bytes
-func DecodeUint128Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint128Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6412,7 +6412,7 @@ func DecodeUint128Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint128(data[offset:])
 		if err != nil {
@@ -6424,7 +6424,7 @@ func DecodeUint128Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint136 decodes uint136 from ABI bytes
-func DecodeUint136(data []byte) (*big.Int, int, error) {
+func DecodeUint136(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6433,7 +6433,7 @@ func DecodeUint136(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint136Slice decodes uint136[] from ABI bytes
-func DecodeUint136Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint136Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6451,7 +6451,7 @@ func DecodeUint136Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint136(data[offset:])
 		if err != nil {
@@ -6463,7 +6463,7 @@ func DecodeUint136Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint144 decodes uint144 from ABI bytes
-func DecodeUint144(data []byte) (*big.Int, int, error) {
+func DecodeUint144(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6472,7 +6472,7 @@ func DecodeUint144(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint144Slice decodes uint144[] from ABI bytes
-func DecodeUint144Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint144Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6490,7 +6490,7 @@ func DecodeUint144Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint144(data[offset:])
 		if err != nil {
@@ -6502,7 +6502,7 @@ func DecodeUint144Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint152 decodes uint152 from ABI bytes
-func DecodeUint152(data []byte) (*big.Int, int, error) {
+func DecodeUint152(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6511,7 +6511,7 @@ func DecodeUint152(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint152Slice decodes uint152[] from ABI bytes
-func DecodeUint152Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint152Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6529,7 +6529,7 @@ func DecodeUint152Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint152(data[offset:])
 		if err != nil {
@@ -6550,7 +6550,7 @@ func DecodeUint16(data []byte) (uint16, int, error) {
 }
 
 // DecodeUint160 decodes uint160 from ABI bytes
-func DecodeUint160(data []byte) (*big.Int, int, error) {
+func DecodeUint160(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6559,7 +6559,7 @@ func DecodeUint160(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint160Slice decodes uint160[] from ABI bytes
-func DecodeUint160Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint160Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6577,7 +6577,7 @@ func DecodeUint160Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint160(data[offset:])
 		if err != nil {
@@ -6589,7 +6589,7 @@ func DecodeUint160Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint168 decodes uint168 from ABI bytes
-func DecodeUint168(data []byte) (*big.Int, int, error) {
+func DecodeUint168(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6598,7 +6598,7 @@ func DecodeUint168(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint168Slice decodes uint168[] from ABI bytes
-func DecodeUint168Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint168Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6616,7 +6616,7 @@ func DecodeUint168Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint168(data[offset:])
 		if err != nil {
@@ -6658,7 +6658,7 @@ func DecodeUint16Slice(data []byte) ([]uint16, int, error) {
 }
 
 // DecodeUint176 decodes uint176 from ABI bytes
-func DecodeUint176(data []byte) (*big.Int, int, error) {
+func DecodeUint176(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6667,7 +6667,7 @@ func DecodeUint176(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint176Slice decodes uint176[] from ABI bytes
-func DecodeUint176Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint176Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6685,7 +6685,7 @@ func DecodeUint176Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint176(data[offset:])
 		if err != nil {
@@ -6697,7 +6697,7 @@ func DecodeUint176Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint184 decodes uint184 from ABI bytes
-func DecodeUint184(data []byte) (*big.Int, int, error) {
+func DecodeUint184(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6706,7 +6706,7 @@ func DecodeUint184(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint184Slice decodes uint184[] from ABI bytes
-func DecodeUint184Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint184Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6724,7 +6724,7 @@ func DecodeUint184Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint184(data[offset:])
 		if err != nil {
@@ -6736,7 +6736,7 @@ func DecodeUint184Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint192 decodes uint192 from ABI bytes
-func DecodeUint192(data []byte) (*big.Int, int, error) {
+func DecodeUint192(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6745,7 +6745,7 @@ func DecodeUint192(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint192Slice decodes uint192[] from ABI bytes
-func DecodeUint192Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint192Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6763,7 +6763,7 @@ func DecodeUint192Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint192(data[offset:])
 		if err != nil {
@@ -6775,7 +6775,7 @@ func DecodeUint192Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint200 decodes uint200 from ABI bytes
-func DecodeUint200(data []byte) (*big.Int, int, error) {
+func DecodeUint200(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6784,7 +6784,7 @@ func DecodeUint200(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint200Slice decodes uint200[] from ABI bytes
-func DecodeUint200Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint200Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6802,7 +6802,7 @@ func DecodeUint200Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint200(data[offset:])
 		if err != nil {
@@ -6814,7 +6814,7 @@ func DecodeUint200Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint208 decodes uint208 from ABI bytes
-func DecodeUint208(data []byte) (*big.Int, int, error) {
+func DecodeUint208(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6823,7 +6823,7 @@ func DecodeUint208(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint208Slice decodes uint208[] from ABI bytes
-func DecodeUint208Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint208Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6841,7 +6841,7 @@ func DecodeUint208Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint208(data[offset:])
 		if err != nil {
@@ -6853,7 +6853,7 @@ func DecodeUint208Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint216 decodes uint216 from ABI bytes
-func DecodeUint216(data []byte) (*big.Int, int, error) {
+func DecodeUint216(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6862,7 +6862,7 @@ func DecodeUint216(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint216Slice decodes uint216[] from ABI bytes
-func DecodeUint216Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint216Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6880,7 +6880,7 @@ func DecodeUint216Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint216(data[offset:])
 		if err != nil {
@@ -6892,7 +6892,7 @@ func DecodeUint216Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint224 decodes uint224 from ABI bytes
-func DecodeUint224(data []byte) (*big.Int, int, error) {
+func DecodeUint224(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6901,7 +6901,7 @@ func DecodeUint224(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint224Slice decodes uint224[] from ABI bytes
-func DecodeUint224Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint224Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6919,7 +6919,7 @@ func DecodeUint224Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint224(data[offset:])
 		if err != nil {
@@ -6931,7 +6931,7 @@ func DecodeUint224Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint232 decodes uint232 from ABI bytes
-func DecodeUint232(data []byte) (*big.Int, int, error) {
+func DecodeUint232(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6940,7 +6940,7 @@ func DecodeUint232(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint232Slice decodes uint232[] from ABI bytes
-func DecodeUint232Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint232Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -6958,7 +6958,7 @@ func DecodeUint232Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint232(data[offset:])
 		if err != nil {
@@ -6979,7 +6979,7 @@ func DecodeUint24(data []byte) (uint32, int, error) {
 }
 
 // DecodeUint240 decodes uint240 from ABI bytes
-func DecodeUint240(data []byte) (*big.Int, int, error) {
+func DecodeUint240(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -6988,7 +6988,7 @@ func DecodeUint240(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint240Slice decodes uint240[] from ABI bytes
-func DecodeUint240Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint240Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -7006,7 +7006,7 @@ func DecodeUint240Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint240(data[offset:])
 		if err != nil {
@@ -7018,7 +7018,7 @@ func DecodeUint240Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint248 decodes uint248 from ABI bytes
-func DecodeUint248(data []byte) (*big.Int, int, error) {
+func DecodeUint248(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -7027,7 +7027,7 @@ func DecodeUint248(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint248Slice decodes uint248[] from ABI bytes
-func DecodeUint248Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint248Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -7045,7 +7045,7 @@ func DecodeUint248Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint248(data[offset:])
 		if err != nil {
@@ -7087,7 +7087,7 @@ func DecodeUint24Slice(data []byte) ([]uint32, int, error) {
 }
 
 // DecodeUint256 decodes uint256 from ABI bytes
-func DecodeUint256(data []byte) (*big.Int, int, error) {
+func DecodeUint256(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -7096,7 +7096,7 @@ func DecodeUint256(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint256Slice decodes uint256[] from ABI bytes
-func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint256Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -7114,7 +7114,7 @@ func DecodeUint256Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint256(data[offset:])
 		if err != nil {
@@ -7321,7 +7321,7 @@ func DecodeUint64Slice(data []byte) ([]uint64, int, error) {
 }
 
 // DecodeUint72 decodes uint72 from ABI bytes
-func DecodeUint72(data []byte) (*big.Int, int, error) {
+func DecodeUint72(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -7330,7 +7330,7 @@ func DecodeUint72(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint72Slice decodes uint72[] from ABI bytes
-func DecodeUint72Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint72Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -7348,7 +7348,7 @@ func DecodeUint72Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint72(data[offset:])
 		if err != nil {
@@ -7369,7 +7369,7 @@ func DecodeUint8(data []byte) (uint8, int, error) {
 }
 
 // DecodeUint80 decodes uint80 from ABI bytes
-func DecodeUint80(data []byte) (*big.Int, int, error) {
+func DecodeUint80(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -7378,7 +7378,7 @@ func DecodeUint80(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint80Slice decodes uint80[] from ABI bytes
-func DecodeUint80Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint80Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -7396,7 +7396,7 @@ func DecodeUint80Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint80(data[offset:])
 		if err != nil {
@@ -7408,7 +7408,7 @@ func DecodeUint80Slice(data []byte) ([]*big.Int, int, error) {
 }
 
 // DecodeUint88 decodes uint88 from ABI bytes
-func DecodeUint88(data []byte) (*big.Int, int, error) {
+func DecodeUint88(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -7417,7 +7417,7 @@ func DecodeUint88(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint88Slice decodes uint88[] from ABI bytes
-func DecodeUint88Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint88Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -7435,7 +7435,7 @@ func DecodeUint88Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint88(data[offset:])
 		if err != nil {
@@ -7477,7 +7477,7 @@ func DecodeUint8Slice(data []byte) ([]uint8, int, error) {
 }
 
 // DecodeUint96 decodes uint96 from ABI bytes
-func DecodeUint96(data []byte) (*big.Int, int, error) {
+func DecodeUint96(data []byte) (*Uint256, int, error) {
 	result, err := DecodeBigInt(data[:32], false)
 	if err != nil {
 		return nil, 0, err
@@ -7486,7 +7486,7 @@ func DecodeUint96(data []byte) (*big.Int, int, error) {
 }
 
 // DecodeUint96Slice decodes uint96[] from ABI bytes
-func DecodeUint96Slice(data []byte) ([]*big.Int, int, error) {
+func DecodeUint96Slice(data []byte) ([]*Uint256, int, error) {
 	// Decode length
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
@@ -7504,7 +7504,7 @@ func DecodeUint96Slice(data []byte) ([]*big.Int, int, error) {
 		offset int
 	)
 	// Decode elements with static types
-	result := make([]*big.Int, length)
+	result := make([]*Uint256, length)
 	for i := 0; i < length; i++ {
 		result[i], n, err = DecodeUint96(data[offset:])
 		if err != nil {
@@ -8227,7 +8227,7 @@ func PackedEncodeInt96(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint104 encodes uint104 to packed ABI bytes (no padding)
-func PackedEncodeUint104(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint104(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 13 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8240,7 +8240,7 @@ func PackedEncodeUint104(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint112 encodes uint112 to packed ABI bytes (no padding)
-func PackedEncodeUint112(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint112(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 14 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8253,7 +8253,7 @@ func PackedEncodeUint112(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint120 encodes uint120 to packed ABI bytes (no padding)
-func PackedEncodeUint120(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint120(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 15 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8266,7 +8266,7 @@ func PackedEncodeUint120(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint128 encodes uint128 to packed ABI bytes (no padding)
-func PackedEncodeUint128(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint128(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 16 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8279,7 +8279,7 @@ func PackedEncodeUint128(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint136 encodes uint136 to packed ABI bytes (no padding)
-func PackedEncodeUint136(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint136(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 17 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8292,7 +8292,7 @@ func PackedEncodeUint136(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint144 encodes uint144 to packed ABI bytes (no padding)
-func PackedEncodeUint144(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint144(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 18 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8305,7 +8305,7 @@ func PackedEncodeUint144(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint152 encodes uint152 to packed ABI bytes (no padding)
-func PackedEncodeUint152(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint152(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 19 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8327,7 +8327,7 @@ func PackedEncodeUint16(value uint16, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint160 encodes uint160 to packed ABI bytes (no padding)
-func PackedEncodeUint160(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint160(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 20 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8340,7 +8340,7 @@ func PackedEncodeUint160(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint168 encodes uint168 to packed ABI bytes (no padding)
-func PackedEncodeUint168(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint168(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 21 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8353,7 +8353,7 @@ func PackedEncodeUint168(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint176 encodes uint176 to packed ABI bytes (no padding)
-func PackedEncodeUint176(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint176(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 22 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8366,7 +8366,7 @@ func PackedEncodeUint176(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint184 encodes uint184 to packed ABI bytes (no padding)
-func PackedEncodeUint184(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint184(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 23 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8379,7 +8379,7 @@ func PackedEncodeUint184(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint192 encodes uint192 to packed ABI bytes (no padding)
-func PackedEncodeUint192(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint192(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 24 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8392,7 +8392,7 @@ func PackedEncodeUint192(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint200 encodes uint200 to packed ABI bytes (no padding)
-func PackedEncodeUint200(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint200(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 25 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8405,7 +8405,7 @@ func PackedEncodeUint200(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint208 encodes uint208 to packed ABI bytes (no padding)
-func PackedEncodeUint208(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint208(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 26 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8418,7 +8418,7 @@ func PackedEncodeUint208(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint216 encodes uint216 to packed ABI bytes (no padding)
-func PackedEncodeUint216(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint216(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 27 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8431,7 +8431,7 @@ func PackedEncodeUint216(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint224 encodes uint224 to packed ABI bytes (no padding)
-func PackedEncodeUint224(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint224(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 28 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8444,7 +8444,7 @@ func PackedEncodeUint224(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint232 encodes uint232 to packed ABI bytes (no padding)
-func PackedEncodeUint232(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint232(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 29 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8468,7 +8468,7 @@ func PackedEncodeUint24(value uint32, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint240 encodes uint240 to packed ABI bytes (no padding)
-func PackedEncodeUint240(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint240(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 30 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8481,7 +8481,7 @@ func PackedEncodeUint240(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint248 encodes uint248 to packed ABI bytes (no padding)
-func PackedEncodeUint248(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint248(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 31 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8494,7 +8494,7 @@ func PackedEncodeUint248(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint256 encodes uint256 to packed ABI bytes (no padding)
-func PackedEncodeUint256(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint256(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 32 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8567,7 +8567,7 @@ func PackedEncodeUint64(value uint64, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint72 encodes uint72 to packed ABI bytes (no padding)
-func PackedEncodeUint72(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint72(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 9 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8589,7 +8589,7 @@ func PackedEncodeUint8(value uint8, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint80 encodes uint80 to packed ABI bytes (no padding)
-func PackedEncodeUint80(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint80(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 10 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8602,7 +8602,7 @@ func PackedEncodeUint80(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint88 encodes uint88 to packed ABI bytes (no padding)
-func PackedEncodeUint88(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint88(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 11 {
 		return 0, io.ErrShortBuffer
 	}
@@ -8615,7 +8615,7 @@ func PackedEncodeUint88(value *big.Int, buf []byte) (int, error) {
 }
 
 // PackedEncodeUint96 encodes uint96 to packed ABI bytes (no padding)
-func PackedEncodeUint96(value *big.Int, buf []byte) (int, error) {
+func PackedEncodeUint96(value *Uint256, buf []byte) (int, error) {
 	if len(buf) < 12 {
 		return 0, io.ErrShortBuffer
 	}
@@ -9506,7 +9506,7 @@ func PackedDecodeInt96(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint104 decodes uint104 from packed ABI bytes (no padding)
-func PackedDecodeUint104(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint104(data []byte) (*Uint256, int, error) {
 	if len(data) < 13 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9515,7 +9515,7 @@ func PackedDecodeUint104(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint112 decodes uint112 from packed ABI bytes (no padding)
-func PackedDecodeUint112(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint112(data []byte) (*Uint256, int, error) {
 	if len(data) < 14 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9524,7 +9524,7 @@ func PackedDecodeUint112(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint120 decodes uint120 from packed ABI bytes (no padding)
-func PackedDecodeUint120(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint120(data []byte) (*Uint256, int, error) {
 	if len(data) < 15 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9533,7 +9533,7 @@ func PackedDecodeUint120(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint128 decodes uint128 from packed ABI bytes (no padding)
-func PackedDecodeUint128(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint128(data []byte) (*Uint256, int, error) {
 	if len(data) < 16 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9542,7 +9542,7 @@ func PackedDecodeUint128(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint136 decodes uint136 from packed ABI bytes (no padding)
-func PackedDecodeUint136(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint136(data []byte) (*Uint256, int, error) {
 	if len(data) < 17 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9551,7 +9551,7 @@ func PackedDecodeUint136(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint144 decodes uint144 from packed ABI bytes (no padding)
-func PackedDecodeUint144(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint144(data []byte) (*Uint256, int, error) {
 	if len(data) < 18 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9560,7 +9560,7 @@ func PackedDecodeUint144(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint152 decodes uint152 from packed ABI bytes (no padding)
-func PackedDecodeUint152(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint152(data []byte) (*Uint256, int, error) {
 	if len(data) < 19 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9577,7 +9577,7 @@ func PackedDecodeUint16(data []byte) (uint16, int, error) {
 }
 
 // PackedDecodeUint160 decodes uint160 from packed ABI bytes (no padding)
-func PackedDecodeUint160(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint160(data []byte) (*Uint256, int, error) {
 	if len(data) < 20 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9586,7 +9586,7 @@ func PackedDecodeUint160(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint168 decodes uint168 from packed ABI bytes (no padding)
-func PackedDecodeUint168(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint168(data []byte) (*Uint256, int, error) {
 	if len(data) < 21 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9595,7 +9595,7 @@ func PackedDecodeUint168(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint176 decodes uint176 from packed ABI bytes (no padding)
-func PackedDecodeUint176(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint176(data []byte) (*Uint256, int, error) {
 	if len(data) < 22 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9604,7 +9604,7 @@ func PackedDecodeUint176(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint184 decodes uint184 from packed ABI bytes (no padding)
-func PackedDecodeUint184(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint184(data []byte) (*Uint256, int, error) {
 	if len(data) < 23 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9613,7 +9613,7 @@ func PackedDecodeUint184(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint192 decodes uint192 from packed ABI bytes (no padding)
-func PackedDecodeUint192(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint192(data []byte) (*Uint256, int, error) {
 	if len(data) < 24 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9622,7 +9622,7 @@ func PackedDecodeUint192(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint200 decodes uint200 from packed ABI bytes (no padding)
-func PackedDecodeUint200(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint200(data []byte) (*Uint256, int, error) {
 	if len(data) < 25 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9631,7 +9631,7 @@ func PackedDecodeUint200(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint208 decodes uint208 from packed ABI bytes (no padding)
-func PackedDecodeUint208(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint208(data []byte) (*Uint256, int, error) {
 	if len(data) < 26 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9640,7 +9640,7 @@ func PackedDecodeUint208(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint216 decodes uint216 from packed ABI bytes (no padding)
-func PackedDecodeUint216(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint216(data []byte) (*Uint256, int, error) {
 	if len(data) < 27 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9649,7 +9649,7 @@ func PackedDecodeUint216(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint224 decodes uint224 from packed ABI bytes (no padding)
-func PackedDecodeUint224(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint224(data []byte) (*Uint256, int, error) {
 	if len(data) < 28 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9658,7 +9658,7 @@ func PackedDecodeUint224(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint232 decodes uint232 from packed ABI bytes (no padding)
-func PackedDecodeUint232(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint232(data []byte) (*Uint256, int, error) {
 	if len(data) < 29 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9675,7 +9675,7 @@ func PackedDecodeUint24(data []byte) (uint32, int, error) {
 }
 
 // PackedDecodeUint240 decodes uint240 from packed ABI bytes (no padding)
-func PackedDecodeUint240(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint240(data []byte) (*Uint256, int, error) {
 	if len(data) < 30 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9684,7 +9684,7 @@ func PackedDecodeUint240(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint248 decodes uint248 from packed ABI bytes (no padding)
-func PackedDecodeUint248(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint248(data []byte) (*Uint256, int, error) {
 	if len(data) < 31 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9693,7 +9693,7 @@ func PackedDecodeUint248(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint256 decodes uint256 from packed ABI bytes (no padding)
-func PackedDecodeUint256(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint256(data []byte) (*Uint256, int, error) {
 	if len(data) < 32 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9742,7 +9742,7 @@ func PackedDecodeUint64(data []byte) (uint64, int, error) {
 }
 
 // PackedDecodeUint72 decodes uint72 from packed ABI bytes (no padding)
-func PackedDecodeUint72(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint72(data []byte) (*Uint256, int, error) {
 	if len(data) < 9 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9759,7 +9759,7 @@ func PackedDecodeUint8(data []byte) (uint8, int, error) {
 }
 
 // PackedDecodeUint80 decodes uint80 from packed ABI bytes (no padding)
-func PackedDecodeUint80(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint80(data []byte) (*Uint256, int, error) {
 	if len(data) < 10 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9768,7 +9768,7 @@ func PackedDecodeUint80(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint88 decodes uint88 from packed ABI bytes (no padding)
-func PackedDecodeUint88(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint88(data []byte) (*Uint256, int, error) {
 	if len(data) < 11 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -9777,7 +9777,7 @@ func PackedDecodeUint88(data []byte) (*big.Int, int, error) {
 }
 
 // PackedDecodeUint96 decodes uint96 from packed ABI bytes (no padding)
-func PackedDecodeUint96(data []byte) (*big.Int, int, error) {
+func PackedDecodeUint96(data []byte) (*Uint256, int, error) {
 	if len(data) < 12 {
 		return nil, 0, io.ErrUnexpectedEOF
 	}
@@ -11571,53 +11571,53 @@ type IntsCall struct {
 	Field14  int64
 	Field15  uint64
 	Field16  int64
-	Field17  *big.Int
+	Field17  *Uint256
 	Field18  *big.Int
-	Field19  *big.Int
+	Field19  *Uint256
 	Field20  *big.Int
-	Field21  *big.Int
+	Field21  *Uint256
 	Field22  *big.Int
-	Field23  *big.Int
+	Field23  *Uint256
 	Field24  *big.Int
-	Field25  *big.Int
+	Field25  *Uint256
 	Field26  *big.Int
-	Field27  *big.Int
+	Field27  *Uint256
 	Field28  *big.Int
-	Field29  *big.Int
+	Field29  *Uint256
 	Field30  *big.Int
-	Field31  *big.Int
+	Field31  *Uint256
 	Field32  *big.Int
-	Field33  *big.Int
+	Field33  *Uint256
 	Field34  *big.Int
-	Field35  *big.Int
+	Field35  *Uint256
 	Field36  *big.Int
-	Field37  *big.Int
+	Field37  *Uint256
 	Field38  *big.Int
-	Field39  *big.Int
+	Field39  *Uint256
 	Field40  *big.Int
-	Field41  *big.Int
+	Field41  *Uint256
 	Field42  *big.Int
-	Field43  *big.Int
+	Field43  *Uint256
 	Field44  *big.Int
-	Field45  *big.Int
+	Field45  *Uint256
 	Field46  *big.Int
-	Field47  *big.Int
+	Field47  *Uint256
 	Field48  *big.Int
-	Field49  *big.Int
+	Field49  *Uint256
 	Field50  *big.Int
-	Field51  *big.Int
+	Field51  *Uint256
 	Field52  *big.Int
-	Field53  *big.Int
+	Field53  *Uint256
 	Field54  *big.Int
-	Field55  *big.Int
+	Field55  *Uint256
 	Field56  *big.Int
-	Field57  *big.Int
+	Field57  *Uint256
 	Field58  *big.Int
-	Field59  *big.Int
+	Field59  *Uint256
 	Field60  *big.Int
-	Field61  *big.Int
+	Field61  *Uint256
 	Field62  *big.Int
-	Field63  *big.Int
+	Field63  *Uint256
 	Field64  *big.Int
 	Field65  []uint8
 	Field66  []int8
@@ -11635,53 +11635,53 @@ type IntsCall struct {
 	Field78  []int64
 	Field79  []uint64
 	Field80  []int64
-	Field81  []*big.Int
+	Field81  []*Uint256
 	Field82  []*big.Int
-	Field83  []*big.Int
+	Field83  []*Uint256
 	Field84  []*big.Int
-	Field85  []*big.Int
+	Field85  []*Uint256
 	Field86  []*big.Int
-	Field87  []*big.Int
+	Field87  []*Uint256
 	Field88  []*big.Int
-	Field89  []*big.Int
+	Field89  []*Uint256
 	Field90  []*big.Int
-	Field91  []*big.Int
+	Field91  []*Uint256
 	Field92  []*big.Int
-	Field93  []*big.Int
+	Field93  []*Uint256
 	Field94  []*big.Int
-	Field95  []*big.Int
+	Field95  []*Uint256
 	Field96  []*big.Int
-	Field97  []*big.Int
+	Field97  []*Uint256
 	Field98  []*big.Int
-	Field99  []*big.Int
+	Field99  []*Uint256
 	Field100 []*big.Int
-	Field101 []*big.Int
+	Field101 []*Uint256
 	Field102 []*big.Int
-	Field103 []*big.Int
+	Field103 []*Uint256
 	Field104 []*big.Int
-	Field105 []*big.Int
+	Field105 []*Uint256
 	Field106 []*big.Int
-	Field107 []*big.Int
+	Field107 []*Uint256
 	Field108 []*big.Int
-	Field109 []*big.Int
+	Field109 []*Uint256
 	Field110 []*big.Int
-	Field111 []*big.Int
+	Field111 []*Uint256
 	Field112 []*big.Int
-	Field113 []*big.Int
+	Field113 []*Uint256
 	Field114 []*big.Int
-	Field115 []*big.Int
+	Field115 []*Uint256
 	Field116 []*big.Int
-	Field117 []*big.Int
+	Field117 []*Uint256
 	Field118 []*big.Int
-	Field119 []*big.Int
+	Field119 []*Uint256
 	Field120 []*big.Int
-	Field121 []*big.Int
+	Field121 []*Uint256
 	Field122 []*big.Int
-	Field123 []*big.Int
+	Field123 []*Uint256
 	Field124 []*big.Int
-	Field125 []*big.Int
+	Field125 []*Uint256
 	Field126 []*big.Int
-	Field127 []*big.Int
+	Field127 []*Uint256
 	Field128 []*big.Int
 }
 
@@ -14073,53 +14073,53 @@ func NewIntsCall(
 	field14 int64,
 	field15 uint64,
 	field16 int64,
-	field17 *big.Int,
+	field17 *Uint256,
 	field18 *big.Int,
-	field19 *big.Int,
+	field19 *Uint256,
 	field20 *big.Int,
-	field21 *big.Int,
+	field21 *Uint256,
 	field22 *big.Int,
-	field23 *big.Int,
+	field23 *Uint256,
 	field24 *big.Int,
-	field25 *big.Int,
+	field25 *Uint256,
 	field26 *big.Int,
-	field27 *big.Int,
+	field27 *Uint256,
 	field28 *big.Int,
-	field29 *big.Int,
+	field29 *Uint256,
 	field30 *big.Int,
-	field31 *big.Int,
+	field31 *Uint256,
 	field32 *big.Int,
-	field33 *big.Int,
+	field33 *Uint256,
 	field34 *big.Int,
-	field35 *big.Int,
+	field35 *Uint256,
 	field36 *big.Int,
-	field37 *big.Int,
+	field37 *Uint256,
 	field38 *big.Int,
-	field39 *big.Int,
+	field39 *Uint256,
 	field40 *big.Int,
-	field41 *big.Int,
+	field41 *Uint256,
 	field42 *big.Int,
-	field43 *big.Int,
+	field43 *Uint256,
 	field44 *big.Int,
-	field45 *big.Int,
+	field45 *Uint256,
 	field46 *big.Int,
-	field47 *big.Int,
+	field47 *Uint256,
 	field48 *big.Int,
-	field49 *big.Int,
+	field49 *Uint256,
 	field50 *big.Int,
-	field51 *big.Int,
+	field51 *Uint256,
 	field52 *big.Int,
-	field53 *big.Int,
+	field53 *Uint256,
 	field54 *big.Int,
-	field55 *big.Int,
+	field55 *Uint256,
 	field56 *big.Int,
-	field57 *big.Int,
+	field57 *Uint256,
 	field58 *big.Int,
-	field59 *big.Int,
+	field59 *Uint256,
 	field60 *big.Int,
-	field61 *big.Int,
+	field61 *Uint256,
 	field62 *big.Int,
-	field63 *big.Int,
+	field63 *Uint256,
 	field64 *big.Int,
 	field65 []uint8,
 	field66 []int8,
@@ -14137,53 +14137,53 @@ func NewIntsCall(
 	field78 []int64,
 	field79 []uint64,
 	field80 []int64,
-	field81 []*big.Int,
+	field81 []*Uint256,
 	field82 []*big.Int,
-	field83 []*big.Int,
+	field83 []*Uint256,
 	field84 []*big.Int,
-	field85 []*big.Int,
+	field85 []*Uint256,
 	field86 []*big.Int,
-	field87 []*big.Int,
+	field87 []*Uint256,
 	field88 []*big.Int,
-	field89 []*big.Int,
+	field89 []*Uint256,
 	field90 []*big.Int,
-	field91 []*big.Int,
+	field91 []*Uint256,
 	field92 []*big.Int,
-	field93 []*big.Int,
+	field93 []*Uint256,
 	field94 []*big.Int,
-	field95 []*big.Int,
+	field95 []*Uint256,
 	field96 []*big.Int,
-	field97 []*big.Int,
+	field97 []*Uint256,
 	field98 []*big.Int,
-	field99 []*big.Int,
+	field99 []*Uint256,
 	field100 []*big.Int,
-	field101 []*big.Int,
+	field101 []*Uint256,
 	field102 []*big.Int,
-	field103 []*big.Int,
+	field103 []*Uint256,
 	field104 []*big.Int,
-	field105 []*big.Int,
+	field105 []*Uint256,
 	field106 []*big.Int,
-	field107 []*big.Int,
+	field107 []*Uint256,
 	field108 []*big.Int,
-	field109 []*big.Int,
+	field109 []*Uint256,
 	field110 []*big.Int,
-	field111 []*big.Int,
+	field111 []*Uint256,
 	field112 []*big.Int,
-	field113 []*big.Int,
+	field113 []*Uint256,
 	field114 []*big.Int,
-	field115 []*big.Int,
+	field115 []*Uint256,
 	field116 []*big.Int,
-	field117 []*big.Int,
+	field117 []*Uint256,
 	field118 []*big.Int,
-	field119 []*big.Int,
+	field119 []*Uint256,
 	field120 []*big.Int,
-	field121 []*big.Int,
+	field121 []*Uint256,
 	field122 []*big.Int,
-	field123 []*big.Int,
+	field123 []*Uint256,
 	field124 []*big.Int,
-	field125 []*big.Int,
+	field125 []*Uint256,
 	field126 []*big.Int,
-	field127 []*big.Int,
+	field127 []*Uint256,
 	field128 []*big.Int,
 ) *IntsCall {
 	return &IntsCall{
