@@ -15,7 +15,7 @@ import (
 	"github.com/yihuang/go-abi"
 )
 
-//go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive.abi.go --external-tuples User=User
+//go:generate go run ../cmd -var ComprehensiveTestABI -output comprehensive.abi.go --external-tuples User=User -lazy
 
 // ComprehensiveTestABI contains human-readable ABI definitions for comprehensive testing
 var ComprehensiveTestABI = []string{
@@ -226,6 +226,26 @@ func TestComprehensiveNestedDynamicArrays(t *testing.T) {
 	require.Equal(t, encoded, goEthEncoded)
 
 	DecodeRoundTrip(t, args)
+
+	// Smoke test for ArrayView: address[][3] inside address[][3][].
+	// CallView -> AddressMatrix() -> SliceView -> Get(0) -> ArrayView.
+	rawWithoutSelector := encoded[4:]
+	callView, _, err := DecodeTestNestedDynamicArraysCallView(rawWithoutSelector)
+	require.NoError(t, err)
+	addrSliceView, err := callView.AddressMatrix()
+	require.NoError(t, err)
+	require.Equal(t, 1, addrSliceView.Len())
+	arrView, err := addrSliceView.Get(0)
+	require.NoError(t, err)
+	require.Equal(t, 3, arrView.Len())
+	for i := 0; i < 3; i++ {
+		got, err := arrView.Get(i)
+		require.NoError(t, err)
+		require.Equal(t, addressMatrix[0][i], got)
+	}
+	// Out-of-range
+	_, err = arrView.Get(3)
+	require.Error(t, err)
 }
 
 func TestComprehensiveComplexDynamicTuples(t *testing.T) {

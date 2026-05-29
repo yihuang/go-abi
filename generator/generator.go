@@ -169,6 +169,16 @@ func (g *Generator) GenerateFromABI(abiDef ethabi.ABI) (string, error) {
 		g.genEvent(event)
 	}
 
+	// Generate lazy decoding View types if enabled
+	if g.Options.GenerateLazy {
+		// Generate SliceView and ArrayView types first (referenced by tuple views)
+		g.genAllSliceViews(abiDef)
+		g.genAllArrayViews(abiDef)
+
+		// Generate View types for all tuples
+		g.genAllViews(abiDef)
+	}
+
 	// Format the generated code
 	return g.buf.String(), nil
 }

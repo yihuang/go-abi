@@ -26,6 +26,7 @@ coverage/
 # Profiling
 *.prof
 uint256.out
+bigint.out
 out.prof
 
 # Documentation
@@ -35,6 +36,7 @@ out.prof
 /cov.out
 /cpu.out
 /uint256.out
+/bigint.out
 /out.prof
 /tests.test
 

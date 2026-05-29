@@ -5105,3 +5105,2367 @@ func (t *UserCreatedEventData) Decode(data []byte) (int, error) {
 	}
 	return dynamicOffset, nil
 }
+
+// AddressSliceArray3SliceView provides lazy indexed access to address[][3][]
+type AddressSliceArray3SliceView struct {
+	data    []byte
+	length  int
+	offsets []int // absolute offset into data for each element
+}
+
+// DecodeAddressSliceArray3SliceView creates a lazy view of address[][3][]
+func DecodeAddressSliceArray3SliceView(data []byte) (AddressSliceArray3SliceView, int, error) {
+	if len(data) < 32 {
+		return AddressSliceArray3SliceView{}, 0, io.ErrUnexpectedEOF
+	}
+	length, err := abi.DecodeSize(data)
+	if err != nil {
+		return AddressSliceArray3SliceView{}, 0, err
+	}
+	if length == 0 {
+		return AddressSliceArray3SliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
+	}
+
+	if length > len(data) || length*32 > len(data)-32 {
+		return AddressSliceArray3SliceView{}, 0, io.ErrUnexpectedEOF
+	}
+
+	offsets := make([]int, length)
+	prev := length*32 - 1
+	maxOff := len(data) - 32
+	for i := 0; i < length; i++ {
+		off, err := abi.DecodeSize(data[32+i*32:])
+		if err != nil {
+			return AddressSliceArray3SliceView{}, 0, err
+		}
+		if off <= prev || off > maxOff {
+			return AddressSliceArray3SliceView{}, 0, abi.ErrInvalidOffsetForSliceElement
+		}
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
+	}
+
+	return AddressSliceArray3SliceView{
+		data:    data,
+		length:  length,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Len returns the number of elements
+func (v AddressSliceArray3SliceView) Len() int {
+	return v.length
+}
+
+// Get returns element at index i
+func (v AddressSliceArray3SliceView) Get(i int) (AddressSliceArray3View, error) {
+	if i < 0 || i >= v.length {
+		return AddressSliceArray3View{}, abi.ErrViewIndexOutOfBounds
+	}
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	view, _, err := DecodeAddressSliceArray3View(v.data[start:end])
+	return view, err
+}
+
+// Raw returns the underlying encoded bytes
+func (v AddressSliceArray3SliceView) Raw() []byte {
+	return v.data
+}
+
+// Materialize fully decodes all elements into a slice
+func (v AddressSliceArray3SliceView) Materialize() ([][3][]common.Address, error) {
+	result, _, err := DecodeAddressSliceArray3Slice(v.data)
+	return result, err
+}
+
+// ItemSliceView provides lazy indexed access to (uint32,bytes,bool)[]
+type ItemSliceView struct {
+	data    []byte
+	length  int
+	offsets []int // absolute offset into data for each element
+}
+
+// DecodeItemSliceView creates a lazy view of (uint32,bytes,bool)[]
+func DecodeItemSliceView(data []byte) (ItemSliceView, int, error) {
+	if len(data) < 32 {
+		return ItemSliceView{}, 0, io.ErrUnexpectedEOF
+	}
+	length, err := abi.DecodeSize(data)
+	if err != nil {
+		return ItemSliceView{}, 0, err
+	}
+	if length == 0 {
+		return ItemSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
+	}
+
+	if length > len(data) || length*32 > len(data)-32 {
+		return ItemSliceView{}, 0, io.ErrUnexpectedEOF
+	}
+
+	offsets := make([]int, length)
+	prev := length*32 - 1
+	maxOff := len(data) - 32
+	for i := 0; i < length; i++ {
+		off, err := abi.DecodeSize(data[32+i*32:])
+		if err != nil {
+			return ItemSliceView{}, 0, err
+		}
+		if off <= prev || off > maxOff {
+			return ItemSliceView{}, 0, abi.ErrInvalidOffsetForSliceElement
+		}
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
+	}
+
+	return ItemSliceView{
+		data:    data,
+		length:  length,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Len returns the number of elements
+func (v ItemSliceView) Len() int {
+	return v.length
+}
+
+// Get returns element at index i
+func (v ItemSliceView) Get(i int) (ItemView, error) {
+	if i < 0 || i >= v.length {
+		return ItemView{}, abi.ErrViewIndexOutOfBounds
+	}
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	view, _, err := DecodeItemView(v.data[start:end])
+	return view, err
+}
+
+// Raw returns the underlying encoded bytes
+func (v ItemSliceView) Raw() []byte {
+	return v.data
+}
+
+// Materialize fully decodes all elements into a slice
+func (v ItemSliceView) Materialize() ([]Item, error) {
+	result, _, err := DecodeItemSlice(v.data)
+	return result, err
+}
+
+// StringSliceSliceView provides lazy indexed access to string[][]
+type StringSliceSliceView struct {
+	data    []byte
+	length  int
+	offsets []int // absolute offset into data for each element
+}
+
+// DecodeStringSliceSliceView creates a lazy view of string[][]
+func DecodeStringSliceSliceView(data []byte) (StringSliceSliceView, int, error) {
+	if len(data) < 32 {
+		return StringSliceSliceView{}, 0, io.ErrUnexpectedEOF
+	}
+	length, err := abi.DecodeSize(data)
+	if err != nil {
+		return StringSliceSliceView{}, 0, err
+	}
+	if length == 0 {
+		return StringSliceSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
+	}
+
+	if length > len(data) || length*32 > len(data)-32 {
+		return StringSliceSliceView{}, 0, io.ErrUnexpectedEOF
+	}
+
+	offsets := make([]int, length)
+	prev := length*32 - 1
+	maxOff := len(data) - 32
+	for i := 0; i < length; i++ {
+		off, err := abi.DecodeSize(data[32+i*32:])
+		if err != nil {
+			return StringSliceSliceView{}, 0, err
+		}
+		if off <= prev || off > maxOff {
+			return StringSliceSliceView{}, 0, abi.ErrInvalidOffsetForSliceElement
+		}
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
+	}
+
+	return StringSliceSliceView{
+		data:    data,
+		length:  length,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Len returns the number of elements
+func (v StringSliceSliceView) Len() int {
+	return v.length
+}
+
+// Get returns element at index i
+func (v StringSliceSliceView) Get(i int) ([]string, error) {
+	if i < 0 || i >= v.length {
+		return nil, abi.ErrViewIndexOutOfBounds
+	}
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	value, _, err := abi.DecodeStringSlice(v.data[start:end])
+	return value, err
+}
+
+// Raw returns the underlying encoded bytes
+func (v StringSliceSliceView) Raw() []byte {
+	return v.data
+}
+
+// Materialize fully decodes all elements into a slice
+func (v StringSliceSliceView) Materialize() ([][]string, error) {
+	result, _, err := DecodeStringSliceSlice(v.data)
+	return result, err
+}
+
+// Uint256SliceSliceView provides lazy indexed access to uint256[][]
+type Uint256SliceSliceView struct {
+	data    []byte
+	length  int
+	offsets []int // absolute offset into data for each element
+}
+
+// DecodeUint256SliceSliceView creates a lazy view of uint256[][]
+func DecodeUint256SliceSliceView(data []byte) (Uint256SliceSliceView, int, error) {
+	if len(data) < 32 {
+		return Uint256SliceSliceView{}, 0, io.ErrUnexpectedEOF
+	}
+	length, err := abi.DecodeSize(data)
+	if err != nil {
+		return Uint256SliceSliceView{}, 0, err
+	}
+	if length == 0 {
+		return Uint256SliceSliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
+	}
+
+	if length > len(data) || length*32 > len(data)-32 {
+		return Uint256SliceSliceView{}, 0, io.ErrUnexpectedEOF
+	}
+
+	offsets := make([]int, length)
+	prev := length*32 - 1
+	maxOff := len(data) - 32
+	for i := 0; i < length; i++ {
+		off, err := abi.DecodeSize(data[32+i*32:])
+		if err != nil {
+			return Uint256SliceSliceView{}, 0, err
+		}
+		if off <= prev || off > maxOff {
+			return Uint256SliceSliceView{}, 0, abi.ErrInvalidOffsetForSliceElement
+		}
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
+	}
+
+	return Uint256SliceSliceView{
+		data:    data,
+		length:  length,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Len returns the number of elements
+func (v Uint256SliceSliceView) Len() int {
+	return v.length
+}
+
+// Get returns element at index i
+func (v Uint256SliceSliceView) Get(i int) ([]*abi.Uint256, error) {
+	if i < 0 || i >= v.length {
+		return nil, abi.ErrViewIndexOutOfBounds
+	}
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	value, _, err := abi.DecodeUint256Slice(v.data[start:end])
+	return value, err
+}
+
+// Raw returns the underlying encoded bytes
+func (v Uint256SliceSliceView) Raw() []byte {
+	return v.data
+}
+
+// Materialize fully decodes all elements into a slice
+func (v Uint256SliceSliceView) Materialize() ([][]*abi.Uint256, error) {
+	result, _, err := DecodeUint256SliceSlice(v.data)
+	return result, err
+}
+
+// User2SliceView provides lazy indexed access to (uint256,(string,string[],(uint256,string[])))[]
+type User2SliceView struct {
+	data    []byte
+	length  int
+	offsets []int // absolute offset into data for each element
+}
+
+// DecodeUser2SliceView creates a lazy view of (uint256,(string,string[],(uint256,string[])))[]
+func DecodeUser2SliceView(data []byte) (User2SliceView, int, error) {
+	if len(data) < 32 {
+		return User2SliceView{}, 0, io.ErrUnexpectedEOF
+	}
+	length, err := abi.DecodeSize(data)
+	if err != nil {
+		return User2SliceView{}, 0, err
+	}
+	if length == 0 {
+		return User2SliceView{data: data[:32], length: 0, offsets: nil}, 32, nil
+	}
+
+	if length > len(data) || length*32 > len(data)-32 {
+		return User2SliceView{}, 0, io.ErrUnexpectedEOF
+	}
+
+	offsets := make([]int, length)
+	prev := length*32 - 1
+	maxOff := len(data) - 32
+	for i := 0; i < length; i++ {
+		off, err := abi.DecodeSize(data[32+i*32:])
+		if err != nil {
+			return User2SliceView{}, 0, err
+		}
+		if off <= prev || off > maxOff {
+			return User2SliceView{}, 0, abi.ErrInvalidOffsetForSliceElement
+		}
+		offsets[i] = 32 + off // absolute offset from start of data
+		prev = off
+	}
+
+	return User2SliceView{
+		data:    data,
+		length:  length,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Len returns the number of elements
+func (v User2SliceView) Len() int {
+	return v.length
+}
+
+// Get returns element at index i
+func (v User2SliceView) Get(i int) (User2View, error) {
+	if i < 0 || i >= v.length {
+		return User2View{}, abi.ErrViewIndexOutOfBounds
+	}
+	start := v.offsets[i]
+	var end int
+	if i+1 < v.length {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	view, _, err := DecodeUser2View(v.data[start:end])
+	return view, err
+}
+
+// Raw returns the underlying encoded bytes
+func (v User2SliceView) Raw() []byte {
+	return v.data
+}
+
+// Materialize fully decodes all elements into a slice
+func (v User2SliceView) Materialize() ([]User2, error) {
+	result, _, err := DecodeUser2Slice(v.data)
+	return result, err
+}
+
+// AddressSliceArray3View provides lazy indexed access to address[][3]
+type AddressSliceArray3View struct {
+	data    []byte
+	offsets [3]int
+}
+
+// DecodeAddressSliceArray3View creates a lazy view of address[][3]
+func DecodeAddressSliceArray3View(data []byte) (AddressSliceArray3View, int, error) {
+	if len(data) < 96 {
+		return AddressSliceArray3View{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [3]int
+	prev := 96 - 1 // floor: first offset must be >= N*32
+	for i := 0; i < 3; i++ {
+		off, err := abi.DecodeSize(data[i*32:])
+		if err != nil {
+			return AddressSliceArray3View{}, 0, err
+		}
+		if off <= prev || off > len(data) {
+			return AddressSliceArray3View{}, 0, abi.ErrInvalidOffsetForArrayElement
+		}
+		offsets[i] = off
+		prev = off
+	}
+
+	return AddressSliceArray3View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Len returns the number of elements
+func (v AddressSliceArray3View) Len() int {
+	return 3
+}
+
+// Get returns element at index i
+func (v AddressSliceArray3View) Get(i int) ([]common.Address, error) {
+	if i < 0 || i >= 3 {
+		return nil, abi.ErrViewIndexOutOfBounds
+	}
+	start := v.offsets[i]
+	var end int
+	if i+1 < 3 {
+		end = v.offsets[i+1]
+	} else {
+		end = len(v.data)
+	}
+	value, _, err := abi.DecodeAddressSlice(v.data[start:end])
+	return value, err
+}
+
+// Raw returns the underlying encoded bytes
+func (v AddressSliceArray3View) Raw() []byte {
+	return v.data
+}
+
+// Materialize fully decodes all elements into an array
+func (v AddressSliceArray3View) Materialize() ([3][]common.Address, error) {
+	result, _, err := DecodeAddressSliceArray3(v.data)
+	return result, err
+}
+
+// GroupView is not generated: Group references an ExternalTuples type.
+
+// ItemView provides lazy access to Item ABI data
+type ItemView struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeItemView creates a lazy view of Item.
+func DecodeItemView(data []byte) (ItemView, int, error) {
+	if len(data) < 96 {
+		return ItemView{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[32:])
+		if err != nil {
+			return ItemView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return ItemView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return ItemView{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Id returns the uint32 field
+func (v ItemView) Id() (uint32, error) {
+	value, _, err := abi.DecodeUint32(v.data[0:])
+	return value, err
+}
+
+// Data returns the bytes field
+func (v ItemView) Data() ([]byte, error) {
+	value, _, err := abi.DecodeBytes(v.data[v.offsets[0]:])
+	return value, err
+}
+
+// Active returns the bool field
+func (v ItemView) Active() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[64:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v ItemView) MaterializeTo(dst *Item) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Id, _, err = abi.DecodeUint32(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.Data, _, err = abi.DecodeBytes(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	if dst.Active, _, err = abi.DecodeBool(v.data[64:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Item. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v ItemView) Materialize() (*Item, error) {
+	result := &Item{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v ItemView) Raw() []byte {
+	return v.data
+}
+
+// Level1View provides lazy access to Level1 ABI data
+type Level1View struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeLevel1View creates a lazy view of Level1.
+func DecodeLevel1View(data []byte) (Level1View, int, error) {
+	if len(data) < 32 {
+		return Level1View{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[0:])
+		if err != nil {
+			return Level1View{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return Level1View{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return Level1View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Level1 returns the (((uint256,string))) field
+func (v Level1View) Level1() (Level2View, error) {
+	view, _, err := DecodeLevel2View(v.data[v.offsets[0]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v Level1View) MaterializeTo(dst *Level1) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if _, err = dst.Level1.Decode(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Level1. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v Level1View) Materialize() (*Level1, error) {
+	result := &Level1{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v Level1View) Raw() []byte {
+	return v.data
+}
+
+// Level2View provides lazy access to Level2 ABI data
+type Level2View struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeLevel2View creates a lazy view of Level2.
+func DecodeLevel2View(data []byte) (Level2View, int, error) {
+	if len(data) < 32 {
+		return Level2View{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[0:])
+		if err != nil {
+			return Level2View{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return Level2View{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return Level2View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Level2 returns the ((uint256,string)) field
+func (v Level2View) Level2() (Level3View, error) {
+	view, _, err := DecodeLevel3View(v.data[v.offsets[0]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v Level2View) MaterializeTo(dst *Level2) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if _, err = dst.Level2.Decode(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Level2. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v Level2View) Materialize() (*Level2, error) {
+	result := &Level2{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v Level2View) Raw() []byte {
+	return v.data
+}
+
+// Level3View provides lazy access to Level3 ABI data
+type Level3View struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeLevel3View creates a lazy view of Level3.
+func DecodeLevel3View(data []byte) (Level3View, int, error) {
+	if len(data) < 32 {
+		return Level3View{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[0:])
+		if err != nil {
+			return Level3View{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return Level3View{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return Level3View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Level3 returns the (uint256,string) field
+func (v Level3View) Level3() (Level4View, error) {
+	view, _, err := DecodeLevel4View(v.data[v.offsets[0]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v Level3View) MaterializeTo(dst *Level3) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if _, err = dst.Level3.Decode(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Level3. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v Level3View) Materialize() (*Level3, error) {
+	result := &Level3{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v Level3View) Raw() []byte {
+	return v.data
+}
+
+// Level4View provides lazy access to Level4 ABI data
+type Level4View struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeLevel4View creates a lazy view of Level4.
+func DecodeLevel4View(data []byte) (Level4View, int, error) {
+	if len(data) < 64 {
+		return Level4View{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[32:])
+		if err != nil {
+			return Level4View{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return Level4View{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return Level4View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Value returns the uint256 field
+func (v Level4View) Value() (*abi.Uint256, error) {
+	value, _, err := abi.DecodeUint256(v.data[0:])
+	return value, err
+}
+
+// Description returns the string field
+func (v Level4View) Description() (string, error) {
+	value, _, err := abi.DecodeString(v.data[v.offsets[0]:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v Level4View) MaterializeTo(dst *Level4) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Value, _, err = abi.DecodeUint256(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.Description, _, err = abi.DecodeString(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new Level4. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v Level4View) Materialize() (*Level4, error) {
+	result := &Level4{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v Level4View) Raw() []byte {
+	return v.data
+}
+
+// TestComplexDynamicTuplesCallView provides lazy access to TestComplexDynamicTuplesCall ABI data
+type TestComplexDynamicTuplesCallView struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeTestComplexDynamicTuplesCallView creates a lazy view of TestComplexDynamicTuplesCall.
+func DecodeTestComplexDynamicTuplesCallView(data []byte) (TestComplexDynamicTuplesCallView, int, error) {
+	if len(data) < 32 {
+		return TestComplexDynamicTuplesCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[0:])
+		if err != nil {
+			return TestComplexDynamicTuplesCallView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return TestComplexDynamicTuplesCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return TestComplexDynamicTuplesCallView{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Users returns the (uint256,(string,string[],(uint256,string[])))[] field
+func (v TestComplexDynamicTuplesCallView) Users() (User2SliceView, error) {
+	view, _, err := DecodeUser2SliceView(v.data[v.offsets[0]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestComplexDynamicTuplesCallView) MaterializeTo(dst *TestComplexDynamicTuplesCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Users, _, err = DecodeUser2Slice(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestComplexDynamicTuplesCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestComplexDynamicTuplesCallView) Materialize() (*TestComplexDynamicTuplesCall, error) {
+	result := &TestComplexDynamicTuplesCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestComplexDynamicTuplesCallView) Raw() []byte {
+	return v.data
+}
+
+// TestComplexDynamicTuplesReturnView provides lazy access to TestComplexDynamicTuplesReturn ABI data
+type TestComplexDynamicTuplesReturnView struct {
+	data []byte
+}
+
+// DecodeTestComplexDynamicTuplesReturnView creates a lazy view of TestComplexDynamicTuplesReturn.
+func DecodeTestComplexDynamicTuplesReturnView(data []byte) (TestComplexDynamicTuplesReturnView, int, error) {
+	if len(data) < 32 {
+		return TestComplexDynamicTuplesReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestComplexDynamicTuplesReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestComplexDynamicTuplesReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestComplexDynamicTuplesReturnView) MaterializeTo(dst *TestComplexDynamicTuplesReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestComplexDynamicTuplesReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestComplexDynamicTuplesReturnView) Materialize() (*TestComplexDynamicTuplesReturn, error) {
+	result := &TestComplexDynamicTuplesReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestComplexDynamicTuplesReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestDeeplyNestedCallView provides lazy access to TestDeeplyNestedCall ABI data
+type TestDeeplyNestedCallView struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeTestDeeplyNestedCallView creates a lazy view of TestDeeplyNestedCall.
+func DecodeTestDeeplyNestedCallView(data []byte) (TestDeeplyNestedCallView, int, error) {
+	if len(data) < 32 {
+		return TestDeeplyNestedCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 32 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[0:])
+		if err != nil {
+			return TestDeeplyNestedCallView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return TestDeeplyNestedCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return TestDeeplyNestedCallView{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Data returns the ((((uint256,string)))) field
+func (v TestDeeplyNestedCallView) Data() (Level1View, error) {
+	view, _, err := DecodeLevel1View(v.data[v.offsets[0]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestDeeplyNestedCallView) MaterializeTo(dst *TestDeeplyNestedCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if _, err = dst.Data.Decode(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestDeeplyNestedCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestDeeplyNestedCallView) Materialize() (*TestDeeplyNestedCall, error) {
+	result := &TestDeeplyNestedCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestDeeplyNestedCallView) Raw() []byte {
+	return v.data
+}
+
+// TestDeeplyNestedReturnView provides lazy access to TestDeeplyNestedReturn ABI data
+type TestDeeplyNestedReturnView struct {
+	data []byte
+}
+
+// DecodeTestDeeplyNestedReturnView creates a lazy view of TestDeeplyNestedReturn.
+func DecodeTestDeeplyNestedReturnView(data []byte) (TestDeeplyNestedReturnView, int, error) {
+	if len(data) < 32 {
+		return TestDeeplyNestedReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestDeeplyNestedReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestDeeplyNestedReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestDeeplyNestedReturnView) MaterializeTo(dst *TestDeeplyNestedReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestDeeplyNestedReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestDeeplyNestedReturnView) Materialize() (*TestDeeplyNestedReturn, error) {
+	result := &TestDeeplyNestedReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestDeeplyNestedReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestExternalTupleCallView is not generated: TestExternalTupleCall references an ExternalTuples type.
+
+// TestExternalTupleReturnView provides lazy access to TestExternalTupleReturn ABI data
+type TestExternalTupleReturnView struct {
+	data []byte
+}
+
+// DecodeTestExternalTupleReturnView creates a lazy view of TestExternalTupleReturn.
+func DecodeTestExternalTupleReturnView(data []byte) (TestExternalTupleReturnView, int, error) {
+	if len(data) < 32 {
+		return TestExternalTupleReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestExternalTupleReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestExternalTupleReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestExternalTupleReturnView) MaterializeTo(dst *TestExternalTupleReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestExternalTupleReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestExternalTupleReturnView) Materialize() (*TestExternalTupleReturn, error) {
+	result := &TestExternalTupleReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestExternalTupleReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestFixedArraysCallView provides lazy access to TestFixedArraysCall ABI data
+type TestFixedArraysCallView struct {
+	data []byte
+}
+
+// DecodeTestFixedArraysCallView creates a lazy view of TestFixedArraysCall.
+func DecodeTestFixedArraysCallView(data []byte) (TestFixedArraysCallView, int, error) {
+	if len(data) < 320 {
+		return TestFixedArraysCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestFixedArraysCallView{
+		data: data[:320],
+	}, 320, nil
+}
+
+// Addresses returns the address[5] field
+func (v TestFixedArraysCallView) Addresses() ([5]common.Address, error) {
+	value, _, err := DecodeAddressArray5(v.data[0:])
+	return value, err
+}
+
+// Uints returns the uint256[3] field
+func (v TestFixedArraysCallView) Uints() ([3]*abi.Uint256, error) {
+	value, _, err := DecodeUint256Array3(v.data[160:])
+	return value, err
+}
+
+// Bytes32s returns the bytes32[2] field
+func (v TestFixedArraysCallView) Bytes32s() ([2][32]byte, error) {
+	value, _, err := DecodeBytes32Array2(v.data[256:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestFixedArraysCallView) MaterializeTo(dst *TestFixedArraysCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Addresses, _, err = DecodeAddressArray5(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.Uints, _, err = DecodeUint256Array3(v.data[160:]); err != nil {
+		return err
+	}
+	if dst.Bytes32s, _, err = DecodeBytes32Array2(v.data[256:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestFixedArraysCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestFixedArraysCallView) Materialize() (*TestFixedArraysCall, error) {
+	result := &TestFixedArraysCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestFixedArraysCallView) Raw() []byte {
+	return v.data
+}
+
+// TestFixedArraysReturnView provides lazy access to TestFixedArraysReturn ABI data
+type TestFixedArraysReturnView struct {
+	data []byte
+}
+
+// DecodeTestFixedArraysReturnView creates a lazy view of TestFixedArraysReturn.
+func DecodeTestFixedArraysReturnView(data []byte) (TestFixedArraysReturnView, int, error) {
+	if len(data) < 32 {
+		return TestFixedArraysReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestFixedArraysReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestFixedArraysReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestFixedArraysReturnView) MaterializeTo(dst *TestFixedArraysReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestFixedArraysReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestFixedArraysReturnView) Materialize() (*TestFixedArraysReturn, error) {
+	result := &TestFixedArraysReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestFixedArraysReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestFixedBytesCallView provides lazy access to TestFixedBytesCall ABI data
+type TestFixedBytesCallView struct {
+	data []byte
+}
+
+// DecodeTestFixedBytesCallView creates a lazy view of TestFixedBytesCall.
+func DecodeTestFixedBytesCallView(data []byte) (TestFixedBytesCallView, int, error) {
+	if len(data) < 96 {
+		return TestFixedBytesCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestFixedBytesCallView{
+		data: data[:96],
+	}, 96, nil
+}
+
+// Data3 returns the bytes3 field
+func (v TestFixedBytesCallView) Data3() ([3]byte, error) {
+	value, _, err := abi.DecodeBytes3(v.data[0:])
+	return value, err
+}
+
+// Data7 returns the bytes7 field
+func (v TestFixedBytesCallView) Data7() ([7]byte, error) {
+	value, _, err := abi.DecodeBytes7(v.data[32:])
+	return value, err
+}
+
+// Data15 returns the bytes15 field
+func (v TestFixedBytesCallView) Data15() ([15]byte, error) {
+	value, _, err := abi.DecodeBytes15(v.data[64:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestFixedBytesCallView) MaterializeTo(dst *TestFixedBytesCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Data3, _, err = abi.DecodeBytes3(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.Data7, _, err = abi.DecodeBytes7(v.data[32:]); err != nil {
+		return err
+	}
+	if dst.Data15, _, err = abi.DecodeBytes15(v.data[64:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestFixedBytesCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestFixedBytesCallView) Materialize() (*TestFixedBytesCall, error) {
+	result := &TestFixedBytesCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestFixedBytesCallView) Raw() []byte {
+	return v.data
+}
+
+// TestFixedBytesReturnView provides lazy access to TestFixedBytesReturn ABI data
+type TestFixedBytesReturnView struct {
+	data []byte
+}
+
+// DecodeTestFixedBytesReturnView creates a lazy view of TestFixedBytesReturn.
+func DecodeTestFixedBytesReturnView(data []byte) (TestFixedBytesReturnView, int, error) {
+	if len(data) < 32 {
+		return TestFixedBytesReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestFixedBytesReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bytes32 field
+func (v TestFixedBytesReturnView) Field1() ([32]byte, error) {
+	value, _, err := abi.DecodeBytes32(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestFixedBytesReturnView) MaterializeTo(dst *TestFixedBytesReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBytes32(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestFixedBytesReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestFixedBytesReturnView) Materialize() (*TestFixedBytesReturn, error) {
+	result := &TestFixedBytesReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestFixedBytesReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestMixedTypesCallView provides lazy access to TestMixedTypesCall ABI data
+type TestMixedTypesCallView struct {
+	data    []byte
+	offsets [2]int // offsets for dynamic fields
+}
+
+// DecodeTestMixedTypesCallView creates a lazy view of TestMixedTypesCall.
+func DecodeTestMixedTypesCallView(data []byte) (TestMixedTypesCallView, int, error) {
+	if len(data) < 160 {
+		return TestMixedTypesCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [2]int
+	prevOffset := 160 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[32:])
+		if err != nil {
+			return TestMixedTypesCallView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return TestMixedTypesCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	{
+		off, err := abi.DecodeSize(data[128:])
+		if err != nil {
+			return TestMixedTypesCallView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return TestMixedTypesCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
+	}
+
+	return TestMixedTypesCallView{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// FixedData returns the bytes32 field
+func (v TestMixedTypesCallView) FixedData() ([32]byte, error) {
+	value, _, err := abi.DecodeBytes32(v.data[0:])
+	return value, err
+}
+
+// DynamicData returns the bytes field
+func (v TestMixedTypesCallView) DynamicData() ([]byte, error) {
+	value, _, err := abi.DecodeBytes(v.data[v.offsets[0]:v.offsets[1]])
+	return value, err
+}
+
+// Flag returns the bool field
+func (v TestMixedTypesCallView) Flag() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[64:])
+	return value, err
+}
+
+// Count returns the uint8 field
+func (v TestMixedTypesCallView) Count() (uint8, error) {
+	value, _, err := abi.DecodeUint8(v.data[96:])
+	return value, err
+}
+
+// Items returns the (uint32,bytes,bool)[] field
+func (v TestMixedTypesCallView) Items() (ItemSliceView, error) {
+	view, _, err := DecodeItemSliceView(v.data[v.offsets[1]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestMixedTypesCallView) MaterializeTo(dst *TestMixedTypesCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.FixedData, _, err = abi.DecodeBytes32(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.DynamicData, _, err = abi.DecodeBytes(v.data[v.offsets[0]:v.offsets[1]]); err != nil {
+		return err
+	}
+	if dst.Flag, _, err = abi.DecodeBool(v.data[64:]); err != nil {
+		return err
+	}
+	if dst.Count, _, err = abi.DecodeUint8(v.data[96:]); err != nil {
+		return err
+	}
+	if dst.Items, _, err = DecodeItemSlice(v.data[v.offsets[1]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestMixedTypesCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestMixedTypesCallView) Materialize() (*TestMixedTypesCall, error) {
+	result := &TestMixedTypesCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestMixedTypesCallView) Raw() []byte {
+	return v.data
+}
+
+// TestMixedTypesReturnView provides lazy access to TestMixedTypesReturn ABI data
+type TestMixedTypesReturnView struct {
+	data []byte
+}
+
+// DecodeTestMixedTypesReturnView creates a lazy view of TestMixedTypesReturn.
+func DecodeTestMixedTypesReturnView(data []byte) (TestMixedTypesReturnView, int, error) {
+	if len(data) < 32 {
+		return TestMixedTypesReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestMixedTypesReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestMixedTypesReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestMixedTypesReturnView) MaterializeTo(dst *TestMixedTypesReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestMixedTypesReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestMixedTypesReturnView) Materialize() (*TestMixedTypesReturn, error) {
+	result := &TestMixedTypesReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestMixedTypesReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestNestedDynamicArraysCallView provides lazy access to TestNestedDynamicArraysCall ABI data
+type TestNestedDynamicArraysCallView struct {
+	data    []byte
+	offsets [3]int // offsets for dynamic fields
+}
+
+// DecodeTestNestedDynamicArraysCallView creates a lazy view of TestNestedDynamicArraysCall.
+func DecodeTestNestedDynamicArraysCallView(data []byte) (TestNestedDynamicArraysCallView, int, error) {
+	if len(data) < 96 {
+		return TestNestedDynamicArraysCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [3]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[0:])
+		if err != nil {
+			return TestNestedDynamicArraysCallView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return TestNestedDynamicArraysCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	{
+		off, err := abi.DecodeSize(data[32:])
+		if err != nil {
+			return TestNestedDynamicArraysCallView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return TestNestedDynamicArraysCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
+	}
+
+	{
+		off, err := abi.DecodeSize(data[64:])
+		if err != nil {
+			return TestNestedDynamicArraysCallView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return TestNestedDynamicArraysCallView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[2] = off
+		prevOffset = off
+	}
+
+	return TestNestedDynamicArraysCallView{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Matrix returns the uint256[][] field
+func (v TestNestedDynamicArraysCallView) Matrix() (Uint256SliceSliceView, error) {
+	view, _, err := DecodeUint256SliceSliceView(v.data[v.offsets[0]:v.offsets[1]])
+	return view, err
+}
+
+// AddressMatrix returns the address[][3][] field
+func (v TestNestedDynamicArraysCallView) AddressMatrix() (AddressSliceArray3SliceView, error) {
+	view, _, err := DecodeAddressSliceArray3SliceView(v.data[v.offsets[1]:v.offsets[2]])
+	return view, err
+}
+
+// DymMatrix returns the string[][] field
+func (v TestNestedDynamicArraysCallView) DymMatrix() (StringSliceSliceView, error) {
+	view, _, err := DecodeStringSliceSliceView(v.data[v.offsets[2]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestNestedDynamicArraysCallView) MaterializeTo(dst *TestNestedDynamicArraysCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Matrix, _, err = DecodeUint256SliceSlice(v.data[v.offsets[0]:v.offsets[1]]); err != nil {
+		return err
+	}
+	if dst.AddressMatrix, _, err = DecodeAddressSliceArray3Slice(v.data[v.offsets[1]:v.offsets[2]]); err != nil {
+		return err
+	}
+	if dst.DymMatrix, _, err = DecodeStringSliceSlice(v.data[v.offsets[2]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestNestedDynamicArraysCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestNestedDynamicArraysCallView) Materialize() (*TestNestedDynamicArraysCall, error) {
+	result := &TestNestedDynamicArraysCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestNestedDynamicArraysCallView) Raw() []byte {
+	return v.data
+}
+
+// TestNestedDynamicArraysReturnView provides lazy access to TestNestedDynamicArraysReturn ABI data
+type TestNestedDynamicArraysReturnView struct {
+	data []byte
+}
+
+// DecodeTestNestedDynamicArraysReturnView creates a lazy view of TestNestedDynamicArraysReturn.
+func DecodeTestNestedDynamicArraysReturnView(data []byte) (TestNestedDynamicArraysReturnView, int, error) {
+	if len(data) < 32 {
+		return TestNestedDynamicArraysReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestNestedDynamicArraysReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestNestedDynamicArraysReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestNestedDynamicArraysReturnView) MaterializeTo(dst *TestNestedDynamicArraysReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestNestedDynamicArraysReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestNestedDynamicArraysReturnView) Materialize() (*TestNestedDynamicArraysReturn, error) {
+	result := &TestNestedDynamicArraysReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestNestedDynamicArraysReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestNestedStructCallView is not generated: TestNestedStructCall references an ExternalTuples type.
+
+// TestNestedStructReturnView provides lazy access to TestNestedStructReturn ABI data
+type TestNestedStructReturnView struct {
+	data []byte
+}
+
+// DecodeTestNestedStructReturnView creates a lazy view of TestNestedStructReturn.
+func DecodeTestNestedStructReturnView(data []byte) (TestNestedStructReturnView, int, error) {
+	if len(data) < 32 {
+		return TestNestedStructReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestNestedStructReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestNestedStructReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestNestedStructReturnView) MaterializeTo(dst *TestNestedStructReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestNestedStructReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestNestedStructReturnView) Materialize() (*TestNestedStructReturn, error) {
+	result := &TestNestedStructReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestNestedStructReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestNonStandardIntegersCallView provides lazy access to TestNonStandardIntegersCall ABI data
+type TestNonStandardIntegersCallView struct {
+	data []byte
+}
+
+// DecodeTestNonStandardIntegersCallView creates a lazy view of TestNonStandardIntegersCall.
+func DecodeTestNonStandardIntegersCallView(data []byte) (TestNonStandardIntegersCallView, int, error) {
+	if len(data) < 320 {
+		return TestNonStandardIntegersCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestNonStandardIntegersCallView{
+		data: data[:320],
+	}, 320, nil
+}
+
+// U24 returns the uint24 field
+func (v TestNonStandardIntegersCallView) U24() (uint32, error) {
+	value, _, err := abi.DecodeUint24(v.data[0:])
+	return value, err
+}
+
+// U48 returns the uint48 field
+func (v TestNonStandardIntegersCallView) U48() (uint64, error) {
+	value, _, err := abi.DecodeUint48(v.data[32:])
+	return value, err
+}
+
+// U72 returns the uint72 field
+func (v TestNonStandardIntegersCallView) U72() (*abi.Uint256, error) {
+	value, _, err := abi.DecodeUint72(v.data[64:])
+	return value, err
+}
+
+// U96 returns the uint96 field
+func (v TestNonStandardIntegersCallView) U96() (*abi.Uint256, error) {
+	value, _, err := abi.DecodeUint96(v.data[96:])
+	return value, err
+}
+
+// U120 returns the uint120 field
+func (v TestNonStandardIntegersCallView) U120() (*abi.Uint256, error) {
+	value, _, err := abi.DecodeUint120(v.data[128:])
+	return value, err
+}
+
+// I24 returns the int24 field
+func (v TestNonStandardIntegersCallView) I24() (int32, error) {
+	value, _, err := abi.DecodeInt24(v.data[160:])
+	return value, err
+}
+
+// I48 returns the int48 field
+func (v TestNonStandardIntegersCallView) I48() (int64, error) {
+	value, _, err := abi.DecodeInt48(v.data[192:])
+	return value, err
+}
+
+// I72 returns the int72 field
+func (v TestNonStandardIntegersCallView) I72() (*big.Int, error) {
+	value, _, err := abi.DecodeInt72(v.data[224:])
+	return value, err
+}
+
+// I96 returns the int96 field
+func (v TestNonStandardIntegersCallView) I96() (*big.Int, error) {
+	value, _, err := abi.DecodeInt96(v.data[256:])
+	return value, err
+}
+
+// I120 returns the int120 field
+func (v TestNonStandardIntegersCallView) I120() (*big.Int, error) {
+	value, _, err := abi.DecodeInt120(v.data[288:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestNonStandardIntegersCallView) MaterializeTo(dst *TestNonStandardIntegersCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.U24, _, err = abi.DecodeUint24(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.U48, _, err = abi.DecodeUint48(v.data[32:]); err != nil {
+		return err
+	}
+	if dst.U72, _, err = abi.DecodeUint72(v.data[64:]); err != nil {
+		return err
+	}
+	if dst.U96, _, err = abi.DecodeUint96(v.data[96:]); err != nil {
+		return err
+	}
+	if dst.U120, _, err = abi.DecodeUint120(v.data[128:]); err != nil {
+		return err
+	}
+	if dst.I24, _, err = abi.DecodeInt24(v.data[160:]); err != nil {
+		return err
+	}
+	if dst.I48, _, err = abi.DecodeInt48(v.data[192:]); err != nil {
+		return err
+	}
+	if dst.I72, _, err = abi.DecodeInt72(v.data[224:]); err != nil {
+		return err
+	}
+	if dst.I96, _, err = abi.DecodeInt96(v.data[256:]); err != nil {
+		return err
+	}
+	if dst.I120, _, err = abi.DecodeInt120(v.data[288:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestNonStandardIntegersCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestNonStandardIntegersCallView) Materialize() (*TestNonStandardIntegersCall, error) {
+	result := &TestNonStandardIntegersCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestNonStandardIntegersCallView) Raw() []byte {
+	return v.data
+}
+
+// TestNonStandardIntegersReturnView provides lazy access to TestNonStandardIntegersReturn ABI data
+type TestNonStandardIntegersReturnView struct {
+	data []byte
+}
+
+// DecodeTestNonStandardIntegersReturnView creates a lazy view of TestNonStandardIntegersReturn.
+func DecodeTestNonStandardIntegersReturnView(data []byte) (TestNonStandardIntegersReturnView, int, error) {
+	if len(data) < 32 {
+		return TestNonStandardIntegersReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestNonStandardIntegersReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestNonStandardIntegersReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestNonStandardIntegersReturnView) MaterializeTo(dst *TestNonStandardIntegersReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestNonStandardIntegersReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestNonStandardIntegersReturnView) Materialize() (*TestNonStandardIntegersReturn, error) {
+	result := &TestNonStandardIntegersReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestNonStandardIntegersReturnView) Raw() []byte {
+	return v.data
+}
+
+// TestSmallIntegersCallView provides lazy access to TestSmallIntegersCall ABI data
+type TestSmallIntegersCallView struct {
+	data []byte
+}
+
+// DecodeTestSmallIntegersCallView creates a lazy view of TestSmallIntegersCall.
+func DecodeTestSmallIntegersCallView(data []byte) (TestSmallIntegersCallView, int, error) {
+	if len(data) < 320 {
+		return TestSmallIntegersCallView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestSmallIntegersCallView{
+		data: data[:320],
+	}, 320, nil
+}
+
+// U8 returns the uint8 field
+func (v TestSmallIntegersCallView) U8() (uint8, error) {
+	value, _, err := abi.DecodeUint8(v.data[0:])
+	return value, err
+}
+
+// U16 returns the uint16 field
+func (v TestSmallIntegersCallView) U16() (uint16, error) {
+	value, _, err := abi.DecodeUint16(v.data[32:])
+	return value, err
+}
+
+// U24 returns the uint24 field
+func (v TestSmallIntegersCallView) U24() (uint32, error) {
+	value, _, err := abi.DecodeUint24(v.data[64:])
+	return value, err
+}
+
+// U32 returns the uint32 field
+func (v TestSmallIntegersCallView) U32() (uint32, error) {
+	value, _, err := abi.DecodeUint32(v.data[96:])
+	return value, err
+}
+
+// U64 returns the uint64 field
+func (v TestSmallIntegersCallView) U64() (uint64, error) {
+	value, _, err := abi.DecodeUint64(v.data[128:])
+	return value, err
+}
+
+// I8 returns the int8 field
+func (v TestSmallIntegersCallView) I8() (int8, error) {
+	value, _, err := abi.DecodeInt8(v.data[160:])
+	return value, err
+}
+
+// I16 returns the int16 field
+func (v TestSmallIntegersCallView) I16() (int16, error) {
+	value, _, err := abi.DecodeInt16(v.data[192:])
+	return value, err
+}
+
+// I24 returns the int24 field
+func (v TestSmallIntegersCallView) I24() (int32, error) {
+	value, _, err := abi.DecodeInt24(v.data[224:])
+	return value, err
+}
+
+// I32 returns the int32 field
+func (v TestSmallIntegersCallView) I32() (int32, error) {
+	value, _, err := abi.DecodeInt32(v.data[256:])
+	return value, err
+}
+
+// I64 returns the int64 field
+func (v TestSmallIntegersCallView) I64() (int64, error) {
+	value, _, err := abi.DecodeInt64(v.data[288:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestSmallIntegersCallView) MaterializeTo(dst *TestSmallIntegersCall) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.U8, _, err = abi.DecodeUint8(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.U16, _, err = abi.DecodeUint16(v.data[32:]); err != nil {
+		return err
+	}
+	if dst.U24, _, err = abi.DecodeUint24(v.data[64:]); err != nil {
+		return err
+	}
+	if dst.U32, _, err = abi.DecodeUint32(v.data[96:]); err != nil {
+		return err
+	}
+	if dst.U64, _, err = abi.DecodeUint64(v.data[128:]); err != nil {
+		return err
+	}
+	if dst.I8, _, err = abi.DecodeInt8(v.data[160:]); err != nil {
+		return err
+	}
+	if dst.I16, _, err = abi.DecodeInt16(v.data[192:]); err != nil {
+		return err
+	}
+	if dst.I24, _, err = abi.DecodeInt24(v.data[224:]); err != nil {
+		return err
+	}
+	if dst.I32, _, err = abi.DecodeInt32(v.data[256:]); err != nil {
+		return err
+	}
+	if dst.I64, _, err = abi.DecodeInt64(v.data[288:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestSmallIntegersCall. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestSmallIntegersCallView) Materialize() (*TestSmallIntegersCall, error) {
+	result := &TestSmallIntegersCall{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestSmallIntegersCallView) Raw() []byte {
+	return v.data
+}
+
+// TestSmallIntegersReturnView provides lazy access to TestSmallIntegersReturn ABI data
+type TestSmallIntegersReturnView struct {
+	data []byte
+}
+
+// DecodeTestSmallIntegersReturnView creates a lazy view of TestSmallIntegersReturn.
+func DecodeTestSmallIntegersReturnView(data []byte) (TestSmallIntegersReturnView, int, error) {
+	if len(data) < 32 {
+		return TestSmallIntegersReturnView{}, 0, io.ErrUnexpectedEOF
+	}
+	return TestSmallIntegersReturnView{
+		data: data[:32],
+	}, 32, nil
+}
+
+// Field1 returns the bool field
+func (v TestSmallIntegersReturnView) Field1() (bool, error) {
+	value, _, err := abi.DecodeBool(v.data[0:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v TestSmallIntegersReturnView) MaterializeTo(dst *TestSmallIntegersReturn) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Field1, _, err = abi.DecodeBool(v.data[0:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new TestSmallIntegersReturn. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v TestSmallIntegersReturnView) Materialize() (*TestSmallIntegersReturn, error) {
+	result := &TestSmallIntegersReturn{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v TestSmallIntegersReturnView) Raw() []byte {
+	return v.data
+}
+
+// User2View provides lazy access to User2 ABI data
+type User2View struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeUser2View creates a lazy view of User2.
+func DecodeUser2View(data []byte) (User2View, int, error) {
+	if len(data) < 64 {
+		return User2View{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[32:])
+		if err != nil {
+			return User2View{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return User2View{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return User2View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Id returns the uint256 field
+func (v User2View) Id() (*abi.Uint256, error) {
+	value, _, err := abi.DecodeUint256(v.data[0:])
+	return value, err
+}
+
+// Profile returns the (string,string[],(uint256,string[])) field
+func (v User2View) Profile() (UserProfileView, error) {
+	view, _, err := DecodeUserProfileView(v.data[v.offsets[0]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v User2View) MaterializeTo(dst *User2) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Id, _, err = abi.DecodeUint256(v.data[0:]); err != nil {
+		return err
+	}
+	if _, err = dst.Profile.Decode(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new User2. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v User2View) Materialize() (*User2, error) {
+	result := &User2{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v User2View) Raw() []byte {
+	return v.data
+}
+
+// UserMetadata2View provides lazy access to UserMetadata2 ABI data
+type UserMetadata2View struct {
+	data    []byte
+	offsets [1]int // offsets for dynamic fields
+}
+
+// DecodeUserMetadata2View creates a lazy view of UserMetadata2.
+func DecodeUserMetadata2View(data []byte) (UserMetadata2View, int, error) {
+	if len(data) < 64 {
+		return UserMetadata2View{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [1]int
+	prevOffset := 64 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[32:])
+		if err != nil {
+			return UserMetadata2View{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return UserMetadata2View{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	return UserMetadata2View{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// CreatedAt returns the uint256 field
+func (v UserMetadata2View) CreatedAt() (*abi.Uint256, error) {
+	value, _, err := abi.DecodeUint256(v.data[0:])
+	return value, err
+}
+
+// Tags returns the string[] field
+func (v UserMetadata2View) Tags() ([]string, error) {
+	value, _, err := abi.DecodeStringSlice(v.data[v.offsets[0]:])
+	return value, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v UserMetadata2View) MaterializeTo(dst *UserMetadata2) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.CreatedAt, _, err = abi.DecodeUint256(v.data[0:]); err != nil {
+		return err
+	}
+	if dst.Tags, _, err = abi.DecodeStringSlice(v.data[v.offsets[0]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new UserMetadata2. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v UserMetadata2View) Materialize() (*UserMetadata2, error) {
+	result := &UserMetadata2{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v UserMetadata2View) Raw() []byte {
+	return v.data
+}
+
+// UserProfileView provides lazy access to UserProfile ABI data
+type UserProfileView struct {
+	data    []byte
+	offsets [3]int // offsets for dynamic fields
+}
+
+// DecodeUserProfileView creates a lazy view of UserProfile.
+func DecodeUserProfileView(data []byte) (UserProfileView, int, error) {
+	if len(data) < 96 {
+		return UserProfileView{}, 0, io.ErrUnexpectedEOF
+	}
+	var offsets [3]int
+	prevOffset := 96 - 1 // floor for monotonic + in-bounds check
+
+	{
+		off, err := abi.DecodeSize(data[0:])
+		if err != nil {
+			return UserProfileView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return UserProfileView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[0] = off
+		prevOffset = off
+	}
+
+	{
+		off, err := abi.DecodeSize(data[32:])
+		if err != nil {
+			return UserProfileView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return UserProfileView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[1] = off
+		prevOffset = off
+	}
+
+	{
+		off, err := abi.DecodeSize(data[64:])
+		if err != nil {
+			return UserProfileView{}, 0, err
+		}
+		if off <= prevOffset || off > len(data) {
+			return UserProfileView{}, 0, abi.ErrInvalidOffsetForDynamicField
+		}
+		offsets[2] = off
+		prevOffset = off
+	}
+
+	return UserProfileView{
+		data:    data,
+		offsets: offsets,
+	}, len(data), nil
+}
+
+// Name returns the string field
+func (v UserProfileView) Name() (string, error) {
+	value, _, err := abi.DecodeString(v.data[v.offsets[0]:v.offsets[1]])
+	return value, err
+}
+
+// Emails returns the string[] field
+func (v UserProfileView) Emails() ([]string, error) {
+	value, _, err := abi.DecodeStringSlice(v.data[v.offsets[1]:v.offsets[2]])
+	return value, err
+}
+
+// Metadata returns the (uint256,string[]) field
+func (v UserProfileView) Metadata() (UserMetadata2View, error) {
+	view, _, err := DecodeUserMetadata2View(v.data[v.offsets[2]:])
+	return view, err
+}
+
+// MaterializeTo decodes the view into a caller-owned dst.
+// Skips offset re-parsing/validation by reusing the view's offsets.
+// Returns ErrNilDestination if dst is nil.
+func (v UserProfileView) MaterializeTo(dst *UserProfile) error {
+	if dst == nil {
+		return abi.ErrNilDestination
+	}
+	var err error
+	if dst.Name, _, err = abi.DecodeString(v.data[v.offsets[0]:v.offsets[1]]); err != nil {
+		return err
+	}
+	if dst.Emails, _, err = abi.DecodeStringSlice(v.data[v.offsets[1]:v.offsets[2]]); err != nil {
+		return err
+	}
+	if _, err = dst.Metadata.Decode(v.data[v.offsets[2]:]); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Materialize allocates and decodes the view into a new UserProfile. Use
+// MaterializeTo with a caller-owned dst to skip the destination alloc;
+// inner dynamic fields (bytes, strings, slices) still allocate.
+func (v UserProfileView) Materialize() (*UserProfile, error) {
+	result := &UserProfile{}
+	if err := v.MaterializeTo(result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Raw returns the underlying encoded bytes
+func (v UserProfileView) Raw() []byte {
+	return v.data
+}

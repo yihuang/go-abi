@@ -20,6 +20,7 @@ func main() {
 		stdlib        = flag.Bool("stdlib", false, "Generate stdlib itself")
 		artifactInput = flag.Bool("artifact-input", false, "Input file is a solc artifact JSON, will extract the abi field from it")
 		buildTag      = flag.String("buildtag", "", "Build tag to add to generated file (e.g., 'uint256')")
+		lazy          = flag.Bool("lazy", false, "Generate lazy decoding View types")
 	)
 	flag.Parse()
 
@@ -28,6 +29,7 @@ func main() {
 		generator.Prefix(*prefix),
 		generator.Stdlib(*stdlib),
 		generator.BuildTag(*buildTag),
+		generator.GenerateLazy(*lazy),
 	}
 
 	if *imports != "" {

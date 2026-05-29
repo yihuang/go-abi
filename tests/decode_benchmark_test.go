@@ -13,15 +13,16 @@ func BenchmarkGoABI_Decode_ComplexDynamicTuples(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		var decoded TestComplexDynamicTuplesCall
-		_, err := decoded.Decode(encoded)
-		if err != nil {
-			b.Fatal(err)
+	b.Run("Materialize", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			var decoded TestComplexDynamicTuplesCall
+			_, err := decoded.Decode(encoded)
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
+	})
 }
 
 func BenchmarkGoABI_Decode_NestedDynamicArrays(b *testing.B) {
@@ -30,15 +31,16 @@ func BenchmarkGoABI_Decode_NestedDynamicArrays(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		var decoded TestNestedDynamicArraysCall
-		_, err := decoded.Decode(encoded)
-		if err != nil {
-			b.Fatal(err)
+	b.Run("Materialize", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			var decoded TestNestedDynamicArraysCall
+			_, err := decoded.Decode(encoded)
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
+	})
 }
 
 func BenchmarkGoABI_Decode_MixedTypes(b *testing.B) {
@@ -47,15 +49,16 @@ func BenchmarkGoABI_Decode_MixedTypes(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		var decoded TestMixedTypesCall
-		_, err := decoded.Decode(encoded)
-		if err != nil {
-			b.Fatal(err)
+	b.Run("Materialize", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			var decoded TestMixedTypesCall
+			_, err := decoded.Decode(encoded)
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
+	})
 }
 
 // Benchmark functions for go-ethereum ABI decoding
@@ -67,13 +70,14 @@ func BenchmarkGoEthereum_Decode_ComplexDynamicTuples(b *testing.B) {
 	}
 	arguments := ComprehensiveTestABIDef.Methods["testComplexDynamicTuples"].Inputs
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := arguments.Unpack(encoded[4:])
-		if err != nil {
-			b.Fatal(err)
+	b.Run("Materialize", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, err := arguments.Unpack(encoded[4:])
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
+	})
 }
 
 func BenchmarkGoEthereum_Decode_NestedDynamicArrays(b *testing.B) {
@@ -84,14 +88,15 @@ func BenchmarkGoEthereum_Decode_NestedDynamicArrays(b *testing.B) {
 		b.Fatal(err)
 	}
 	arguments := ComprehensiveTestABIDef.Methods["testNestedDynamicArrays"].Inputs
-	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		_, err := arguments.Unpack(encoded[4:])
-		if err != nil {
-			b.Fatal(err)
+	b.Run("Materialize", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, err := arguments.Unpack(encoded[4:])
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
+	})
 }
 
 func BenchmarkGoEthereum_Decode_MixedTypes(b *testing.B) {
@@ -103,11 +108,12 @@ func BenchmarkGoEthereum_Decode_MixedTypes(b *testing.B) {
 	}
 	arguments := ComprehensiveTestABIDef.Methods["testMixedTypes"].Inputs
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, err := arguments.Unpack(encoded[4:])
-		if err != nil {
-			b.Fatal(err)
+	b.Run("Materialize", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, err := arguments.Unpack(encoded[4:])
+			if err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
+	})
 }

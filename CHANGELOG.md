@@ -9,3 +9,5 @@
 ### Bug Fixes
 
 ### Improvements
+
+* (generator) [#17](https://github.com/yihuang/go-abi/pull/17) Added `-lazy` code generation mode for on-demand decoding views (`*View`, `*SliceView`, `*ArrayView`) with `Get`, `Len`, `Raw`, and `Materialize` helpers.

@@ -10,6 +10,7 @@ type Options struct {
 	Prefix         string
 	Stdlib         bool
 	BuildTag       string // Build tag to add to generated file (e.g., "uint256")
+	GenerateLazy   bool   // Generate lazy decoding View types
 }
 
 func NewOptions(opts ...Option) *Options {
@@ -59,5 +60,15 @@ func ExternalTuples(m map[string]string) Option {
 func BuildTag(tag string) Option {
 	return func(o *Options) {
 		o.BuildTag = tag
+	}
+}
+
+// GenerateLazy enables *View types that decode fields on demand. Best for
+// large payloads with partial reads; the materializing decoder is faster
+// for small payloads you fully traverse. Pass a slice covering exactly
+// the view's payload.
+func GenerateLazy(enable bool) Option {
+	return func(o *Options) {
+		o.GenerateLazy = enable
 	}
 }
