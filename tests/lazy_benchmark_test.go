@@ -12,7 +12,6 @@ import (
 // Run with: go test -bench='LazyView' -benchmem ./tests/...
 
 func mustEncode(b *testing.B, v abi.Encode) []byte {
-	b.Helper()
 	encoded, err := v.Encode()
 	if err != nil {
 		b.Fatal(err)
@@ -20,8 +19,9 @@ func mustEncode(b *testing.B, v abi.Encode) []byte {
 	return encoded
 }
 
+// must avoids b.Helper(), which adds ~68 ns/op when called in a b.N loop and
+// would dominate these benchmarks.
 func must(b *testing.B, err error) {
-	b.Helper()
 	if err != nil {
 		b.Fatal(err)
 	}
